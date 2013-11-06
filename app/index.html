@@ -1,0 +1,218 @@
+<!doctype html>
+<html>
+<head>
+  <title>Yith Library Mobile App</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+
+  <!-- Building blocks -->
+  <link rel="stylesheet" href="/styles/gaiabb/style/action_menu.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style/buttons.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style/confirm.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style/edit_mode.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style/headers.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style/input_areas.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style/status.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style/switches.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/drawer.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/lists.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/progress_activity.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/scrolling.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/seekbars.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/tabs.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/toolbars.css" type="text/css">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="/styles/gaiabb/icons/styles/action_icons.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/icons/styles/media_icons.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/icons/styles/comms_icons.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/icons/styles/settings_icons.css" type="text/css">
+
+  <!-- Transitions -->
+  <link rel="stylesheet" href="/styles/gaiabb/transitions.css" type="text/css">
+
+  <!-- Util CSS: some extra tricks -->
+  <link rel="stylesheet" href="/styles/gaiabb/util.css" type="text/css">
+  <link rel="stylesheet" href="/styles/gaiabb/fonts.css" type="text/css">
+
+  <!-- Additional markup to make Building Blocks kind of cross browser -->
+  <link rel="stylesheet" href="/styles/gaiabb/cross_browser.css" type="text/css">
+
+
+  <link href="/styles/main.css" rel="stylesheet" type="text/css">
+  <style>
+    #index {
+      height: 100%;
+    }
+    [data-position="right"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transform: translateX(100%);
+      -webkit-transform: translateX(100%);
+      z-index: 15;
+      z-index: 100; /* -> drawer */
+    }
+    section[role="region"][data-position="right"] {
+      position: absolute;
+    }
+    [data-position="right"].current {
+      animation: rightToCurrent 0.4s forwards;
+      -webkit-animation: rightToCurrent 0.4s forwards;
+    }
+    [data-position="right"].right {
+      animation: currentToRight 0.4s forwards;
+      -webkit-animation: currentToRight 0.4s forwards;
+    }
+    [data-position="current"].left {
+      animation: currentToLeft 0.4s forwards;
+      -webkit-animation: currentToLeft 0.4s forwards;
+    }
+    [data-position="current"].current {
+      animation: leftToCurrent 0.4s forwards;
+      -webkit-animation: leftToCurrent 0.4s forwards;
+    }
+    [data-position="back"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      opacity: 0;
+      /* z-index: 100; -> drawer */
+    }
+    [data-position="back"].fade-in {
+      z-index: 120;
+      animation: fadeIn 0.2s forwards;
+      -webkit-animation: fadeIn 0.2s forwards;
+    }
+    [data-position="back"].fade-out {
+      animation: fadeOut 0.2s forwards;
+      -webkit-animation: fadeOut 0.2s forwards;
+    }
+
+    /* Lists */
+    /* to avoid double background effect on press */
+    [data-type=list] li>a:active {
+      background-color: transparent;
+    }
+
+    /* Drawer */
+    section[role="region"]:not(#drawer) {
+      transition: none;
+      left: 0;
+      z-index: 0;
+      padding-left: 0;
+    }
+    section[data-type="sidebar"] + section[role="region"] > header:first-child > button,
+    section[data-type="sidebar"] + section[role="region"] > header:first-child > a {
+      background-position: 3.5rem center;
+    }
+
+    /* Device rotation */
+    .landscape section[role="region"]#drawer > header:first-child {
+      /* Whatever needs to be changed on landscape */
+    }
+  </style>
+
+  <script defer src="/scripts/main.js"></script>
+</head>
+
+<body role="application">
+  <section id="index" data-position="current">
+    <section data-type="sidebar">
+      <header>
+        <menu type="toolbar">
+          <a href="#">Done</a>
+        </menu>
+        <h1>Tags</h1>
+      </header>
+      <nav>
+        <ul>
+          <li><a href="#">fun (10)</a></li>
+          <li><a href="#">work (4)</a></li>
+          <li><a href="#">money (3)</a></li>
+        </ul>
+        <h2>Settings</h2>
+        <ul>
+          <li><a href="#">Disable countdown</a></li>
+          <li><a href="#">Remember master password</a></li>
+        </ul>
+      </nav>
+    </section>
+
+    <section id="drawer" role="region">
+      <header class="fixed">
+        <a href="#"><span class="icon icon-menu">back</span></a>
+        <a href="#drawer"><span class="icon icon-menu">menu</span></a>
+        <menu type="toolbar">
+          <a href="#"><span class="icon icon-add">add</span></a>
+        </menu>
+        <form action="#">
+          <input type="text" placeholder="search" />
+          <button type="reset">Remove text</button>
+        </form>
+      </header>
+      <article class="content scrollable header">
+        <div data-type="list">
+          <ul>
+            <li>
+              <a href="#">
+                <p>amazon.com</p>
+                <p>lorenzo.gil.sanchez@gmail.com</p>
+              </a>
+            </li>
+            <li>
+              <a href="#">
+                <p>dropbox.com</p>
+                <p>lorenzo.gil.sanchez@gmail.com</p>
+              </a>
+            </li>
+            <li>
+              <a href="#">
+                <p>ebay.es</p>
+                <p>lorenzogilsanchez</p>
+              </a>
+            </li>
+            <li>
+              <a href="#">
+                <p>iberia.com</p>
+                <p>12345678</p>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </article>
+    </section>
+  </section>
+
+  <section role="region" id="edit-secret" data-position="right">
+    <header class="fixed">
+      <a id="btn-edit-secret-back" href="#"><span class="icon icon-back">back</span></a>
+      <h1>New secret</h1>
+    </header>
+
+    <article class="content scrollable header">
+
+    </article>
+
+  </section>
+
+  <section role="region" id="show-secret" data-position="right">
+    <header class="fixed">
+      <a id="btn-show-secret-back" href="#"><span class="icon icon-back">back</span></a>
+      <h1>amazon.com</h1>
+    </header>
+
+    <article class="content scrollable header">
+
+    </article>
+
+  </section>
+
+</body>
+</html>
+

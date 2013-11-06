@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <title>Mocha tests</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="/lib/mocha.css">
+
+  <!-- include mocha + chai + sinon -->
+  <script src="/lib/mocha.js" type="text/javascript"></script>
+  <script src="/lib/chai.js" type="text/javascript"></script>
+  <script src="/lib/sinon.js" type="text/javascript"></script>
+</head>
+<body>
+  <!-- required for browser reporter -->
+  <div id="mocha"></div>
+
+  <script type="text/javascript">
+    mocha.setup('bdd');
+    mocha.globals([ // acceptable globals
+      //'Waaaagh'
+    ]);
+  </script>
+
+  <!-- include the sources we want to test -->
+
+  <!-- include the spec files -->
+  <script type="text/javascript">
+    describe('sample test', function () {
+      it('just works', function () {
+        chai.expect(2 + 2).to.equal(4);
+      });
+    });
+  </script>
+
+  <!-- run mocha -->
+  <script type="text/javascript">
+    mocha.run(); // run mocha
+  </script>
+</body>
+</html>
+
