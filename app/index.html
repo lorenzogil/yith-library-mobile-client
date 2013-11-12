@@ -118,100 +118,104 @@
     }
   </style>
 
-  <script defer src="/scripts/main.js"></script>
 </head>
 
 <body role="application">
-  <section id="index" data-position="current">
-    <section data-type="sidebar">
-      <header>
-        <menu type="toolbar">
-          <a href="#">Done</a>
-        </menu>
-        <h1>Tags</h1>
-      </header>
-      <nav>
-        <ul>
-          <li><a href="#">fun (10)</a></li>
-          <li><a href="#">work (4)</a></li>
-          <li><a href="#">money (3)</a></li>
-        </ul>
-        <h2>Settings</h2>
-        <ul>
-          <li><a href="#">Disable countdown</a></li>
-          <li><a href="#">Remember master password</a></li>
-        </ul>
-      </nav>
-    </section>
 
-    <section id="drawer" role="region">
-      <header class="fixed">
-        <a href="#"><span class="icon icon-menu">back</span></a>
-        <a href="#drawer"><span class="icon icon-menu">menu</span></a>
-        <menu type="toolbar">
-          <a href="#"><span class="icon icon-add">add</span></a>
-        </menu>
-        <form action="#">
-          <input type="text" placeholder="search" />
-          <button type="reset">Remove text</button>
-        </form>
-      </header>
-      <article class="content scrollable header">
-        <div data-type="list">
+  <script type="text/x-handlebars" data-template-name="secrets">
+    <section id="index" data-position="current">
+      <section data-type="sidebar">
+        <header>
+          <menu type="toolbar">
+            <a href="#">Done</a>
+          </menu>
+          <h1>Tags</h1>
+        </header>
+        <nav>
           <ul>
-            <li>
-              <a href="#">
-                <p>amazon.com</p>
-                <p>lorenzo.gil.sanchez@gmail.com</p>
-              </a>
-            </li>
-            <li>
-              <a href="#">
-                <p>dropbox.com</p>
-                <p>lorenzo.gil.sanchez@gmail.com</p>
-              </a>
-            </li>
-            <li>
-              <a href="#">
-                <p>ebay.es</p>
-                <p>lorenzogilsanchez</p>
-              </a>
-            </li>
-            <li>
-              <a href="#">
-                <p>iberia.com</p>
-                <p>12345678</p>
-              </a>
-            </li>
+            <li><a href="#">fun (10)</a></li>
+            <li><a href="#">work (4)</a></li>
+            <li><a href="#">money (3)</a></li>
           </ul>
-        </div>
-      </article>
+          <h2>Settings</h2>
+          <ul>
+            <li><a href="#">Disable countdown</a></li>
+            <li><a href="#">Remember master password</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <section id="drawer" role="region">
+        <header class="fixed">
+          <a href="#"><span class="icon icon-menu">back</span></a>
+          <a href="#drawer"><span class="icon icon-menu">menu</span></a>
+          <menu type="toolbar">
+            <a href="#"><span class="icon icon-add">add</span></a>
+          </menu>
+          <form action="#">
+            <input type="text" placeholder="search" />
+            <button type="reset">Remove text</button>
+          </form>
+        </header>
+        <article class="content scrollable header">
+          <div data-type="list">
+            <ul>
+              {{#each}}
+              <li>
+                <a href="#">
+                  <p>{{service}}</p>
+                  <p>{{account}}</p>
+                </a>
+              </li>
+              {{/each}}
+            </ul>
+          </div>
+        </article>
+      </section>
     </section>
-  </section>
+  </script>
 
-  <section role="region" id="edit-secret" data-position="right">
-    <header class="fixed">
-      <a id="btn-edit-secret-back" href="#"><span class="icon icon-back">back</span></a>
-      <h1>New secret</h1>
-    </header>
 
-    <article class="content scrollable header">
+  <script type="text/x-handlebars" data-template-name="edit-secret">
+    <section role="region" id="edit-secret" data-position="right">
+      <header class="fixed">
+        <a id="btn-edit-secret-back" href="#"><span class="icon icon-back">back</span></a>
+        <h1>New secret</h1>
+      </header>
 
-    </article>
+      <article class="content scrollable header">
 
-  </section>
+      </article>
 
-  <section role="region" id="show-secret" data-position="right">
-    <header class="fixed">
-      <a id="btn-show-secret-back" href="#"><span class="icon icon-back">back</span></a>
-      <h1>amazon.com</h1>
-    </header>
+    </section>
+  </script>
 
-    <article class="content scrollable header">
+  <script type="text/x-handlebars" data-template-name="show-secret">
+    <section role="region" id="show-secret" data-position="right">
+      <header class="fixed">
+        <a id="btn-show-secret-back" href="#"><span class="icon icon-back">back</span></a>
+        <h1>amazon.com</h1>
+      </header>
 
-    </article>
+      <article class="content scrollable header">
 
-  </section>
+      </article>
+
+    </section>
+  </script>
+
+  <!-- Dependencies -->
+  <script src="scripts/vendor/jquery-2.0.3.js"></script>
+  <script src="scripts/vendor/handlebars-1.0.0.js"></script>
+  <script src="scripts/vendor/ember-1.1.2.js"></script>
+  <script src="scripts/vendor/ember-data-1.0.0.beta3.js"></script>
+
+  <!-- Application -->
+  <script src="scripts/application.js"></script>
+  <script src="scripts/router.js"></script>
+
+  <!-- Models -->
+  <script src="scripts/secret.js"></script>
 
 </body>
 </html>
