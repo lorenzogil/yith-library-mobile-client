@@ -27,6 +27,7 @@
     "describe"
   ],
   "globals": {
+    "$": false,
     "Ember": false,
     "DS": false,
     "App": false
