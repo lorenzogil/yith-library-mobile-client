@@ -1,7 +1,9 @@
 'use strict';
 
 App.Router.map(function () {
-    this.resource('secrets', {path: '/secrets'});
+    this.resource('secrets', function () {
+        this.resource('secret', {path: '/secret/:secret_id'});
+    });
 });
 
 

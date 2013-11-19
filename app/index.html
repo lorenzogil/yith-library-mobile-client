@@ -123,85 +123,89 @@
 <body role="application">
 
   <script type="text/x-handlebars" data-template-name="secrets">
-    <section id="index" data-position="current">
-      <section data-type="sidebar">
-        <header>
-          <menu type="toolbar">
-            <a href="#">Done</a>
-          </menu>
-          <h1>Tags</h1>
-        </header>
-        <nav>
-          <ul>
-            <li><a href="#">fun (10)</a></li>
-            <li><a href="#">work (4)</a></li>
-            <li><a href="#">money (3)</a></li>
-          </ul>
-          <h2>Settings</h2>
-          <ul>
-            <li><a href="#">Disable countdown</a></li>
-            <li><a href="#">Remember master password</a></li>
-          </ul>
-        </nav>
-      </section>
-
-      <section id="drawer" role="region">
-        <header class="fixed">
-          <a href="#"><span class="icon icon-menu">back</span></a>
-          <a href="#drawer"><span class="icon icon-menu">menu</span></a>
-          <menu type="toolbar">
-            <a href="#"><span class="icon icon-add">add</span></a>
-          </menu>
-          <form action="#">
-            <input type="text" placeholder="search" />
-            <button type="reset">Remove text</button>
-          </form>
-        </header>
-        <article class="content scrollable header">
-          <div data-type="list">
+      <section id="secrets" data-position="current" {{bind-attr class="position"}}>
+        <section data-type="sidebar">
+          <header>
+            <menu type="toolbar">
+              <a href="#">Done</a>
+            </menu>
+            <h1>Tags</h1>
+          </header>
+          <nav>
             <ul>
-              {{#each}}
-              <li>
-                <a href="#">
+              <li><a href="#">fun (10)</a></li>
+              <li><a href="#">work (4)</a></li>
+              <li><a href="#">money (3)</a></li>
+            </ul>
+            <h2>Settings</h2>
+            <ul>
+              <li><a href="#">Disable countdown</a></li>
+              <li><a href="#">Remember master password</a></li>
+            </ul>
+          </nav>
+        </section>
+
+        <section id="drawer" role="region">
+          <header class="fixed">
+            <a href="#"><span class="icon icon-menu">back</span></a>
+            <a href="#drawer"><span class="icon icon-menu">menu</span></a>
+            <menu type="toolbar">
+              <a href="#"><span class="icon icon-add">add</span></a>
+            </menu>
+            <form action="#">
+              <input type="text" placeholder="search" />
+              <button type="reset">Remove text</button>
+            </form>
+          </header>
+          <article class="content scrollable header">
+            <div data-type="list">
+              <ul>
+                {{#each}}
+                <li>
+                  {{#link-to 'secret' id }}
                   <p>{{service}}</p>
                   <p>{{account}}</p>
-                </a>
-              </li>
-              {{/each}}
-            </ul>
-          </div>
-        </article>
+                  {{/link-to}}
+                </li>
+                {{/each}}
+              </ul>
+            </div>
+          </article>
+        </section>
       </section>
-    </section>
+
+      {{outlet}}
   </script>
 
+  <script type="text/x-handlebars" data-template-name="secret">
+    <header class="fixed">
+      <button {{action secrets target="view" }}><span class="icon icon-back">back</span></button>
+      <h1>{{service}}</h1>
+    </header>
 
-  <script type="text/x-handlebars" data-template-name="edit-secret">
-    <section role="region" id="edit-secret" data-position="right">
-      <header class="fixed">
-        <a id="btn-edit-secret-back" href="#"><span class="icon icon-back">back</span></a>
-        <h1>New secret</h1>
+    <article class="content scrollable header">
+      <form>
+        <p>
+          <input id="master-password" type="password" placeholder="Enter your master password" />
+          <button type="reset">Clear</button>
+        </p>
+        <p>
+          <button class="recommend">Reveal secret</button>
+        </p>
+      </form>
+      <header>
+        <h2>Account</h2>
       </header>
-
-      <article class="content scrollable header">
-
-      </article>
-
-    </section>
-  </script>
-
-  <script type="text/x-handlebars" data-template-name="show-secret">
-    <section role="region" id="show-secret" data-position="right">
-      <header class="fixed">
-        <a id="btn-show-secret-back" href="#"><span class="icon icon-back">back</span></a>
-        <h1>amazon.com</h1>
+      <p>{{account}}</p>
+      <header>
+        <h2>Notes</h2>
       </header>
-
-      <article class="content scrollable header">
-
-      </article>
-
-    </section>
+      <p>{{notes}}</p>
+      <header>
+        <h2>Tags</h2>
+      </header>
+      <p>{{ tags }}</p>
+    </article>
   </script>
 
   <!-- Dependencies -->
@@ -214,6 +218,7 @@
   <script src="scripts/application.js"></script>
   <script src="scripts/router.js"></script>
   <script src="scripts/controllers.js"></script>
+  <script src="scripts/views.js"></script>
   <script src="scripts/models.js"></script>
 
 </body>
