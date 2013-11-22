@@ -1,5 +1,11 @@
 'use strict';
 
+App.SecretsView = Ember.View.extend({
+    attributeBindings: ['id'],
+    id: 'index-container'
+});
+
+
 App.SecretView = Ember.View.extend({
     tagName: 'section',
     classNameBindings: ['position'],
@@ -40,5 +46,17 @@ App.SecretView = Ember.View.extend({
                 controller.transitionToRoute('secrets');
             });
         }
+    }
+});
+
+
+App.SecretsDrawerView = Ember.View.extend({
+    tagName: 'section',
+    attributeBindings: ['dataType:data-type'],
+    dataType: 'sidebar',
+
+    didInsertElement: function () {
+        var secretsController = this.controller.get('controllers.secrets');
+        secretsController.set('state', 'drawer-opened');
     }
 });
