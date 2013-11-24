@@ -125,57 +125,61 @@
     <section id="index" data-position="current" {{bind-attr class="position"}}>
       {{outlet drawer}}
 
-      <section id="secrets" role="region" {{bind-attr class="state"}}>
-        <header class="fixed">
-          <a href="#"><span class="icon icon-menu">back</span></a>
-          {{#link-to 'secrets.drawer'}}<span class="icon icon-menu">menu</span>{{/link-to}}
-          <menu type="toolbar">
-            <a href="#"><span class="icon icon-add">add</span></a>
-          </menu>
-          <form action="#">
-            <input type="text" placeholder="search" />
-            <button type="reset">Remove text</button>
-          </form>
-        </header>
-        <article class="content scrollable header">
-          <div data-type="list">
-            <ul>
-              {{#each}}
-              <li>
-                {{#link-to 'secret' id }}
-                <p>{{service}}</p>
-                <p>{{account}}</p>
-                {{/link-to}}
-              </li>
-              {{/each}}
-            </ul>
-          </div>
-        </article>
-      </section>
+      {{view App.SecretsListView}}
     </section>
 
     {{outlet secret}}
   </script>
 
-  <script type="text/x-handlebars" data-template-name="secrets/drawer">
-    <header>
+  <script type="text/x-handlebars" data-template-name="secrets-list">
+    <header class="fixed">
+      <a href="#"><span class="icon icon-menu">back</span></a>
+      <a href="#" {{action 'openDrawer'}}><span class="icon icon-menu">menu</span></a>
       <menu type="toolbar">
-        <button {{action secrets }}>Done</button>
+        <a href="#"><span class="icon icon-add">add</span></a>
       </menu>
-      <h1>Tags</h1>
+      <form action="#">
+        <input type="text" placeholder="search" />
+        <button type="reset">Remove text</button>
+      </form>
     </header>
-    <nav>
-      <ul>
-        <li><a href="#">fun (10)</a></li>
-        <li><a href="#">work (4)</a></li>
-        <li><a href="#">money (3)</a></li>
-      </ul>
-      <h2>Settings</h2>
-      <ul>
-        <li><a href="#">Disable countdown</a></li>
-        <li><a href="#">Remember master password</a></li>
-      </ul>
-    </nav>
+    <article class="content scrollable header">
+      <div data-type="list">
+        <ul>
+          {{#each}}
+            <li>
+              {{#link-to 'secret' id }}
+                <p>{{service}}</p>
+                <p>{{account}}</p>
+              {{/link-to}}
+            </li>
+          {{/each}}
+        </ul>
+      </div>
+    </article>
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="secrets/drawer">
+    <section data-type="sidebar">
+      <header>
+        <menu type="toolbar">
+          <a href="#" {{action 'closeDrawer'}}>Done</a>
+        </menu>
+        <h1>Tags</h1>
+      </header>
+      <nav>
+        <ul>
+          <li><a href="#">fun (10)</a></li>
+          <li><a href="#">work (4)</a></li>
+          <li><a href="#">money (3)</a></li>
+        </ul>
+        <h2>Settings</h2>
+        <ul>
+          <li><a href="#">Disable countdown</a></li>
+          <li><a href="#">Remember master password</a></li>
+        </ul>
+      </nav>
+    </section>
   </script>
 
   <script type="text/x-handlebars" data-template-name="secret">
