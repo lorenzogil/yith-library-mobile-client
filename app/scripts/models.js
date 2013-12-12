@@ -14,7 +14,7 @@ App.Secret.FIXTURES = [
         service: 'ebay.es',
         account: 'lorenzogilsanchez',
         notes: '',
-        tags: ''
+        tags: 'money'
     },
     {
         id: 2,
@@ -28,13 +28,43 @@ App.Secret.FIXTURES = [
         service: 'amazon.com',
         account: 'lorenzo.gil.sanchez@examle.com',
         notes: '',
-        tags: ''
+        tags: 'money'
     },
     {
         id: 4,
         service: 'dropbox.com',
         account: 'lorenzogil@example.com',
         notes: 'this password is saved in cleartext in their server',
-        tags: 'cloud'
+        tags: 'work'
+    }
+];
+
+
+App.Tag = DS.Model.extend({
+    name: DS.attr('string'),
+    count: DS.attr('number')
+});
+
+
+App.Tag.FIXTURES = [
+    {
+        id: 1,
+        name: 'education',
+        count: 1,
+    },
+    {
+        id: 2,
+        name: 'money',
+        count: 2,
+    },
+    {
+        id: 3,
+        name: 'travel',
+        count: 1,
+    },
+    {
+        id: 4,
+        name: 'work',
+        count: 1,
     }
 ];

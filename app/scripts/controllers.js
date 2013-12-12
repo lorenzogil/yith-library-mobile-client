@@ -5,6 +5,7 @@ App.SecretsController = Ember.ArrayController.extend({
     sortAscending: true,
     position: '',
     state: 'drawer-closed',
+    needs: ['secretsDrawer'],
 
     actions: {
         openDrawer: function () {
@@ -13,8 +14,9 @@ App.SecretsController = Ember.ArrayController.extend({
         },
 
         drawerTransitionEnd: function () {
+            var secretsDrawerController, selectedTag;
             if (this.get('state') === 'drawer-closed') {
-                this.transitionToRoute('secrets.index');
+                this.transitionToRoute('secrets');
             }
         },
 
@@ -39,15 +41,22 @@ App.SecretController = Ember.ObjectController.extend({
     needs: ['secrets']
 });
 
-App.SecretsDrawerController = Ember.ObjectController.extend({
+App.SecretsDrawerController = Ember.ArrayController.extend({
     needs: ['secrets'],
+    selectedTag: null,
 
+    _closeDrawer: function () {
+        var secretsController = this.get('controllers.secrets');
+        secretsController.set('state', 'drawer-closed');
+    },
     actions: {
         closeDrawer: function () {
-            var secretsController = this.get('controllers.secrets');
-            secretsController.set('state', 'drawer-closed');
+            this._closeDrawer();
+        },
+
+        selectTag: function (tag) {
+            this.set('selectedTag', tag);
+            this._closeDrawer();
         }
     }
 });
-
-App.TagsController = Ember.ArrayController.extend();
