@@ -17,9 +17,7 @@ App.IndexRoute = Ember.Route.extend({
 
 App.SecretsRoute = Ember.Route.extend({
 
-    model: function (params, queryParams) {
-        var tag = this.controllerFor('secrets.drawer').get('selectedTag');
-        console.log(tag);
+    model: function () {
         return this.store.find('secret');
     },
 

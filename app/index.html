@@ -115,6 +115,18 @@
     .landscape section[role="region"]#drawer > header:first-child {
       /* Whatever needs to be changed on landscape */
     }
+
+    form.secret-revealer {
+      margin-top: 2em;
+    }
+
+    form.secret-revealer canvas {
+      float: right;
+    }
+
+    form.secret-revealer input[type=text] {
+      width: 85%;
+    }
   </style>
 
 </head>
@@ -184,15 +196,7 @@
     </header>
 
     <article class="content scrollable header">
-      <form style="margin-top: 2em">
-        <p>
-          <input id="master-password" type="password" placeholder="Enter your master password here" />
-          <button type="reset">Clear</button>
-        </p>
-        <p>
-          <button class="recommend">Reveal secret</button>
-        </p>
-      </form>
+      {{view App.SecretRevealerView}}
       <header>
         <h2>Account</h2>
       </header>
@@ -206,6 +210,21 @@
       </header>
       <p>{{ tags }}</p>
     </article>
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="secret-revealer">
+    <p>
+      {{#if view.showSecret}}
+        <canvas id="timer" width="40" height="40"></canvas>
+        <input id="secret" type="text" value="the secret" />
+      {{else}}
+        <input id="master-password" type="password" placeholder="Enter your master password here" />
+        <button type="reset">Clear</button>
+      {{/if}}
+    </p>
+    <p>
+      <button {{bind-attr class=view.buttonClass}}>{{view.buttonText}}</button>
+    </p>
   </script>
 
   <!-- Dependencies -->

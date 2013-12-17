@@ -82,3 +82,121 @@ App.SecretView = Ember.View.extend({
         }
     }
 });
+
+App.SecretRevealerView = Ember.View.extend({
+    templateName: 'secret-revealer',
+    tagName: 'form',
+    classNames: ['secret-revealer'],
+    buttonClass: 'recommend',
+    buttonText: 'Reveal secret',
+    showSecret: false,
+
+    click: function (event) {
+        var $target = $(event.target);
+
+        if ($target.is('button')) {
+            this.buttonClicked();
+        }
+
+        // Don't bubble up any more events
+        return false;
+    },
+
+    buttonClicked: function () {
+        var masterPasswordValue = $('#master-password').val();
+
+        if (this.get('showSecret')) {
+            this.hideSecret();
+        } else {
+
+            if (masterPasswordValue === 'secret') {
+                this.revealSecret();
+            } else {
+                this.badMasterPassword();
+            }
+        }
+    },
+
+    hideSecret: function () {
+        this.stopTimer();
+
+        this.set('buttonText', 'Reveal secret');
+        this.set('buttonClass', 'recommend');
+        this.set('showSecret', false);
+    },
+
+    badMasterPassword: function () {
+        this.set('buttonText', 'Wrong master password, try again');
+        this.set('buttonClass', 'danger');
+        $('#master-password').focus();
+    },
+
+    revealSecret: function () {
+        this.set('buttonText', 'Hide secret');
+        this.set('buttonClass', 'recommend');
+        this.set('showSecret', true);
+
+        this.startTimer();
+    },
+
+    startTimer: function () {
+        this.start = new Date();
+
+        this.totalTime = this.getTotalTime();
+        this.startAngle = 3 * Math.PI / 2;  // 270 degrees
+        this.fullCircle = 2 * Math.PI;  // 360 degrees
+
+        this.timer = requestAnimationFrame(this.tick.bind(this));
+    },
+
+    stopTimer: function () {
+        if (this.timer) {
+            cancelAnimationFrame(this.timer);
+        }
+    },
+
+    getTotalTime: function () {
+        return 60;
+    },
+
+    tick: function () {
+        var $canvas = $("#timer");
+
+        if ($canvas.length == 0) {
+            return;
+        }
+
+        var ctx = $canvas.get(0).getContext('2d'),
+            width = $canvas.width(),
+            height = $canvas.height(),
+            width2 = width / 2,
+            height2 = height / 2,
+            outerRadius = Math.min(width2, height2),
+            innerRadius = 0.9 * outerRadius,
+            now = new Date(),
+            elapsed = (now - this.start) / 1000.0,
+            completion = elapsed / this.totalTime,
+            endAngle = this.startAngle + (2 * Math.PI * completion);
+
+        // Draw background circle
+        ctx.fillStyle = 'buttonface';
+        ctx.beginPath();
+        ctx.arc(width2, height2, outerRadius, 0, this.fullCircle, true);
+        ctx.fill();
+
+        // Draw remaining time
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.moveTo(width2, height2);
+        ctx.lineTo(width2, height2 - innerRadius);
+        ctx.arc(width2, height2, innerRadius, this.startAngle, endAngle, false);
+        ctx.fill();
+
+        // If completion is 100% hide the secret
+        if (completion >= 1) {
+            this.hideSecret();
+        } else {
+            requestAnimationFrame(this.tick.bind(this));
+        }
+    }
+});

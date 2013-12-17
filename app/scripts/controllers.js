@@ -14,7 +14,6 @@ App.SecretsController = Ember.ArrayController.extend({
         },
 
         drawerTransitionEnd: function () {
-            var secretsDrawerController, selectedTag;
             if (this.get('state') === 'drawer-closed') {
                 this.transitionToRoute('secrets');
             }
