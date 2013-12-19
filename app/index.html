@@ -120,7 +120,7 @@
       margin-top: 2em;
     }
 
-    form.secret-revealer #timer {
+    form.secret-revealer svg {
       float: right;
     }
 
@@ -201,27 +201,33 @@
         <h2>Account</h2>
       </header>
       <p>{{account}}</p>
-      <header>
-        <h2>Notes</h2>
-      </header>
-      <p>{{notes}}</p>
-      <header>
-        <h2>Tags</h2>
-      </header>
-      <p>{{ tags }}</p>
+
+      {{#if notes}}
+        <header>
+          <h2>Notes</h2>
+        </header>
+        <p>{{notes}}</p>
+      {{/if}}
+
+      {{#if tags}}
+        <header>
+          <h2>Tags</h2>
+        </header>
+        <p>{{ tags }}</p>
+      {{/if}}
     </article>
   </script>
 
   <script type="text/x-handlebars" data-template-name="secret-revealer">
     <p>
       {{#if view.showSecret}}
-        <svg xmlns="http://www.w3.org/2000/svg" id="timer" width="40" height="40">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
           <circle cx="50%" cy="50%" r="50%" fill="buttonface" />
-          <path id="clock" fill="white" />
+          <path fill="white" />
         </svg>
-        <input id="secret" type="text" value="the secret" />
+        <input type="text" value="the secret" />
       {{else}}
-        <input id="master-password" type="password" placeholder="Enter your master password here" autofocus autocomplete="off" />
+        <input type="password" placeholder="Enter your master password here" autofocus autocomplete="off" />
         <button type="reset">Clear</button>
       {{/if}}
     </p>

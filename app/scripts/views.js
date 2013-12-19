@@ -103,7 +103,7 @@ App.SecretRevealerView = Ember.View.extend({
     },
 
     buttonClicked: function () {
-        var masterPasswordValue = $('#master-password').val();
+        var masterPasswordValue = this.$('input[type=password]').val();
 
         if (this.get('showSecret')) {
             this.hideSecret();
@@ -128,7 +128,7 @@ App.SecretRevealerView = Ember.View.extend({
     badMasterPassword: function () {
         this.set('buttonText', 'Wrong master password, try again');
         this.set('buttonClass', 'danger');
-        $('#master-password').focus();
+        this.$('input[type=password]').focus();
     },
 
     revealSecret: function () {
@@ -137,7 +137,7 @@ App.SecretRevealerView = Ember.View.extend({
         this.set('showSecret', true);
 
         this.startTimer();
-        $('.secret-revealer button').focus();
+        this.$('button').focus();
     },
 
     startTimer: function () {
@@ -159,7 +159,7 @@ App.SecretRevealerView = Ember.View.extend({
     },
 
     tick: function () {
-        var $timer = $('#timer');
+        var $timer = this.$('svg');
 
         if ($timer.length === 0) {
             return;
@@ -181,7 +181,7 @@ App.SecretRevealerView = Ember.View.extend({
                 'Z'
             ].join(' ');
 
-        document.getElementById('clock').setAttribute('d', d);
+        this.$('path').attr('d', d);
 
         // If completion is 100% hide the secret
         if (completion >= 1) {
