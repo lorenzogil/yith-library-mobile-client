@@ -137,21 +137,20 @@ App.SecretRevealerView = Ember.View.extend({
         this.set('showSecret', true);
 
         this.startTimer();
+        $('.secret-revealer button').focus();
     },
 
     startTimer: function () {
         this.start = new Date();
 
         this.totalTime = this.getTotalTime();
-        this.startAngle = 3 * Math.PI / 2;  // 270 degrees
-        this.fullCircle = 2 * Math.PI;  // 360 degrees
 
-        this.timer = requestAnimationFrame(this.tick.bind(this));
+        this.timer = window.requestAnimationFrame(this.tick.bind(this));
     },
 
     stopTimer: function () {
         if (this.timer) {
-            cancelAnimationFrame(this.timer);
+            window.cancelAnimationFrame(this.timer);
         }
     },
 
@@ -160,43 +159,43 @@ App.SecretRevealerView = Ember.View.extend({
     },
 
     tick: function () {
-        var $canvas = $("#timer");
+        var timer = document.getElementById('timer');
 
-        if ($canvas.length == 0) {
+        if (!timer) {
             return;
         }
 
-        var ctx = $canvas.get(0).getContext('2d'),
-            width = $canvas.width(),
-            height = $canvas.height(),
+        var width = timer.offsetWidth,
             width2 = width / 2,
-            height2 = height / 2,
-            outerRadius = Math.min(width2, height2),
-            innerRadius = 0.9 * outerRadius,
+            radius = width * 0.45,
             now = new Date(),
             elapsed = (now - this.start) / 1000.0,
             completion = elapsed / this.totalTime,
-            endAngle = this.startAngle + (2 * Math.PI * completion);
+            endAngle = 360 * completion,
+            endPoint = this.polarToCartesian(width2, width2, radius, endAngle),
+            arcSweep = endAngle <= 180 ? '1': '0',
+            d = [
+                'M', width2, width2 - radius,
+                'A', radius, radius, 0, arcSweep, 0, endPoint.x, endPoint.y,
+                'L', width2, width2,
+                'Z'
+            ].join(' ');
 
-        // Draw background circle
-        ctx.fillStyle = 'buttonface';
-        ctx.beginPath();
-        ctx.arc(width2, height2, outerRadius, 0, this.fullCircle, true);
-        ctx.fill();
-
-        // Draw remaining time
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        ctx.moveTo(width2, height2);
-        ctx.lineTo(width2, height2 - innerRadius);
-        ctx.arc(width2, height2, innerRadius, this.startAngle, endAngle, false);
-        ctx.fill();
+        document.getElementById('clock').setAttribute('d', d);
 
         // If completion is 100% hide the secret
         if (completion >= 1) {
             this.hideSecret();
         } else {
-            requestAnimationFrame(this.tick.bind(this));
+            window.requestAnimationFrame(this.tick.bind(this));
         }
+    },
+
+    polarToCartesian: function (x, y, radius, degrees) {
+        var radians = (degrees - 90) * Math.PI / 180.0;
+        return {
+            x: x + (radius * Math.cos(radians)),
+            y: y + (radius * Math.sin(radians))
+        };
     }
 });

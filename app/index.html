@@ -120,7 +120,7 @@
       margin-top: 2em;
     }
 
-    form.secret-revealer canvas {
+    form.secret-revealer #timer {
       float: right;
     }
 
@@ -215,10 +215,13 @@
   <script type="text/x-handlebars" data-template-name="secret-revealer">
     <p>
       {{#if view.showSecret}}
-        <canvas id="timer" width="40" height="40"></canvas>
+        <svg xmlns="http://www.w3.org/2000/svg" id="timer" width="40" height="40">
+          <circle cx="50%" cy="50%" r="50%" fill="buttonface" />
+          <path id="clock" fill="white" />
+        </svg>
         <input id="secret" type="text" value="the secret" />
       {{else}}
-        <input id="master-password" type="password" placeholder="Enter your master password here" />
+        <input id="master-password" type="password" placeholder="Enter your master password here" autofocus />
         <button type="reset">Clear</button>
       {{/if}}
     </p>
