@@ -89,8 +89,8 @@ App.SecretRevealerView = Ember.View.extend({
     classNames: ['secret-revealer'],
     buttonClass: 'recommend',
     buttonText: 'Reveal secret',
-    clearTextSecret: null,
-    cypherTextSecret: '',
+    decryptedSecret: null,
+    encryptedSecret: '',
 
     click: function (event) {
         var $target = $(event.target);
@@ -108,14 +108,14 @@ App.SecretRevealerView = Ember.View.extend({
             masterPasswordValue = null,
             secret = '';
 
-        if (this.get('clearTextSecret') !== null) {
+        if (this.get('decryptedSecret') !== null) {
             this.hideSecret();
         } else {
 
             $masterPasswordInput = this.$('input[type=password]');
             masterPasswordValue = $masterPasswordInput.val();
             $masterPasswordInput.val('');
-            secret = this.get('cypherTextSecret');
+            secret = this.get('encryptedSecret');
             try {
                 this.revealSecret(sjcl.decrypt(masterPasswordValue, secret));
                 masterPasswordValue = null;
@@ -130,7 +130,7 @@ App.SecretRevealerView = Ember.View.extend({
 
         this.set('buttonText', 'Reveal secret');
         this.set('buttonClass', 'recommend');
-        this.set('clearTextSecret', null);
+        this.set('decryptedSecret', null);
     },
 
     badMasterPassword: function () {
@@ -142,7 +142,7 @@ App.SecretRevealerView = Ember.View.extend({
     revealSecret: function (secret) {
         this.set('buttonText', 'Hide secret');
         this.set('buttonClass', 'recommend');
-        this.set('clearTextSecret', secret);
+        this.set('decryptedSecret', secret);
 
         this.startTimer();
         this.$('button').focus();
