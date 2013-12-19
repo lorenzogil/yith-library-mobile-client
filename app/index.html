@@ -196,7 +196,7 @@
     </header>
 
     <article class="content scrollable header">
-      {{view App.SecretRevealerView}}
+      {{view App.SecretRevealerView cypherTextSecret=secret}}
       <header>
         <h2>Account</h2>
       </header>
@@ -220,12 +220,12 @@
 
   <script type="text/x-handlebars" data-template-name="secret-revealer">
     <p>
-      {{#if view.showSecret}}
+      {{#if view.clearTextSecret}}
         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
           <circle cx="50%" cy="50%" r="50%" fill="buttonface" />
           <path fill="white" />
         </svg>
-        <input type="text" value="the secret" />
+        <input type="text" {{bind-attr value=view.clearTextSecret}} />
       {{else}}
         <input type="password" placeholder="Enter your master password here" autofocus autocomplete="off" />
         <button type="reset">Clear</button>
@@ -241,6 +241,7 @@
   <script src="scripts/vendor/handlebars-1.1.2.js"></script>
   <script src="scripts/vendor/ember-1.2.0.js"></script>
   <script src="scripts/vendor/ember-data-1.0.0.beta3.js"></script>
+  <script src="scripts/vendor/sjcl-1.0.0.min.js"></script>
 
   <!-- Application -->
   <script src="scripts/application.js"></script>

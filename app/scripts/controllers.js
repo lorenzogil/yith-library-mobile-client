@@ -28,7 +28,6 @@ App.SecretsController = Ember.ArrayController.extend({
         },
 
         secretAnimationEnd: function () {
-            console.log('animation end ' + this.get('position'));
             if (this.get('position') === 'current') {
                 this.transitionToRoute('secrets.index');
             }

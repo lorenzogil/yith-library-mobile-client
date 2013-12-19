@@ -89,7 +89,8 @@ App.SecretRevealerView = Ember.View.extend({
     classNames: ['secret-revealer'],
     buttonClass: 'recommend',
     buttonText: 'Reveal secret',
-    showSecret: false,
+    clearTextSecret: null,
+    cypherTextSecret: '',
 
     click: function (event) {
         var $target = $(event.target);
@@ -103,15 +104,22 @@ App.SecretRevealerView = Ember.View.extend({
     },
 
     buttonClicked: function () {
-        var masterPasswordValue = this.$('input[type=password]').val();
+        var $masterPasswordInput = null,
+            masterPasswordValue = null,
+            secret = '';
 
-        if (this.get('showSecret')) {
+        if (this.get('clearTextSecret') !== null) {
             this.hideSecret();
         } else {
 
-            if (masterPasswordValue === 'secret') {
-                this.revealSecret();
-            } else {
+            $masterPasswordInput = this.$('input[type=password]');
+            masterPasswordValue = $masterPasswordInput.val();
+            $masterPasswordInput.val('');
+            secret = this.get('cypherTextSecret');
+            try {
+                this.revealSecret(sjcl.decrypt(masterPasswordValue, secret));
+                masterPasswordValue = null;
+            } catch (err) {
                 this.badMasterPassword();
             }
         }
@@ -122,7 +130,7 @@ App.SecretRevealerView = Ember.View.extend({
 
         this.set('buttonText', 'Reveal secret');
         this.set('buttonClass', 'recommend');
-        this.set('showSecret', false);
+        this.set('clearTextSecret', null);
     },
 
     badMasterPassword: function () {
@@ -131,10 +139,10 @@ App.SecretRevealerView = Ember.View.extend({
         this.$('input[type=password]').focus();
     },
 
-    revealSecret: function () {
+    revealSecret: function (secret) {
         this.set('buttonText', 'Hide secret');
         this.set('buttonClass', 'recommend');
-        this.set('showSecret', true);
+        this.set('clearTextSecret', secret);
 
         this.startTimer();
         this.$('button').focus();

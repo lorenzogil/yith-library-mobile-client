@@ -30,6 +30,7 @@
     "$": false,
     "Ember": false,
     "DS": false,
-    "App": false
+    "App": false,
+    "sjcl": false
   }
 }
