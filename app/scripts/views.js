@@ -159,13 +159,13 @@ App.SecretRevealerView = Ember.View.extend({
     },
 
     tick: function () {
-        var timer = document.getElementById('timer');
+        var $timer = $('#timer');
 
-        if (!timer) {
+        if ($timer.length === 0) {
             return;
         }
 
-        var width = timer.offsetWidth,
+        var width = $timer.width(),
             width2 = width / 2,
             radius = width * 0.45,
             now = new Date(),
