@@ -144,8 +144,10 @@ App.SecretRevealerView = Ember.View.extend({
         this.set('buttonClass', 'recommend');
         this.set('decryptedSecret', secret);
 
-        this.startTimer();
-        this.$('button').focus();
+        Ember.run.scheduleOnce('afterRender', this, function () {
+            this.$('input[type=text]').focus().select();
+            this.startTimer();
+        });
     },
 
     startTimer: function () {
@@ -167,13 +169,8 @@ App.SecretRevealerView = Ember.View.extend({
     },
 
     tick: function () {
-        var $timer = this.$('svg');
-
-        if ($timer.length === 0) {
-            return;
-        }
-
-        var width = $timer.width(),
+        var $timer = this.$('svg'),
+            width = $timer.width(),
             width2 = width / 2,
             radius = width * 0.45,
             now = new Date(),

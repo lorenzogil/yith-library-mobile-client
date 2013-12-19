@@ -225,7 +225,7 @@
           <circle cx="50%" cy="50%" r="50%" fill="buttonface" />
           <path fill="white" />
         </svg>
-        <input type="text" {{bind-attr value=view.decryptedSecret}} />
+        <input type="text" readonly {{bind-attr value=view.decryptedSecret}} />
       {{else}}
         <input type="password" placeholder="Enter your master password here" autofocus autocomplete="off" />
         <button type="reset">Clear</button>
