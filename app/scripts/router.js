@@ -3,7 +3,6 @@
 App.Router.map(function () {
     this.resource('secrets', {'queryParams': ['tag']}, function () {
         this.resource('secret', {path: '/:secret_id'});
-        this.route('drawer');
     });
 });
 
@@ -24,6 +23,7 @@ App.SecretsRoute = Ember.Route.extend({
     setupController: function (controller, model) {
         this._super(controller, model);
         controller.set('state', 'drawer-closed');
+        controller.set('tags', this.store.find('tag'));
     }
 });
 

@@ -5,17 +5,37 @@ App.SecretsController = Ember.ArrayController.extend({
     sortAscending: true,
     position: '',
     state: 'drawer-closed',
-    needs: ['secretsDrawer'],
+    tags: [],
+    selectedTag: null,
+
+    secrets: function () {
+        var selectedTag = this.get('selectedTag'),
+            content = this.get('content').sortBy('service', 'account');
+        if (selectedTag === null) {
+            return content;
+        } else {
+            return content.filter(function (item) {
+                return item.get('tags').indexOf(selectedTag) !== -1;
+            });
+        }
+    }.property('content.isLoaded', 'selectedTag'),
 
     actions: {
         openDrawer: function () {
             this.set('state', 'drawer-opened');
-            this.transitionToRoute('secrets.drawer');
         },
 
-        drawerTransitionEnd: function () {
-            if (this.get('state') === 'drawer-closed') {
-                this.transitionToRoute('secrets');
+        closeDrawer: function () {
+            this.set('state', 'drawer-closed');
+        },
+
+        selectTag: function (tag) {
+            var selectedTag = this.get('selectedTag');
+            this.set('state', 'drawer-closed');
+            if (selectedTag === tag) {
+                this.set('selectedTag', null);
+            } else {
+                this.set('selectedTag', tag);
             }
         },
 
@@ -37,24 +57,4 @@ App.SecretsController = Ember.ArrayController.extend({
 
 App.SecretController = Ember.ObjectController.extend({
     needs: ['secrets']
-});
-
-App.SecretsDrawerController = Ember.ArrayController.extend({
-    needs: ['secrets'],
-    selectedTag: null,
-
-    _closeDrawer: function () {
-        var secretsController = this.get('controllers.secrets');
-        secretsController.set('state', 'drawer-closed');
-    },
-    actions: {
-        closeDrawer: function () {
-            this._closeDrawer();
-        },
-
-        selectTag: function (tag) {
-            this.set('selectedTag', tag);
-            this._closeDrawer();
-        }
-    }
 });

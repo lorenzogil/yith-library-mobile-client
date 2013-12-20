@@ -9,39 +9,6 @@ App.prefixEvent = function (event) {
     return prefixedEventNames.join(' ');
 };
 
-App.SecretsView = Ember.View.extend({
-    attributeBindings: ['id'],
-    id: 'index-container'
-});
-
-
-App.SecretsListView = Ember.View.extend({
-    // This view is needed in order to detect
-    // the transitionEnd event of the drawer being closed
-    templateName: 'secrets-list',
-    tagName: 'section',
-    attributeBindings: ['role', 'id'],
-    role: 'region',
-    id: 'secrets',
-    lastState: '',
-    didInsertElement: function () {
-        var controller = this.get('controller');
-        this.set('lastState', controller.get('state'));
-        this.$().addClass(this.get('lastState'));
-
-        this.$().on(App.prefixEvent('TransitionEnd'), function () {
-            controller.send('drawerTransitionEnd');
-        });
-    },
-
-    onStateChange: function () {
-        this.$().removeClass(this.get('lastState'));
-        this.set('lastState', this.get('controller.state'));
-        this.$().addClass(this.get('lastState'));
-    }.observes('controller.state'),
-
-});
-
 App.SecretView = Ember.View.extend({
     tagName: 'section',
     classNameBindings: ['position'],
@@ -203,4 +170,9 @@ App.SecretRevealerView = Ember.View.extend({
             y: y + (radius * Math.sin(radians))
         };
     }
+});
+
+
+Ember.Handlebars.helper('currentTag', function (tagName, selectedTag) {
+    return (tagName === selectedTag ? '*' : '');
 });

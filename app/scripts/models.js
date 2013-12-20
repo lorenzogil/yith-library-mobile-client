@@ -41,7 +41,7 @@ App.Secret.FIXTURES = [
         account: 'lorenzogil@example.com',
         secret: '{"iv":"f+Ee2fY1eJYrWP71Ed6trw==","v":1,"iter":1000,"ks":128,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"mI+1CApbcsw=","ct":"5bfUL8dk6DYCZ/H2CGY="}',
         notes: 'this password is saved in cleartext in their server',
-        tags: 'work'
+        tags: 'work education'
     }
 ];
 
