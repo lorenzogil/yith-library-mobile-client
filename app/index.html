@@ -116,6 +116,42 @@
       /* Whatever needs to be changed on landscape */
     }
 
+    /* Custom styles */
+    span.tag {
+      background: #f1e372;
+      border-radius: 3px 0 0 3px;
+      color: #999;
+      display: inline-block;
+      height: 26px;
+      line-height: 26px;
+      padding: 0 20px 0 23px;
+      position: relative;
+      margin-top: 10px;
+    }
+
+    span.tag::before {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: inset 0 1px rgba(0, 0, 0, 0.25);
+      content: '';
+      height: 6px;
+      left: 10px;
+      position: absolute;
+      width: 6px;
+      top: 10px;
+    }
+
+    span.tag::after {
+      background: #fff;
+      border-bottom: 13px solid transparent;
+      border-top: 13px solid transparent;
+      border-left: 10px solid #f1e372;
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+
     form.secret-revealer {
       margin-top: 2em;
     }
@@ -171,7 +207,7 @@
         </header>
         <article class="content scrollable header">
           {{#if selectedTag}}
-            <p>{{selectedTag}}</p>
+            <span class="tag">{{selectedTag}}<span>
           {{/if}}
           <div data-type="list">
             <ul>
