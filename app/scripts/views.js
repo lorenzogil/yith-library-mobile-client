@@ -9,6 +9,14 @@ App.prefixEvent = function (event) {
     return prefixedEventNames.join(' ');
 };
 
+App.SecretsView = Ember.View.extend({
+    // We need to put an Id to the toplevel view
+    // so we can style it with CSS and give it
+    // a height: 100%
+    attributeBindings: ['id'],
+    id: 'index-container'
+});
+
 App.SecretView = Ember.View.extend({
     tagName: 'section',
     classNameBindings: ['position'],
