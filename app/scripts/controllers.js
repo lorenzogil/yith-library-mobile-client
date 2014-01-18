@@ -7,18 +7,17 @@ App.SecretsController = Ember.ArrayController.extend({
     state: 'drawer-closed',
     tags: [],
     selectedTag: null,
+    query: '',
 
     secrets: function () {
         var selectedTag = this.get('selectedTag'),
+            query = this.get('query'),
             content = this.get('content').sortBy('service', 'account');
-        if (selectedTag === null) {
-            return content;
-        } else {
-            return content.filter(function (item) {
-                return item.get('tags').indexOf(selectedTag) !== -1;
-            });
-        }
-    }.property('content.isLoaded', 'selectedTag'),
+
+        return content.filter(function (item) {
+            return item.matches(selectedTag, query);
+        });
+    }.property('content.isLoaded', 'selectedTag', 'query'),
 
     secretsCount: function () {
         return this.get('secrets').length;

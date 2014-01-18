@@ -5,7 +5,21 @@ App.Secret = DS.Model.extend({
     account: DS.attr('string'),
     secret: DS.attr('string'),
     notes: DS.attr('notes'),
-    tags: DS.attr('tags')
+    tags: DS.attr('tags'),
+
+    matches: function (tag, query) {
+        var tagMatch = true, queryMatch = true;
+        if (tag !== null) {
+            tagMatch = this.get('tags').indexOf(tag) !== -1;
+        }
+        if (query !== '') {
+            queryMatch = (
+                (this.get('service').indexOf(query) !== -1) ||
+                (this.get('account').indexOf(query) !== -1)
+            );
+        }
+        return tagMatch && queryMatch;
+    }
 });
 
 
