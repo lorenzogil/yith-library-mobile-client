@@ -20,6 +20,15 @@ App.SecretsController = Ember.ArrayController.extend({
         }
     }.property('content.isLoaded', 'selectedTag'),
 
+    secretsCount: function () {
+        return this.get('secrets').length;
+    }.property('secrets'),
+
+    secretsNoun: function () {
+        var secretsCount = this.get('secretsCount');
+        return (secretsCount === 1) ? 'secret': 'secrets';
+    }.property('secretsCount'),
+
     actions: {
         openDrawer: function () {
             this.set('state', 'drawer-opened');

@@ -1,42 +1,42 @@
 <!doctype html>
 <html>
 <head>
-  <title>Yith Library Mobile App</title>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
+  <meta name="viewport" content="width=device-width, user-scalable=no">
+  <title>Yith Library Mobile App</title>
 
   <!-- Building blocks -->
-  <link rel="stylesheet" href="/styles/gaiabb/style/action_menu.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style/buttons.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style/confirm.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style/edit_mode.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style/headers.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style/input_areas.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style/status.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style/switches.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/drawer.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/lists.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/progress_activity.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/scrolling.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/seekbars.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/tabs.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/style_unstable/toolbars.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style/action_menu.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style/buttons.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style/confirm.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style/edit_mode.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style/headers.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style/input_areas.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style/status.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style/switches.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style_unstable/drawer.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style_unstable/lists.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style_unstable/progress_activity.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style_unstable/scrolling.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style_unstable/seekbars.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style_unstable/tabs.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/style_unstable/toolbars.css" type="text/css">
 
   <!-- Icons -->
-  <link rel="stylesheet" href="/styles/gaiabb/icons/styles/action_icons.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/icons/styles/media_icons.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/icons/styles/comms_icons.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/icons/styles/settings_icons.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/icons/styles/action_icons.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/icons/styles/media_icons.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/icons/styles/comms_icons.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/icons/styles/settings_icons.css" type="text/css">
 
   <!-- Transitions -->
-  <link rel="stylesheet" href="/styles/gaiabb/transitions.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/transitions.css" type="text/css">
 
   <!-- Util CSS: some extra tricks -->
-  <link rel="stylesheet" href="/styles/gaiabb/util.css" type="text/css">
-  <link rel="stylesheet" href="/styles/gaiabb/fonts.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/util.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/fonts.css" type="text/css">
 
   <!-- Additional markup to make Building Blocks kind of cross browser -->
-  <link rel="stylesheet" href="/styles/gaiabb/cross_browser.css" type="text/css">
+  <link rel="stylesheet" href="/styles/Building-Blocks-1.3.1/cross_browser.css" type="text/css">
 
 
   <link href="/styles/main.css" rel="stylesheet" type="text/css">
@@ -94,6 +94,40 @@
       -webkit-animation: fadeOut 0.2s forwards;
     }
 
+    [data-position="edit-mode"] {
+      position: absolute;
+      top: -5rem;
+      left: 0;
+      right: 0;
+      bottom: -7rem;
+      z-index: -1;
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+    [data-position="edit-mode"].edit {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 120;
+      opacity: 1;
+    }
+
+    /* Headers */
+    #headers section[role="region"] {
+      margin-bottom: 1.5rem;
+    }
+    #headers section[role="region"]:not(#drawer) {
+      display: inline;
+    }
+    #headers article header:first-child {
+      margin-top: 1.5rem;
+    }
+    #headers section[role="region"] header h2 {
+      margin: 0 0 1.5rem 0;
+    }
+
     /* Lists */
     /* to avoid double background effect on press */
     [data-type=list] li>a:active {
@@ -109,6 +143,42 @@
     section[data-type="sidebar"] + section[role="region"] > header:first-child > button,
     section[data-type="sidebar"] + section[role="region"] > header:first-child > a {
       background-position: 3.5rem center;
+    }
+
+    /* Switches */
+    #switches label:last-child {
+      margin-left: 2rem;
+    }
+
+    /* Scrolling */
+    nav[data-type="scrollbar"] {
+      padding-top: 1rem;
+    }
+    nav[data-type="scrollbar"] p {
+      opacity: 1;
+    }
+
+    /* Seek bars */
+    div[role="slider"] > label.icon {
+      background: no-repeat right top;
+      background-size: 3rem auto;
+    }
+
+    /* Tabs */
+    #tabs .content {
+      padding: 0;
+    }
+    #tabs .content .content {
+      padding: 1.5rem 3rem;
+    }
+
+    /* Filters */
+    [role="tablist"][data-type="filter"] {
+      margin-bottom: 2rem;
+    }
+
+    .bottom[role="tablist"][data-type="filter"] {
+      bottom: auto;
     }
 
     /* Device rotation */
@@ -195,20 +265,21 @@
 
       <section id="secrets" role="region" {{bind-attr class="state"}}>
         <header class="fixed">
-          <a href="#"><span class="icon icon-menu">back</span></a>
           <a href="#" {{action 'openDrawer'}}><span class="icon icon-menu">menu</span></a>
-          <menu type="toolbar">
-            <a href="#"><span class="icon icon-add">add</span></a>
-          </menu>
           <form action="#">
             <input type="text" placeholder="search" />
             <button type="reset">Remove text</button>
           </form>
         </header>
         <article class="content scrollable header">
-          {{#if selectedTag}}
-            <span class="tag">{{selectedTag}}</span>
-          {{/if}}
+          <header>
+            <h2>
+              {{secretsCount}} {{secretsNoun}}
+              {{#if selectedTag}}
+              <span class="tag">{{selectedTag}}</span>
+              {{/if}}
+            </h2>
+          </header>
           <div data-type="list">
             <ul>
               {{#each secrets}}
