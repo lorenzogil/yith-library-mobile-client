@@ -100,3 +100,28 @@ App.Tag.FIXTURES = [
         count: 1,
     }
 ];
+
+// Open the DB and continue loading Ember
+(function () {
+    var request = window.indexedDB.open('yithlibrary', 1);
+
+    request.onerror = function () {
+        App.advanceReadiness();
+    };
+
+    request.onsuccess = function (event) {
+        App.db = event.target.result;
+        App.advanceReadiness();
+    };
+
+    request.onupgradeneeded = function (event) {
+        var db = event.target.result,
+            secrets = db.createObjectStore('secret', {keyPath: 'id'});
+
+        // Create some indexes
+        secrets.createIndex('service', 'service', {unique: false});
+
+        secrets.createIndex('account', 'account', {unique: false});
+    };
+
+})();
