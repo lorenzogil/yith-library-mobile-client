@@ -22,6 +22,18 @@ App.Secret = DS.Model.extend({
     }
 });
 
+App.Secret.TEST_SECRET = JSON.stringify({
+    iv: 'f+Ee2fY1eJYrWP71Ed6trw==',
+    v: 1,
+    iter: 1000,
+    ks: 128,
+    ts: 64,
+    mode: 'ccm',
+    adata: '',
+    cipher: 'aes',
+    salt: 'mI+1CApbcsw=',
+    ct: '5bfUL8dk6DYCZ/H2CGY='
+});
 
 App.Secret.FIXTURES = [
     // master password for this fixtures is 'secret'
@@ -29,7 +41,7 @@ App.Secret.FIXTURES = [
         id: 1,
         service: 'ebay.es',
         account: 'lorenzogilsanchez',
-        secret: '{"iv":"f+Ee2fY1eJYrWP71Ed6trw==","v":1,"iter":1000,"ks":128,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"mI+1CApbcsw=","ct":"5bfUL8dk6DYCZ/H2CGY="}',
+        secret: App.Secret.TEST_SECRET,
         notes: '',
         tags: 'money'
     },
@@ -37,7 +49,7 @@ App.Secret.FIXTURES = [
         id: 2,
         service: 'iberia.com',
         account: '123456789',
-        secret: '{"iv":"f+Ee2fY1eJYrWP71Ed6trw==","v":1,"iter":1000,"ks":128,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"mI+1CApbcsw=","ct":"5bfUL8dk6DYCZ/H2CGY="}',
+        secret: App.Secret.TEST_SECRET,
         notes: 'this is a custom note',
         tags: 'travel'
     },
@@ -45,7 +57,7 @@ App.Secret.FIXTURES = [
         id: 3,
         service: 'amazon.com',
         account: 'lorenzo.gil.sanchez@examle.com',
-        secret: '{"iv":"f+Ee2fY1eJYrWP71Ed6trw==","v":1,"iter":1000,"ks":128,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"mI+1CApbcsw=","ct":"5bfUL8dk6DYCZ/H2CGY="}',
+        secret: App.Secret.TEST_SECRET,
         notes: '',
         tags: 'money'
     },
@@ -53,7 +65,7 @@ App.Secret.FIXTURES = [
         id: 4,
         service: 'dropbox.com',
         account: 'lorenzogil@example.com',
-        secret: '{"iv":"f+Ee2fY1eJYrWP71Ed6trw==","v":1,"iter":1000,"ks":128,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"mI+1CApbcsw=","ct":"5bfUL8dk6DYCZ/H2CGY="}',
+        secret: App.Secret.TEST_SECRET,
         notes: 'this password is saved in cleartext in their server',
         tags: 'work education'
     }
