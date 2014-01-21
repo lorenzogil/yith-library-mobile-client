@@ -116,12 +116,32 @@ App.Tag.FIXTURES = [
 
     request.onupgradeneeded = function (event) {
         var db = event.target.result,
-            secrets = db.createObjectStore('secret', {keyPath: 'id'});
+            secrets = db.createObjectStore('secret', {keyPath: 'id'}),
+            tags = db.createObjectStore('tag', {keyPath: 'id'});
 
         // Create some indexes
         secrets.createIndex('service', 'service', {unique: false});
 
         secrets.createIndex('account', 'account', {unique: false});
+
+        // Add some sample data (both secrets.transaction and tags.transaction
+        // are actually the same transaction)
+        secrets.transaction.oncomplete = function (event) {
+            var transaction = db.transaction(['secret', 'tag'], 'readwrite'),
+                objectStore = transaction.objectStore('secret'),
+                length = App.Secret.FIXTURES.length,
+                i = 0;
+            for (i = 0; i < length; i += 1) {
+                objectStore.add(App.Secret.FIXTURES[i]);
+            }
+
+            objectStore = transaction.objectStore('tag');
+            length = App.Tag.FIXTURES.length;
+            for (i = 0; i < length; i += 1) {
+                objectStore.add(App.Tag.FIXTURES[i]);
+            }
+        };
+
     };
 
 })();
