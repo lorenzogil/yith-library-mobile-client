@@ -54,13 +54,6 @@ App.SecretView = Ember.View.extend({
             // Start the animation by setting the appropiate classes
             this.set('position', 'right');
             secretsController.send('closeSecret');
-
-            // Hack to stop the SecretRevealerView timer
-            for (var i=0; i < this._childViews.length; i += 1) {
-                if (this._childViews[i].constructor === App.SecretRevealerView) {
-                    this._childViews[i].hideSecret();
-                }
-            }
         }
     }
 });
@@ -184,6 +177,10 @@ App.SecretRevealerView = Ember.View.extend({
             x: x + (radius * Math.cos(radians)),
             y: y + (radius * Math.sin(radians))
         };
+    },
+
+    willDestroy: function () {
+        this.hideSecret();
     }
 });
 
