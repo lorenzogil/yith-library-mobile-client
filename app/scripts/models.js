@@ -22,6 +22,17 @@ App.Secret = DS.Model.extend({
     }
 });
 
+App.Secret.INDEXES = [
+    {
+        name: 'service',
+        options: {unique: false}
+    },
+    {
+        name: 'account',
+        options: {unique: false}
+    }
+];
+
 App.Secret.TEST_SECRET = JSON.stringify({
     iv: 'f+Ee2fY1eJYrWP71Ed6trw==',
     v: 1,

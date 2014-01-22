@@ -6,33 +6,50 @@ DS.IndexedDBAdapter = DS.Adapter.extend({
     // We store already normalized objects in IndexedDB
     serializer: null,
     db: null,
-    dbName: 'yithlibrary',
-    dbVersion: 1,
+    dbName: '',    // this should be defined when the adapter is created
+    dbVersion: 1,  // this should be defined when the adapter is created
+    models: [],    // object stores will be created for these models
 
     upgradeDB: function (db) {
-        var secrets = db.createObjectStore('secret', {keyPath: 'id'}),
-            tags = db.createObjectStore('tag', {keyPath: 'id'});
+        var models = this.get('models'),
+            store = this.container.lookup('store:main'),
+            model = null,
+            objectStore = null,
+            i = 0,
+            j = 0;
 
-        // Create some indexes
-        secrets.createIndex('service', 'service', {unique: false});
+        if (models.length === 0) {
+            return;
+        }
 
-        secrets.createIndex('account', 'account', {unique: false});
-
-        // Add some sample data (both secrets.transaction and tags.transaction
-        // are actually the same transaction)
-        secrets.transaction.oncomplete = function (event) {
-            var transaction = db.transaction(['secret', 'tag'], 'readwrite'),
-                objectStore = transaction.objectStore('secret'),
-                length = App.Secret.FIXTURES.length,
-                i = 0;
-            for (i = 0; i < length; i += 1) {
-                objectStore.add(App.Secret.FIXTURES[i]);
+        // Create object stores and indexes
+        for (i = 0; i < models.length; i += 1) {
+            objectStore = db.createObjectStore(
+                models[i], {keyPath: 'id'}
+            );
+            model = store.modelFor(models[i]);
+            if (model.INDEXES) {
+                for (j = 0; j < model.INDEXES.length; j += 1) {
+                    objectStore.createIndex(
+                        model.INDEXES[j].name,
+                        model.INDEXES[j].name,
+                        model.INDEXES[j].options
+                    );
+                }
             }
+        }
 
-            objectStore = transaction.objectStore('tag');
-            length = App.Tag.FIXTURES.length;
-            for (i = 0; i < length; i += 1) {
-                objectStore.add(App.Tag.FIXTURES[i]);
+        // Add some sample data
+        objectStore.transaction.oncomplete = function () {
+            var transaction = db.transaction(models, 'readwrite');
+            for (i = 0; i < models.length; i += 1) {
+                model = store.modelFor(models[i]);
+                if (model.FIXTURES) {
+                    objectStore = transaction.objectStore(models[i]);
+                    for (j = 0; j < model.FIXTURES.length; j += 1) {
+                        objectStore.add(model.FIXTURES[j]);
+                    }
+                }
             }
         };
 
@@ -57,6 +74,7 @@ DS.IndexedDBAdapter = DS.Adapter.extend({
                 request.onsuccess = function (event) {
                     db = event.target.result;
                     adapter.set('db', db);
+
                     resolve(db);
                 };
 
