@@ -80,6 +80,8 @@ DS.IndexedDBAdapter = DS.Adapter.extend({
 
                 request.onupgradeneeded = function (event) {
                     adapter.upgradeDB(event.target.result);
+                    // after upgrading the DB, the
+                    // request.onsuccess callback is called
                 };
             }
         });
