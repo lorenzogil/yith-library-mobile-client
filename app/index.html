@@ -239,6 +239,39 @@
 
 <body role="application">
 
+  <script type="text/x-handlebars" data-template-name="login">
+    <section id="login" role="region">
+      <header class="fixed">
+        <h1>Yith Library</h1>
+      </header>
+
+      <article class="content scrollable header">
+        <header>
+          {{#if connecting}}
+            <h2>Connecting to server</h2>
+          {{else}}
+            <h2>Connection settings</h2>
+          {{/if}}
+        </header>
+        {{#if connecting}}
+          <progress></progress>
+        {{else}}
+          <form>
+            <p>
+              {{input placeholder="Enter your access code" required="required" autofocus="autofocus" autocomplete="off" value=accessCode}}
+              <button type="reset">Clear</button>
+            </p>
+            <p>
+              <button type="button" class="recommend" {{action 'connect'}}>Connect</button>
+            </p>
+          </form>
+        {{/if}}
+      </article>
+
+    </section>
+
+  </script>
+
   <script type="text/x-handlebars" data-template-name="secrets">
     <section id="index" data-position="current" {{bind-attr class="position"}}>
 
@@ -357,6 +390,7 @@
 
   <!-- Application -->
   <script src="scripts/application.js"></script>
+  <script src="scripts/settings.js"></script>
   <script src="scripts/router.js"></script>
   <script src="scripts/controllers.js"></script>
   <script src="scripts/views.js"></script>

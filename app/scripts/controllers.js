@@ -1,5 +1,38 @@
 'use strict';
 
+App.LoginController = Ember.ObjectController.extend({
+    connecting: false,
+    accessCode: '',
+
+
+    actions: {
+        connect: function () {
+            var controller = this,
+                settings = controller.settings,
+                accessCode = this.get('accessCode');
+
+            if (accessCode === '') {
+                return;
+            }
+
+            this.set('connecting', true);
+            Ember.run.next(this, function () {
+                $.ajax({
+                    url: 'http://date.jsontest.com',
+                    type: 'GET',
+                    success: function () {
+                        var now = new Date();
+                        settings.setSetting('accessCode', accessCode);
+                        settings.setSetting('lastSync', now);
+                        controller.transitionToRoute('secrets');
+                    }
+                });
+            });
+        }
+    }
+});
+
+
 App.SecretsController = Ember.ArrayController.extend({
     sortProperties: ['service', 'account'],
     sortAscending: true,

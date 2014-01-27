@@ -1,6 +1,7 @@
 'use strict';
 
 App.Router.map(function () {
+    this.route('login', {path: '/login'});
     this.resource('secrets', {'queryParams': ['tag']}, function () {
         this.resource('secret', {path: '/:secret_id'});
     });
@@ -9,9 +10,17 @@ App.Router.map(function () {
 
 App.IndexRoute = Ember.Route.extend({
     beforeModel: function () {
-        this.transitionTo('secrets');
+        var lastSync = this.settings.getSetting('lastSync');
+        if (lastSync) {
+            this.transitionTo('secrets');
+        } else {
+            this.transitionTo('login');
+        }
     }
 });
+
+
+App.LoginRoute = Ember.Route.extend();
 
 
 App.SecretsRoute = Ember.Route.extend({
