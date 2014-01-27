@@ -87,11 +87,11 @@ DS.IndexedDBAdapter = DS.Adapter.extend({
         });
     },
 
-    find: function (store, type, id) {
+    find: function (/*store, type, id*/) {
         console.log('find');
     },
 
-    _findAll: function (db, store, type, sinceToken) {
+    _findAll: function (db, store, type/*, sinceToken*/) {
         return new Ember.RSVP.Promise(function (resolve, reject) {
             var transaction = db.transaction([type.typeKey]),
                 objectStore = transaction.objectStore(type.typeKey),
@@ -122,23 +122,23 @@ DS.IndexedDBAdapter = DS.Adapter.extend({
         });
     },
 
-    findQuery: function (store, type, query, recordArray) {
+    findQuery: function (/*store, type, query, recordArray*/) {
         console.log('findQuery');
     },
 
-    createRecord: function (store, type, record) {
+    createRecord: function (/*store, type, record*/) {
         console.log('createRecord');
     },
 
-    updateRecord: function (store, type, record) {
+    updateRecord: function (/*store, type, record*/) {
         console.log('updateRecord');
     },
 
-    deleteRecord: function (store, type, record) {
+    deleteRecord: function (/*store, type, record*/) {
         console.log('deleteRecord');
     },
 
-    findMany: function (store, type, ids) {
+    findMany: function (/*store, type, ids*/) {
         console.log('findMany');
     }
 
