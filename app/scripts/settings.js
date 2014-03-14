@@ -2,8 +2,16 @@
 
 App.Settings = Ember.Object.extend({
 
+    defaults: {
+        'serverBaseUrl': 'http://127.0.0.1:6543'
+    },
+
     getSetting: function (name) {
-        return window.localStorage.getItem(name);
+        var setting = window.localStorage.getItem(name);
+        if (setting === null) {
+            setting = this.defaults[name] || null;
+        }
+        return setting;
     },
 
     setSetting: function (name, value) {

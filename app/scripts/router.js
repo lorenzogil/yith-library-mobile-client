@@ -2,6 +2,7 @@
 
 App.Router.map(function () {
     this.route('login', {path: '/login'});
+    this.route('sync', {path: '/sync'});
     this.resource('secrets', {'queryParams': ['tag']}, function () {
         this.resource('secret', {path: '/:secret_id'});
     });
@@ -22,6 +23,7 @@ App.IndexRoute = Ember.Route.extend({
 
 App.LoginRoute = Ember.Route.extend();
 
+App.SyncRoute = Ember.Route.extend();
 
 App.SecretsRoute = Ember.Route.extend({
 

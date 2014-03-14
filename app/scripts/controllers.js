@@ -1,37 +1,82 @@
 'use strict';
 
-App.LoginController = Ember.ObjectController.extend({
-    connecting: false,
-    accessCode: '',
+App.ApplicationController = Ember.Controller.extend({
 
+    init: function () {
+        var serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
+            authBaseUri = serverBaseUrl + '/oauth2/endpoints/authorization';
+
+        Ember.OAuth2.config.yithlibrary.authBaseUri = authBaseUri;
+    }
+
+});
+
+
+App.LoginController = Ember.ObjectController.extend({
+    oauth: null,
+    connecting: false,
+
+    init: function () {
+        this._super();
+        var self = this,
+            oauth = Ember.OAuth2.create({providerId: 'yithlibrary'});
+
+        oauth.onSuccess = function () {
+            self.set('connecting', false);
+            self.transitionToRoute('sync');
+        };
+        this.set('oauth', oauth);
+    },
 
     actions: {
         connect: function () {
-            var controller = this,
-                settings = controller.settings,
-                accessCode = this.get('accessCode');
-
-            if (accessCode === '') {
-                return;
-            }
-
+            var oauth = this.get('oauth');
             this.set('connecting', true);
-            Ember.run.next(this, function () {
-                $.ajax({
-                    url: 'http://date.jsontest.com',
-                    type: 'GET',
-                    success: function () {
-                        var now = new Date();
-                        settings.setSetting('accessCode', accessCode);
-                        settings.setSetting('lastSync', now);
-                        controller.transitionToRoute('secrets');
-                    }
-                });
-            });
+            oauth.authorize();
         }
     }
 });
 
+App.SyncController = Ember.ObjectController.extend({
+    needs: 'login',
+    syncing: false,
+
+    fetchSecrets: function () {
+        var controller = this,
+            serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
+            oauth = this.controllerFor('login').get('oauth'),
+            accessToken = oauth.getAccessToken(),
+            clientId = oauth.providerConfig.clientId,
+            url = serverBaseUrl + '/passwords?client_id=' + clientId;
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            crossDomain: true,
+            headers: {
+                'Authorization': 'Bearer ' + accessToken
+            }
+        }).done(function (data /*, textStatus, jqXHR*/) {
+            controller.storeSecrets(data);
+        });
+    },
+
+    storeSecrets: function (secrets) {
+        this.set('syncing', false);
+        console.log(secrets);
+    },
+
+    actions: {
+        sync: function () {
+            var controller = this;
+            this.set('syncing', true);
+
+            Ember.run.next(this, function () {
+                controller.fetchSecrets();
+            });
+        }
+    }
+});
 
 App.SecretsController = Ember.ArrayController.extend({
     sortProperties: ['service', 'account'],
