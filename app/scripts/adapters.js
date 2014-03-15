@@ -38,21 +38,6 @@ DS.IndexedDBAdapter = DS.Adapter.extend({
                 }
             }
         }
-
-        // Add some sample data
-        objectStore.transaction.oncomplete = function () {
-            var transaction = db.transaction(models, 'readwrite');
-            for (i = 0; i < models.length; i += 1) {
-                model = store.modelFor(models[i]);
-                if (model.FIXTURES) {
-                    objectStore = transaction.objectStore(models[i]);
-                    for (j = 0; j < model.FIXTURES.length; j += 1) {
-                        objectStore.add(model.FIXTURES[j]);
-                    }
-                }
-            }
-        };
-
     },
 
     getDB: function () {
