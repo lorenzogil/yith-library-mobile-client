@@ -4,9 +4,12 @@ window.App = Ember.Application.create();
 
 //App.ApplicationAdapter = DS.FixtureAdapter.extend();
 App.ApplicationAdapter = DS.IndexedDBAdapter.extend({
-    dbName: 'yithlibrary',
-    dbVersion: 1,
-    models: ['secret', 'tag']
+    databaseName: 'yithlibrary',
+    version: 1,
+    migrations: function () {
+        this.addModel(App.Secret);
+        this.addModel(App.Tag);
+    }
 });
 
 Ember.OAuth2.config = {

@@ -1,29 +1,29 @@
 'use strict';
 
-App.ApplicationController = Ember.Controller.extend({
-
-    init: function () {
-        var serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
-            authBaseUri = serverBaseUrl + '/oauth2/endpoints/authorization';
-
-        Ember.OAuth2.config.yithlibrary.authBaseUri = authBaseUri;
-    }
-
-});
-
-
 App.LoginController = Ember.ObjectController.extend({
+    previousTransition: null,
     oauth: null,
     connecting: false,
 
     init: function () {
         this._super();
         var self = this,
-            oauth = Ember.OAuth2.create({providerId: 'yithlibrary'});
+            serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
+            authBaseUri = serverBaseUrl + '/oauth2/endpoints/authorization',
+            oauth = null;
+
+        Ember.OAuth2.config.yithlibrary.authBaseUri = authBaseUri;
+        oauth = Ember.OAuth2.create({providerId: 'yithlibrary'});
 
         oauth.onSuccess = function () {
+            var previousTransition = self.get('previousTransition');
             self.set('connecting', false);
-            self.transitionToRoute('sync');
+            if (previousTransition) {
+                self.set('previousTransition', null);
+                previousTransition.retry();
+            } else {
+                self.transitionToRoute('secrets');
+            }
         };
         this.set('oauth', oauth);
     },
@@ -61,9 +61,20 @@ App.SyncController = Ember.ObjectController.extend({
         });
     },
 
-    storeSecrets: function (secrets) {
+    storeSecrets: function (data) {
+        var store = this.store;
+        data.passwords.forEach(function createSecret (password) {
+            var record = store.createRecord('secret', {
+                service: password.service,
+                account: password.account,
+                secret: password.secret,
+                notes: password.notes
+            });
+            record.save();
+        });
+        this.settings.setSetting('lastSync', new Date());
         this.set('syncing', false);
-        console.log(secrets);
+        this.transitionToRoute('secrets');
     },
 
     actions: {
@@ -71,7 +82,7 @@ App.SyncController = Ember.ObjectController.extend({
             var controller = this;
             this.set('syncing', true);
 
-            Ember.run.next(this, function () {
+            Ember.run.next(this, function fetchSecrets () {
                 controller.fetchSecrets();
             });
         }

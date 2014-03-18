@@ -9,13 +9,15 @@ App.Settings = Ember.Object.extend({
     getSetting: function (name) {
         var setting = window.localStorage.getItem(name);
         if (setting === null) {
-            setting = this.defaults[name] || null;
+            return this.defaults[name] || null;
+        } else {
+            return JSON.parse(setting);
         }
-        return setting;
     },
 
     setSetting: function (name, value) {
-        return window.localStorage.setItem(name, value);
+        var serialized = JSON.stringify(value);
+        return window.localStorage.setItem(name, serialized);
     }
 
 });

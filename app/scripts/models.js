@@ -4,8 +4,8 @@ App.Secret = DS.Model.extend({
     service: DS.attr('string'),
     account: DS.attr('string'),
     secret: DS.attr('string'),
-    notes: DS.attr('notes'),
-    tags: DS.attr('tags'),
+    notes: DS.attr('string'),
+    tags: DS.attr('string'),
 
     matches: function (tag, query) {
         var tagMatch = true, queryMatch = true;

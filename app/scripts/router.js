@@ -15,7 +15,7 @@ App.IndexRoute = Ember.Route.extend({
         if (lastSync) {
             this.transitionTo('secrets');
         } else {
-            this.transitionTo('login');
+            this.transitionTo('sync');
         }
     }
 });
@@ -23,7 +23,18 @@ App.IndexRoute = Ember.Route.extend({
 
 App.LoginRoute = Ember.Route.extend();
 
-App.SyncRoute = Ember.Route.extend();
+App.SyncRoute = Ember.Route.extend({
+
+    beforeModel: function (transition) {
+        var loginController = this.controllerFor('login'),
+            oauth = loginController.get('oauth'),
+            accessToken = oauth.getAccessToken();
+        if (accessToken === null) {
+            loginController.set('previousTransition', transition);
+            this.transitionTo('login');
+        }
+    }
+});
 
 App.SecretsRoute = Ember.Route.extend({
 
