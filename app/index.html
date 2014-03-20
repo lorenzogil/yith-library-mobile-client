@@ -239,6 +239,10 @@
 
 <body role="application">
 
+  <script type="text/x-handlebars" id="application">
+    {{outlet}}
+  </script>
+
   <script type="text/x-handlebars" data-template-name="login">
     <section id="login" role="region">
       <header class="fixed">
@@ -323,7 +327,14 @@
 
       <section id="secrets" role="region" {{bind-attr class="state"}}>
         <header class="fixed">
-          <a href="#" {{action 'openDrawer'}}><span class="icon icon-menu">menu</span></a>
+          <button {{action 'openDrawer'}}>
+            <span class="icon icon-menu">menu</span>
+          </button>
+          <menu type="toolbar">
+            <button {{ action 'sync' }}>
+              <span class="icon action-icon email-sync">Sync</span>
+            </button>
+          </menu>
           <form action="#">
             {{input placeholder="search" value=query}}
             <button type="reset">Remove text</button>
