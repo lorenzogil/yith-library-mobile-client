@@ -99,7 +99,12 @@ App.SyncController = Ember.ObjectController.extend({
     },
 
     updateSecret: function (record, data) {
-
+        record.set('service', data.service);
+        record.set('account', data.account);
+        record.set('secret', data.secret);
+        record.set('notes', data.notes);
+        record.set('tags', data.tags.join(' '));
+        return record.save();
     },
 
     updateTags: function (existingRecords, passwords) {
