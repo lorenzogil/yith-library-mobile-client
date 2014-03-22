@@ -272,35 +272,6 @@
 
   </script>
 
-  <script type="text/x-handlebars" data-template-name="sync">
-    <section id="sync" role="region">
-      <header class="fixed">
-        <h1>Yith Library</h1>
-      </header>
-
-      <article class="content scrollable header">
-        <header>
-          {{#if syncing}}
-            <h2>Synchronizing secrets</h2>
-          {{else}}
-            <h2>Synchronize from the server</h2>
-          {{/if}}
-        </header>
-        {{#if syncing}}
-          <progress></progress>
-        {{else}}
-          <form>
-            <p>
-              <button type="button" class="recommend" {{action 'sync'}}>Sync</button>
-            </p>
-          </form>
-        {{/if}}
-      </article>
-
-    </section>
-
-  </script>
-
   <script type="text/x-handlebars" data-template-name="secrets">
     <section id="index" data-position="current" {{bind-attr class="position"}}>
 
@@ -427,6 +398,7 @@
   <!-- Application -->
   <script src="scripts/application.js"></script>
   <script src="scripts/settings.js"></script>
+  <script src="scripts/syncmanager.js"></script>
   <script src="scripts/router.js"></script>
   <script src="scripts/controllers.js"></script>
   <script src="scripts/views.js"></script>
