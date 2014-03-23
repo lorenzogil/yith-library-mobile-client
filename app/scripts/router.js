@@ -13,12 +13,7 @@ App.Router.map(function () {
 
 App.IndexRoute = Ember.Route.extend({
     beforeModel: function () {
-        var lastSync = this.settings.getSetting('lastSync');
-        if (lastSync) {
-            this.transitionTo('secrets');
-        } else {
-            this.transitionTo('sync');
-        }
+        this.transitionTo('secrets');
     }
 });
 
