@@ -67,23 +67,35 @@ App.AuthManager = Ember.Object.extend({
         var params = {},
             queryString = hash.substring(1),  // remove #
             regex =  /([^#?&=]+)=([^&]*)/g,
-            match = null;
+            match = null,
+            key = null;
 
         while ((match = regex.exec(queryString)) !== null) {
-            params[decodeURIComponent(match[1])] = decodeURIComponent(match[2]);
+            key = this.toUpperCase(decodeURIComponent(match(1)));
+            params[key] = decodeURIComponent(match(2));
         }
         return params;
     },
 
+    toUpperCase: function (symbol) {
+        return symbol.split('_').map(function (word, idx) {
+            if (idx === 0) {
+                return word;
+            } else {
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            }
+        }).join('');
+    },
+
     checkResponse: function (params, state) {
-        return params.access_token && params.state === state;
+        return params.accessToken && params.state === state;
     },
 
     saveToken: function (token) {
-        var expiration = this.now() + parseInt(token.expires_in, 10);
-        this.set('accessToken', token.access_token);
+        var expiration = this.now() + parseInt(token.expiresIn, 10);
+        this.set('accessToken', token.accessToken);
         this.set('accessTokenExpiration', expiration);
-        window.localStorage.setItem('accessToken', token.access_token);
+        window.localStorage.setItem('accessToken', token.accessToken);
         window.localStorage.setItem('accessTokenExpiration', expiration);
     },
 
