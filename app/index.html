@@ -302,9 +302,23 @@
             <span class="icon icon-menu">menu</span>
           </button>
           <menu type="toolbar">
-            <button {{ action 'sync' }}>
-              <span class="icon action-icon email-sync">Sync</span>
-            </button>
+            {{# if authManager.hasValidAccessToken}}
+              <button {{action 'sync'}} {{bind-attr disabled="isSyncing"}}>
+                {{#if isSyncing}}
+                  <progress></progress>
+                {{else}}
+                  <span class="icon action-icon email-sync">Sync</span>
+                {{/if}}
+              </button>
+            {{else}}
+              <button {{action 'login'}}>
+                {{#if isAuthorizing}}
+                  <progress></progress>
+                {{else}}
+                  <span class="icon action-icon user">Log in</span>
+                {{/if}}
+              </button>
+            {{/if}}
           </menu>
           <form action="#">
             {{input placeholder="search" value=query}}
@@ -391,13 +405,13 @@
   <script src="scripts/vendor/handlebars-v1.2.1.js"></script>
   <script src="scripts/vendor/ember-1.4.0.js"></script>
   <script src="scripts/vendor/ember-data-1.0.0.beta5.js"></script>
-  <script src="scripts/vendor/ember.oauth2.0.2.3.js"></script>
   <script src="scripts/vendor/ember_indexeddb_adapter_0.5.0.js"></script>
   <script src="scripts/vendor/sjcl-1.0.0.min.js"></script>
 
   <!-- Application -->
   <script src="scripts/application.js"></script>
   <script src="scripts/settings.js"></script>
+  <script src="scripts/authmanager.js"></script>
   <script src="scripts/syncmanager.js"></script>
   <script src="scripts/router.js"></script>
   <script src="scripts/controllers.js"></script>

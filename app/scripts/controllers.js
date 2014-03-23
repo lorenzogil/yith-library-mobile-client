@@ -46,6 +46,8 @@ App.SecretsController = Ember.ArrayController.extend({
     tags: [],
     selectedTag: null,
     query: '',
+    isSyncing: false,
+    isAuthorizing: false,
 
     secrets: function () {
         var selectedTag = this.get('selectedTag'),
@@ -68,26 +70,40 @@ App.SecretsController = Ember.ArrayController.extend({
 
     syncFromServer: function () {
         var controller = this,
-            syncManager = null,
-            oauth = null,
             accessToken = null,
             clientId = null,
             serverBaseUrl = null;
 
-        if (this.get('syncing') === true) {
+        if (this.get('isSyncing') === true) {
             return;
         } else {
-            this.set('syncing', true);
+            this.set('isSyncing', true);
 
-            oauth = this.controllerFor('login').get('oauth');
-            accessToken = oauth.getAccessToken();
-            clientId = oauth.providerConfig.clientId;
+            accessToken = this.authManager.get('accessToken');
+            clientId = this.authManager.get('clientId');
             serverBaseUrl = this.settings.getSetting('serverBaseUrl');
 
             this.syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId)
                 .then(function () {
                     controller.settings.setSetting('lastSync', new Date());
-                    controller.set('syncing', false);
+                    controller.set('isSyncing', false);
+                });
+        }
+    },
+
+    authorizeInServer: function () {
+        var controller = this,
+            serverBaseUrl = null;
+
+        if (this.get('isAuthorizing') === true) {
+            return;
+        } else {
+            this.set('isAuthorizing', true);
+
+            serverBaseUrl = this.settings.getSetting('serverBaseUrl');
+            this.authManager.authorize(serverBaseUrl)
+                .then(function () {
+                    controller.set('isAuthorizing', false);
                 });
         }
     },
@@ -125,10 +141,15 @@ App.SecretsController = Ember.ArrayController.extend({
             }
         },
 
-        sync: function () {
-            var controller = this;
+        login: function () {
             Ember.run.next(this, function () {
-                controller.syncFromServer();
+                this.authorizeInServer();
+            });
+        },
+
+        sync: function () {
+            Ember.run.next(this, function () {
+                this.syncFromServer();
             });
         }
 
