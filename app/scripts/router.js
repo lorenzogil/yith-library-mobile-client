@@ -1,7 +1,7 @@
 'use strict';
 
 App.Router.map(function () {
-    this.route('login', {path: '/login'});
+    this.route('firstTime', {path: '/first-time'});
     this.resource('secrets', {
         path: '/secrets',
         queryParams: ['tag']
@@ -11,14 +11,35 @@ App.Router.map(function () {
 });
 
 
-App.IndexRoute = Ember.Route.extend({
-    beforeModel: function () {
-        this.transitionTo('secrets');
+App.ApplicationRoute = Ember.Route.extend({
+
+    model: function () {
+        var lastAccount = this.settings.getSetting('lastAccount');
+        if (lastAccount) {
+            return this.store.find('account', lastAccount);
+        } else {
+            return null;
+        }
+    },
+
+    afterModel: function (model) {
+        if (model === null) {
+            this.transitionTo('firstTime');
+        }
     }
 });
 
 
-App.LoginRoute = Ember.Route.extend();
+App.IndexRoute = Ember.Route.extend({
+
+    beforeModel: function () {
+        this.transitionTo('secrets');
+    }
+
+});
+
+
+App.FirstTimeRoute = Ember.Route.extend({});
 
 
 App.SecretsRoute = Ember.Route.extend({

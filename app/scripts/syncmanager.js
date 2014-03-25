@@ -2,6 +2,35 @@
 
 App.SyncManager = Ember.Object.extend({
 
+    fetchUserInfo: function (accessToken, serverBaseUrl, clientId) {
+        var self = this;
+
+        return new Ember.RSVP.Promise(function (resolve /*, reject */) {
+            $.ajax({
+                url: serverBaseUrl + '/user?client_id=' + clientId,
+                type: 'GET',
+                crossDomain: true,
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                }
+            }).done(function (data /*, textStatus, jqXHR*/) {
+                resolve(data);
+            });
+        }).then(function (data) {
+            return self.updateAccountStore(data);
+        });
+    },
+
+    updateAccountStore: function (data) {
+        return this.store.createRecord('account', {
+            id: data._id,
+            email: data.email,
+            firstName: data.first_name,
+            lastName: data.last_name,
+            screenName: data.screen_name
+        }).save();
+    },
+
     fetchSecrets: function (accessToken, serverBaseUrl, clientId) {
         var self = this;
 
@@ -17,11 +46,11 @@ App.SyncManager = Ember.Object.extend({
                 resolve(data);
             });
         }).then(function (data) {
-            return self.updateStore(data);
+            return self.updateSecretsStore(data);
         });
     },
 
-    updateStore: function (data) {
+    updateSecretsStore: function (data) {
         var self = this,
             promises = {
                 secrets: this.store.find('secret'),

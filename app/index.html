@@ -233,6 +233,10 @@
     form.secret-revealer input[type=text] {
       width: 85%;
     }
+
+    aside.pack-end progress {
+      height: 6rem;
+    }
   </style>
 
 </head>
@@ -243,28 +247,98 @@
     {{outlet}}
   </script>
 
-  <script type="text/x-handlebars" data-template-name="login">
+  <script type="text/x-handlebars" data-template-name="firstTime">
     <section id="login" role="region">
       <header class="fixed">
         <h1>Yith Library</h1>
       </header>
 
       <article class="content scrollable header">
-        <header>
-          {{#if connecting}}
-            <h2>Connecting to server</h2>
-          {{else}}
-            <h2>Connection settings</h2>
-          {{/if}}
-        </header>
-        {{#if connecting}}
-          <progress></progress>
-        {{else}}
+        {{#if showInstructions}}
+          <header>
+            <h2>First time usage</h2>
+          </header>
+          <p>
+            As this is the first time you are using this application
+            you need to connect to the Yith Library server to access your
+            account information.
+          </p>
+          <p>
+            If you do not have an account at Yith Library you will create
+            one as part of this process.
+          </p>
+          <p>
+            After this step everything will be setup so you will be able to
+            access your secrets even if you are not online.
+          </p>
           <form>
             <p>
-              <button type="button" class="recommend" {{action 'connect'}}>Connect</button>
+              <button type="button" class="recommend" {{action 'connect'}}>Connect to YithLibrary.com</button>
             </p>
           </form>
+        {{else}}
+          <section data-type="list">
+            <header>
+              {{# if isFinished}}
+                Your secrets are ready!
+              {{else}}
+                Running step {{step}} of 3
+              {{/if}}
+            </header>
+            <ul>
+              <li>
+                {{#if isConnectingToServer}}
+                  <aside class="pack-end">
+                    <progress></progress>
+                  </aside>
+                  <p>Connecting to the server...</p>
+                {{else}}
+                  {{#if isServerConnected}}
+                    <p>Server connected!</p>
+                  {{ else }}
+                    <p>Waiting to connect to server.</p>
+                  {{/if}}
+                {{/if}}
+              </li>
+              <li {{bind-attr aria-disabled="accountDisabled"}}>
+                {{#if isGettingAccountInformation}}
+                  <aside class="pack-end">
+                    <progress></progress>
+                  </aside>
+                  <p>Getting account information...</p>
+                {{else}}
+                  {{#if isAccountInformationRetrieved}}
+                    <p>Account information retrieved!</p>
+                  {{else}}
+                    <p>Waiting to retrieve account information.</p>
+                  {{/if}}
+                {{/if}}
+              </li>
+              <li {{bind-attr aria-disabled="secretsDisabled"}}>
+                {{#if isGettingSecrets}}
+                  <aside class="pack-end">
+                    <progress></progress>
+                  </aside>
+                  <p>Getting secrets...</p>
+                {{else}}
+                  {{#if areSecretsRetrieved}}
+                    <p>Secrets retrieved!</p>
+                  {{else}}
+                    <p>Waiting to retrieve secrets.</p>
+                  {{/if}}
+                {{/if}}
+              </li>
+            </ul>
+          </section>
+          {{#if isFinished}}
+            <form>
+              <p>
+                <button type="button" class="recommend" {{action 'secrets'}}>
+                  Go to my secrets
+                </button>
+              </p>
+            </form>
+          {{/if}}
         {{/if}}
       </article>
 
@@ -302,6 +376,9 @@
             <span class="icon icon-menu">menu</span>
           </button>
           <menu type="toolbar">
+            <button>
+              <span class="icon action-icon search">Search</span>
+            </button>
             {{# if authManager.hasValidAccessToken}}
               <button {{action 'sync'}} {{bind-attr disabled="isSyncing"}}>
                 {{#if isSyncing}}
@@ -320,13 +397,23 @@
               </button>
             {{/if}}
           </menu>
+          <h1>{{title}}</h1>
+          <!--
           <form action="#">
             {{input placeholder="search" value=query}}
             <button type="reset">Remove text</button>
           </form>
+          -->
         </header>
         <article class="content scrollable header">
           <header>
+            <form action="#" role="search">
+              <button type="submit">Cancel</button>
+              <p>
+                {{input placeholder="Search..." value=query}}
+                <button type="reset">Clear</button>
+              </p>
+            </form>
             <h2>
               {{secretsCount}} {{secretsNoun}}
               {{#if selectedTag}}
@@ -334,6 +421,7 @@
               {{/if}}
             </h2>
           </header>
+
           <div data-type="list">
             <ul>
               {{#each secrets}}

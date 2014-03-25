@@ -1,44 +1,103 @@
 'use strict';
 
-App.LoginController = Ember.ObjectController.extend({
-    previousTransition: null,
-    oauth: null,
-    connecting: false,
+App.ApplicationController = Ember.ObjectController.extend({
 
-    init: function () {
-        this._super();
-        var self = this,
+    // The active Account object will be set as the model for this controller
+
+});
+
+
+App.FirstTimeController = Ember.ObjectController.extend({
+    needs: ['application'],
+    step: 0,
+
+    showInstructions: function () {
+        return this.get('step') === 0;
+    }.property('step'),
+
+    isConnectingToServer: function () {
+        return this.get('step') === 1;
+    }.property('step'),
+
+    isServerConnected: function () {
+        return this.get('step') > 1;
+    }.property('step'),
+
+    isGettingAccountInformation: function () {
+        return this.get('step') === 2;
+    }.property('step'),
+
+    isAccountInformationRetrieved: function () {
+        return this.get('step') > 2;
+    }.property('step'),
+
+    accountDisabled: function () {
+        return (this.get('step') < 2 ? 'true': 'false');
+    }.property('step'),
+
+    isGettingSecrets: function () {
+        return this.get('step') === 3;
+    }.property('step'),
+
+    areSecretsRetrieved: function () {
+        return this.get('step') > 3;
+    }.property('step'),
+
+    secretsDisabled: function () {
+        return (this.get('step') < 3 ? 'true': 'false');
+    }.property('step'),
+
+    isFinished: function () {
+        return this.get('step') === 4;
+    }.property('step'),
+
+    connectToServer: function () {
+        var controller = this,
+            syncManager = this.syncManager,
+            authManager = this.authManager,
+            clientId = this.authManager.get('clientId'),
             serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
-            authBaseUri = serverBaseUrl + '/oauth2/endpoints/authorization',
-            oauth = null;
+            accessToken = null;
 
-        Ember.OAuth2.config.yithlibrary.authBaseUri = authBaseUri;
-        oauth = Ember.OAuth2.create({providerId: 'yithlibrary'});
+        this.incrementProperty('step');
 
-        oauth.onSuccess = function () {
-            var previousTransition = self.get('previousTransition');
-            self.set('connecting', false);
-            if (previousTransition) {
-                self.set('previousTransition', null);
-                previousTransition.retry();
-            } else {
-                self.transitionToRoute('secrets');
-            }
-        };
-        this.set('oauth', oauth);
+        this.authManager.authorize(serverBaseUrl)
+            .then(function () {
+                accessToken = authManager.get('accessToken');
+                controller.incrementProperty('step');
+                return syncManager.fetchUserInfo(
+                    accessToken, serverBaseUrl, clientId
+                );
+            })
+            .then(function (user) {
+                controller.settings.setSetting('lastAccount', user.get('id'));
+                controller.get('controllers.application').set('model', user);
+                controller.incrementProperty('step');
+                return syncManager.fetchSecrets(
+                    accessToken, serverBaseUrl, clientId
+                );
+            })
+            .then(function () {
+                controller.settings.setSetting('lastSync', new Date());
+                controller.incrementProperty('step');
+            });
     },
 
     actions: {
         connect: function () {
-            var oauth = this.get('oauth');
-            this.set('connecting', true);
-            oauth.authorize();
+            Ember.run.next(this, function () {
+                this.connectToServer();
+            });
+        },
+
+        secrets: function () {
+            this.transitionToRoute('secrets.index');
         }
     }
 });
 
 App.SecretsController = Ember.ArrayController.extend({
-    needs: ['login'],
+    needs: ['application'],
     sortProperties: ['service', 'account'],
     sortAscending: true,
     position: '',
@@ -48,6 +107,10 @@ App.SecretsController = Ember.ArrayController.extend({
     query: '',
     isSyncing: false,
     isAuthorizing: false,
+
+    title: function () {
+        return this.get('controllers.application.model.displayName');
+    }.property('controllers.application.model.displayName'),
 
     secrets: function () {
         var selectedTag = this.get('selectedTag'),

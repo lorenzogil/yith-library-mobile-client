@@ -4,7 +4,7 @@ App.AuthManager = Ember.Object.extend({
 
     clientId: 'd866fbc8-a367-44a2-9d6f-8ae2ffbd2748',
     clientBaseUrl: 'http://localhost:9000',
-    scope: 'read-passwords',
+    scope: 'read-passwords read-userinfo',
     accessToken: null,
     accessTokenExpiration: null,
 
@@ -71,13 +71,13 @@ App.AuthManager = Ember.Object.extend({
             key = null;
 
         while ((match = regex.exec(queryString)) !== null) {
-            key = this.toUpperCase(decodeURIComponent(match(1)));
-            params[key] = decodeURIComponent(match(2));
+            key = this.toCamelCase(decodeURIComponent(match[1]));
+            params[key] = decodeURIComponent(match[2]);
         }
         return params;
     },
 
-    toUpperCase: function (symbol) {
+    toCamelCase: function (symbol) {
         return symbol.split('_').map(function (word, idx) {
             if (idx === 0) {
                 return word;
