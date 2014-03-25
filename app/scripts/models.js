@@ -14,7 +14,7 @@ App.Account = DS.Model.extend({
         if (firstName) {
             parts.push(firstName);
         }
-        if (lastname) {
+        if (lastName) {
             parts.push(lastName);
         }
         return parts.join(' ');
