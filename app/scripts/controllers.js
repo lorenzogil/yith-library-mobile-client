@@ -107,6 +107,7 @@ App.SecretsController = Ember.ArrayController.extend({
     query: '',
     isSyncing: false,
     isAuthorizing: false,
+    isSearching: false,
 
     title: function () {
         return this.get('controllers.application.model.displayName');
@@ -214,6 +215,13 @@ App.SecretsController = Ember.ArrayController.extend({
             Ember.run.next(this, function () {
                 this.syncFromServer();
             });
+        },
+
+        toggleSearch: function () {
+            this.toggleProperty('isSearching');
+            if (this.get('isSearching') === false) {
+                this.set('query', '');
+            }
         }
 
     }

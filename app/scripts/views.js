@@ -9,17 +9,37 @@ App.prefixEvent = function (event) {
     return prefixedEventNames.join(' ');
 };
 
+App.ApplicationView = Ember.View.extend({
+    classNames: ['full-height']
+});
+
 App.SecretsView = Ember.View.extend({
-    // We need to put an Id to the toplevel view
-    // so we can style it with CSS and give it
-    // a height: 100%
-    attributeBindings: ['id'],
-    id: 'index-container'
+    classNames: ['full-height'],
+});
+
+App.SecretsSearchView = Ember.View.extend({
+    templateName: 'secrets-search',
+    tagName: 'form',
+    attributeBindings: ['role'],
+    role: 'search',
+    classNameBindings: ['active:is-active'],
+    active: false,
+
+    didInsertElement: function () {
+        var self = this, $input = this.$('input');
+        this.$().on(App.prefixEvent('TransitionEnd'), function () {
+            if (self.get('active') === true) {
+                $input.focus();
+            }
+        });
+
+    }
 });
 
 App.SecretView = Ember.View.extend({
     tagName: 'section',
-    classNameBindings: ['position'],
+    classNameBindings: ['position', 'size'],
+    size: 'full-height',
     position: '',
     attributeBindings: ['role', 'dataPosition:data-position'],
     role: 'region',

@@ -41,9 +41,6 @@
 
   <link href="/styles/main.css" rel="stylesheet" type="text/css">
   <style>
-    #index, #index-container {
-      height: 100%;
-    }
     [data-position="right"] {
       position: absolute;
       top: 0;
@@ -187,6 +184,13 @@
     }
 
     /* Custom styles */
+    .full-height {
+      position: relative;
+      height: 100%;
+    }
+    section[role=region] {
+      height: 100%;
+    }
     span.tag {
       background: #f1e372;
       border-radius: 3px 0 0 3px;
@@ -232,6 +236,16 @@
 
     form.secret-revealer input[type=text] {
       width: 85%;
+    }
+
+    form#search-form {
+      height: 0;
+      overflow: hidden;
+      transition: height 0.5s ease-in-out;
+    }
+
+    form#search-form.is-active {
+      height: 3.7rem;
     }
 
     aside.pack-end progress {
@@ -347,7 +361,7 @@
   </script>
 
   <script type="text/x-handlebars" data-template-name="secrets">
-    <section id="index" data-position="current" {{bind-attr class="position"}}>
+    <section class="full-height" data-position="current" {{bind-attr class="position"}}>
 
       <section data-type="sidebar">
         <header>
@@ -376,7 +390,7 @@
             <span class="icon icon-menu">menu</span>
           </button>
           <menu type="toolbar">
-            <button>
+            <button {{action 'toggleSearch'}}>
               <span class="icon action-icon search">Search</span>
             </button>
             {{# if authManager.hasValidAccessToken}}
@@ -398,22 +412,10 @@
             {{/if}}
           </menu>
           <h1>{{title}}</h1>
-          <!--
-          <form action="#">
-            {{input placeholder="search" value=query}}
-            <button type="reset">Remove text</button>
-          </form>
-          -->
         </header>
         <article class="content scrollable header">
           <header>
-            <form action="#" role="search">
-              <button type="submit">Cancel</button>
-              <p>
-                {{input placeholder="Search..." value=query}}
-                <button type="reset">Clear</button>
-              </p>
-            </form>
+            {{view App.SecretsSearchView id="search-form" active=isSearching}}
             <h2>
               {{secretsCount}} {{secretsNoun}}
               {{#if selectedTag}}
@@ -485,6 +487,13 @@
     </p>
     <p>
       <button {{bind-attr class=view.buttonClass}}>{{view.buttonText}}</button>
+    </p>
+  </script>
+
+  <script type="text/x-handlebars" data-template-name="secrets-search">
+    <p>
+      {{input placeholder="Search..." value=query}}
+      <button type="reset">Clear</button>
     </p>
   </script>
 
