@@ -21,13 +21,27 @@ App.SyncManager = Ember.Object.extend({
         });
     },
 
+    /* Convert all the keys of the record to be in camelCase
+       instead of snake_case */
+    convertRecord: function (record) {
+        var newRecord = {}, key = null, newKey = null;
+        for (key in record) {
+            if (record.hasOwnProperty(key)) {
+                newKey = App.snakeCaseToCamelCase(key);
+                newRecord[newKey] = record[key];
+            }
+        }
+        return newRecord;
+    },
+
     updateAccountStore: function (data) {
+        data = this.convertRecord(data);
         return this.store.createRecord('account', {
             id: data._id,
             email: data.email,
-            firstName: data.first_name,
-            lastName: data.last_name,
-            screenName: data.screen_name
+            firstName: data.firstName,
+            lastName: data.lastName,
+            screenName: data.screenName
         }).save();
     },
 

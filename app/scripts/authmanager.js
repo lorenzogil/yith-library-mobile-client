@@ -71,20 +71,10 @@ App.AuthManager = Ember.Object.extend({
             key = null;
 
         while ((match = regex.exec(queryString)) !== null) {
-            key = this.toCamelCase(decodeURIComponent(match[1]));
+            key = App.snakeCaseToCamelCase(decodeURIComponent(match[1]));
             params[key] = decodeURIComponent(match[2]);
         }
         return params;
-    },
-
-    toCamelCase: function (symbol) {
-        return symbol.split('_').map(function (word, idx) {
-            if (idx === 0) {
-                return word;
-            } else {
-                return word.charAt(0).toUpperCase() + word.slice(1);
-            }
-        }).join('');
     },
 
     checkResponse: function (params, state) {
