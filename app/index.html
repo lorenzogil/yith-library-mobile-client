@@ -439,8 +439,12 @@
         </article>
       </section>
     </section>
+    <section role="status" {{bind-attr class="statusClass"}}>
+      <p>{{statusMessage}}</p>
+    </section>
 
     {{outlet secret}}
+
   </script>
 
   <script type="text/x-handlebars" data-template-name="secret">

@@ -3,7 +3,7 @@
 App.AuthManager = Ember.Object.extend({
 
     clientId: 'd866fbc8-a367-44a2-9d6f-8ae2ffbd2748',
-    clientBaseUrl: 'http://localhost:9000',
+    clientBaseUrl: 'http://10.0.0.9:9000',
     scope: 'read-passwords read-userinfo',
     accessToken: null,
     accessTokenExpiration: null,

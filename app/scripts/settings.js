@@ -3,7 +3,7 @@
 App.Settings = Ember.Object.extend({
 
     defaults: {
-        'serverBaseUrl': 'http://127.0.0.1:6543'
+        'serverBaseUrl': 'http://10.0.0.9:6543'
     },
 
     getSetting: function (name) {

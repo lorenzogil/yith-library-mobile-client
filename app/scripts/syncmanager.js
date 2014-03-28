@@ -37,7 +37,7 @@ App.SyncManager = Ember.Object.extend({
     updateAccountStore: function (data) {
         data = this.convertRecord(data);
         return this.store.createRecord('account', {
-            id: data._id,
+            id: data.id,
             email: data.email,
             firstName: data.firstName,
             lastName: data.lastName,
@@ -71,21 +71,31 @@ App.SyncManager = Ember.Object.extend({
                 tags: this.store.find('tag')
             };
         return Ember.RSVP.hash(promises).then(function (results) {
-            self.updateSecrets(results.secrets, data.passwords);
-            self.updateTags(results.tags, data.passwords);
+            var secretsPromise = Ember.RSVP.all(self.updateSecrets(
+                results.secrets,
+                data.passwords
+            )), tagsPromise = Ember.RSVP.all(self.updateTags(
+                results.tags,
+                data.passwords
+            ));
+            return Ember.RSVP.hash({
+                secrets: secretsPromise,
+                tags: tagsPromise
+            });
         });
     },
 
     updateSecrets: function (existingRecords, passwords) {
-        var self = this;
+        var self = this, result = [];
         passwords.forEach(function (password) {
             var existingRecord = existingRecords.findBy('id', password.id);
             if (existingRecord !== undefined) {
-                self.updateSecret(existingRecord, password);
+                result.push(self.updateSecret(existingRecord, password));
             } else {
-                self.createSecret(password);
+                result.push(self.createSecret(password));
             }
         });
+        return result;
     },
 
     createSecret: function (data) {
@@ -109,7 +119,7 @@ App.SyncManager = Ember.Object.extend({
     },
 
     updateTags: function (existingRecords, passwords) {
-        var self = this, newTags = new Ember.Map();
+        var self = this, newTags = new Ember.Map(), result = [];
         passwords.forEach(function (password) {
             password.tags.forEach(function (tag) {
                 if (newTags.has(tag)) {
@@ -123,11 +133,12 @@ App.SyncManager = Ember.Object.extend({
         newTags.forEach(function (name, count) {
             var existingRecord = existingRecords.findBy('name', name);
             if (existingRecord !== undefined) {
-                self.updateTag(existingRecord, name, count);
+                result.push(self.updateTag(existingRecord, name, count));
             } else {
-                self.createTag(name, count);
+                result.push(self.createTag(name, count));
             }
         });
+        return result;
     },
 
     createTag: function (name, count) {
