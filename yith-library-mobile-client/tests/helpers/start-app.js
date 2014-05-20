@@ -1,6 +1,9 @@
+/* global require */
+
+var Application = require('yith-library-mobile-client/app')['default'];
 var Router = require('yith-library-mobile-client/router')['default'];
 
-function startApp(attrs) {
+export default function startApp(attrs) {
   var App;
 
   var attributes = Ember.merge({
@@ -15,7 +18,7 @@ function startApp(attrs) {
   });
 
   Ember.run(function(){
-    App = require('yith-library-mobile-client/main')['default']('yith-library-mobile-client', attributes);
+    App = Application.create(attributes);
     App.setupForTesting();
     App.injectTestHelpers();
   });
@@ -24,5 +27,3 @@ function startApp(attrs) {
 
   return App;
 }
-
-export default startApp;
