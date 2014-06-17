@@ -1,3 +1,214 @@
 html, body {
-  margin: 20px;
+    margin: 0;
+}
+
+[data-position="right"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: translateX(100%);
+    -webkit-transform: translateX(100%);
+    z-index: 15;
+    z-index: 100; /* -> drawer */
+}
+section[role="region"][data-position="right"] {
+    position: absolute;
+}
+[data-position="right"].current {
+    animation: rightToCurrent 0.4s forwards;
+    -webkit-animation: rightToCurrent 0.4s forwards;
+}
+[data-position="right"].right {
+    animation: currentToRight 0.4s forwards;
+    -webkit-animation: currentToRight 0.4s forwards;
+}
+[data-position="current"].left {
+    animation: currentToLeft 0.4s forwards;
+    -webkit-animation: currentToLeft 0.4s forwards;
+}
+[data-position="current"].current {
+    animation: leftToCurrent 0.4s forwards;
+    -webkit-animation: leftToCurrent 0.4s forwards;
+}
+[data-position="back"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    opacity: 0;
+/* z-index: 100; -> drawer */
+}
+[data-position="back"].fade-in {
+    z-index: 120;
+    animation: fadeIn 0.2s forwards;
+    -webkit-animation: fadeIn 0.2s forwards;
+}
+[data-position="back"].fade-out {
+    animation: fadeOut 0.2s forwards;
+    -webkit-animation: fadeOut 0.2s forwards;
+}
+
+[data-position="edit-mode"] {
+    position: absolute;
+    top: -5rem;
+    left: 0;
+    right: 0;
+    bottom: -7rem;
+    z-index: -1;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+[data-position="edit-mode"].edit {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 120;
+    opacity: 1;
+}
+
+/* Headers */
+#headers section[role="region"] {
+    margin-bottom: 1.5rem;
+}
+#headers section[role="region"]:not(#drawer) {
+    display: inline;
+}
+#headers article header:first-child {
+    margin-top: 1.5rem;
+}
+#headers section[role="region"] header h2 {
+    margin: 0 0 1.5rem 0;
+}
+
+/* Lists */
+/* to avoid double background effect on press */
+[data-type=list] li>a:active {
+    background-color: transparent;
+}
+
+/* Drawer */
+section[role="region"].drawer-opened {
+    -moz-transform: translateX(80%);
+    -webkit-transform: translateX(80%);
+}
+
+section[data-type="sidebar"] + section[role="region"] > header:first-child > button,
+section[data-type="sidebar"] + section[role="region"] > header:first-child > a {
+    background-position: 3.5rem center;
+}
+
+/* Switches */
+#switches label:last-child {
+    margin-left: 2rem;
+}
+
+/* Scrolling */
+nav[data-type="scrollbar"] {
+    padding-top: 1rem;
+}
+nav[data-type="scrollbar"] p {
+    opacity: 1;
+}
+
+/* Seek bars */
+div[role="slider"] > label.icon {
+    background: no-repeat right top;
+    background-size: 3rem auto;
+}
+
+/* Tabs */
+#tabs .content {
+    padding: 0;
+}
+#tabs .content .content {
+    padding: 1.5rem 3rem;
+}
+
+/* Filters */
+[role="tablist"][data-type="filter"] {
+    margin-bottom: 2rem;
+}
+
+.bottom[role="tablist"][data-type="filter"] {
+    bottom: auto;
+}
+
+/* Device rotation */
+.landscape section[role="region"]#drawer > header:first-child {
+/* Whatever needs to be changed on landscape */
+}
+
+/* Custom styles */
+.full-height {
+    position: relative;
+    height: 100%;
+}
+section[role=region] {
+    height: 100%;
+}
+span.tag {
+    background: #f1e372;
+    border-radius: 3px 0 0 3px;
+    color: #999;
+    display: inline-block;
+    height: 26px;
+    line-height: 26px;
+    padding: 0 20px 0 23px;
+    position: relative;
+    margin-top: 10px;
+}
+
+span.tag::before {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: inset 0 1px rgba(0, 0, 0, 0.25);
+    content: '';
+    height: 6px;
+    left: 10px;
+    position: absolute;
+    width: 6px;
+    top: 10px;
+}
+
+span.tag::after {
+    background: #fff;
+    border-bottom: 13px solid transparent;
+    border-top: 13px solid transparent;
+    border-left: 10px solid #f1e372;
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+form.secret-revealer {
+    margin-top: 2em;
+}
+
+form.secret-revealer svg {
+    float: right;
+}
+
+form.secret-revealer input[type=text] {
+    width: 85%;
+}
+
+form#search-form {
+    height: 0;
+    overflow: hidden;
+    transition: height 0.5s ease-in-out;
+}
+
+form#search-form.is-active {
+    height: 3.7rem;
+}
+
+aside.pack-end progress {
+    height: 6rem;
 }

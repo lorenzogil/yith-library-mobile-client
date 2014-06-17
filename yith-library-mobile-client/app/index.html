@@ -9,15 +9,18 @@
 
     {{BASE_TAG}}
 
+    <link rel="stylesheet" href="assets/vendor.css">
     <link rel="stylesheet" href="assets/yith-library-mobile-client.css">
   </head>
   <body>
     <script>
-      window.ENV = {{ENV}};
+      window.YithLibraryMobileClientENV = {{ENV}};
+      window.EmberENV = window.YithLibraryMobileClientENV.EmberENV;
     </script>
+    <script src="assets/vendor.js"></script>
     <script src="assets/yith-library-mobile-client.js"></script>
     <script>
-      window.YithLibraryMobileClient = require('yith-library-mobile-client/app')['default'].create(ENV.APP);
+      window.YithLibraryMobileClient = require('yith-library-mobile-client/app')['default'].create(YithLibraryMobileClientENV.APP);
     </script>
   </body>
 </html>

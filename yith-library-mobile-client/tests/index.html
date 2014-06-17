@@ -9,6 +9,7 @@
 
     {{BASE_TAG}}
 
+    <link rel="stylesheet" href="assets/vendor.css">
     <link rel="stylesheet" href="assets/yith-library-mobile-client.css">
     <link rel="stylesheet" href="assets/qunit.css">
     <style>
@@ -33,14 +34,17 @@
     <div id="qunit-fixture"></div>
 
     <script>
-      window.ENV = {{ENV}};
+      window.YithLibraryMobileClientENV = {{ENV}};
+      window.EmberENV = window.YithLibraryMobileClientENV.EmberENV;
     </script>
     <script src="assets/qunit.js"></script>
+    <script src="assets/qunit-notifications.js"></script>
+    <script src="assets/vendor.js"></script>
     <script src="assets/yith-library-mobile-client.js"></script>
     <script src="testem.js"></script>
     <script>
       require('yith-library-mobile-client/tests/test-helper');
-      require('yith-library-mobile-client/tests/test-loader');
     </script>
+    <script src="assets/test-loader.js"></script>
   </body>
 </html>

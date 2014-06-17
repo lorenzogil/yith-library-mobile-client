@@ -1,3 +1,4 @@
+import Ember from 'ember';
 import prefixEvent from '../utils/prefix-event';
 
 export default Ember.View.extend({

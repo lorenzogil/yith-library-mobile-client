@@ -1,3 +1,5 @@
+import Ember from 'ember';
+
 export default Ember.Route.extend({
     model: function () {
         var lastAccount = this.settings.getSetting('lastAccount');
