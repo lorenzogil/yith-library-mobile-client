@@ -3,7 +3,7 @@ import Ember from 'ember';
 export default Ember.Object.extend({
 
     defaults: {
-        'serverBaseUrl': 'http://10.0.0.9:6543'
+        'serverBaseUrl': 'http://192.168.2.4:6543'
     },
 
     getSetting: function (name) {

@@ -4,6 +4,7 @@
     "window": true,
     "$": true,
     "sjcl": true,
+    "DS": true,
     "YithLibraryMobileClientENV": true
   },
   "browser" : true,

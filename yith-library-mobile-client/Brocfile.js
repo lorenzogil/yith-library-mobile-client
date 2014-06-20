@@ -50,6 +50,12 @@ app.import('vendor/ic-ajax/dist/named-amd/main.js', {
   ]
 });
 
+// Ember IndexedDB Adapter
+app.import('vendor/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_migration.js');
+app.import('vendor/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_serializer.js');
+app.import('vendor/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_smartsearch.js');
+app.import('vendor/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_adapter.js');
+
 // SJCL
 app.import('vendor/sjcl/sjcl.js');
 
@@ -87,6 +93,14 @@ var bbImages = pickFiles('vendor/building-blocks/style', {
     destDir: '/assets/'
 });
 
+var bbImagesUnstable = pickFiles('vendor/building-blocks/style_unstable', {
+    srcDir: '/',
+    files: [
+        '**/*.png',
+    ],
+    destDir: '/assets/'
+});
+
 // Building Blocks fonts
 var firaSansFont = pickFiles('vendor/building-blocks/fonts/FiraSans', {
     srcDir: '/',
@@ -94,4 +108,4 @@ var firaSansFont = pickFiles('vendor/building-blocks/fonts/FiraSans', {
     destDir: '/assets/fonts/FiraSans'
 });
 
-module.exports = mergeTrees([app.toTree(), bbImages, firaSansFont]);
+module.exports = mergeTrees([app.toTree(), bbImages, bbImagesUnstable, firaSansFont]);
