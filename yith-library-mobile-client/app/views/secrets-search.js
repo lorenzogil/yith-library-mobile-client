@@ -11,7 +11,7 @@ export default Ember.View.extend({
 
     didInsertElement: function () {
         var self = this, $input = this.$('input');
-        this.$().onn(prefixEvent('TransitionEnd'), function () {
+        this.$().on(prefixEvent('TransitionEnd'), function () {
             if (self.get('active') === true) {
                 $input.focus();
             }

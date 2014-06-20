@@ -101,6 +101,14 @@ var bbImagesUnstable = pickFiles('vendor/building-blocks/style_unstable', {
     destDir: '/assets/'
 });
 
+var bbImagesUnstable2 = pickFiles('vendor/building-blocks/style_unstable', {
+    srcDir: '/',
+    files: [
+        '**/*.png',
+    ],
+    destDir: '/assets/style_unstable/'
+});
+
 // Building Blocks fonts
 var firaSansFont = pickFiles('vendor/building-blocks/fonts/FiraSans', {
     srcDir: '/',
@@ -108,4 +116,10 @@ var firaSansFont = pickFiles('vendor/building-blocks/fonts/FiraSans', {
     destDir: '/assets/fonts/FiraSans'
 });
 
-module.exports = mergeTrees([app.toTree(), bbImages, bbImagesUnstable, firaSansFont]);
+module.exports = mergeTrees([
+    app.toTree(),
+    bbImages,
+    bbImagesUnstable,
+    bbImagesUnstable2,
+    firaSansFont
+]);
