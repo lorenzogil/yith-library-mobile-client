@@ -77,6 +77,10 @@ app.import('vendor/building-blocks/style_unstable/tabs.css');
 app.import('vendor/building-blocks/style_unstable/toolbars.css');
 
 app.import('vendor/building-blocks/style/icons.css');
+app.import('vendor/building-blocks/icons/styles/action_icons.css');
+app.import('vendor/building-blocks/icons/styles/comms_icons.css');
+app.import('vendor/building-blocks/icons/styles/media_icons.css');
+app.import('vendor/building-blocks/icons/styles/settings_icons.css');
 
 app.import('vendor/building-blocks/transitions.css');
 
@@ -101,6 +105,14 @@ var bbImagesUnstable = pickFiles('vendor/building-blocks/style_unstable', {
     destDir: '/assets/'
 });
 
+var bbIcons = pickFiles('vendor/building-blocks/icons/styles', {
+    srcDir: '/',
+    files: [
+        '*.png',
+    ],
+    destDir: '/assets/'
+});
+
 var bbImagesUnstable2 = pickFiles('vendor/building-blocks/style_unstable', {
     srcDir: '/',
     files: [
@@ -120,6 +132,6 @@ module.exports = mergeTrees([
     app.toTree(),
     bbImages,
     bbImagesUnstable,
-    bbImagesUnstable2,
+    bbIcons,
     firaSansFont
 ]);
