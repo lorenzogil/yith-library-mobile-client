@@ -3,6 +3,7 @@
 var EmberApp = require('ember-cli/lib/broccoli/ember-app');
 var mergeTrees = require('broccoli-merge-trees');
 var pickFiles = require('broccoli-static-compiler');
+var replace = require('broccoli-replace');
 
 var app = new EmberApp();
 
@@ -97,8 +98,20 @@ var firaSansFont = pickFiles('vendor/building-blocks/fonts/FiraSans', {
     destDir: '/assets/fonts/FiraSans'
 });
 
+
+// Fix image paths
+var fixedPaths = replace(app.toTree(), {
+    files: [
+        'assets/vendor.css'
+    ],
+    patterns: [{
+        match: /style_unstable\//g,
+        replacement: ''
+    }]
+});
+
 module.exports = mergeTrees([
-    app.toTree(),
+    fixedPaths,
     bbImages,
     bbImagesUnstable,
     bbIcons,
