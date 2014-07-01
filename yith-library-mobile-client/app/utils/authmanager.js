@@ -4,7 +4,7 @@ import snakeCaseToCamelCase from '../utils/snake-case-to-camel-case';
 export default Ember.Object.extend({
 
     clientId: 'd866fbc8-a367-44a2-9d6f-8ae2ffbd2748',
-    clientBaseUrl: 'http://192.168.2.4:4200',
+    clientBaseUrl: 'http://192.168.2.5:4200',
     scope: 'read-passwords read-userinfo',
     accessToken: null,
     accessTokenExpiration: null,

@@ -5,7 +5,11 @@ var mergeTrees = require('broccoli-merge-trees');
 var pickFiles = require('broccoli-static-compiler');
 var replace = require('broccoli-replace');
 
-var app = new EmberApp();
+var app = new EmberApp({
+    fingerprint: {
+        enabled: false
+    }
+});
 
 // Use `app.import` to add additional libraries to the generated
 // output files.
