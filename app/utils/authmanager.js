@@ -1,10 +1,12 @@
 import Ember from 'ember';
 import snakeCaseToCamelCase from '../utils/snake-case-to-camel-case';
 
+var ENV = YithLibraryMobileClientENV;
+
 export default Ember.Object.extend({
 
-    clientId: 'd866fbc8-a367-44a2-9d6f-8ae2ffbd2748',
-    clientBaseUrl: 'http://192.168.2.5:4200',
+    clientId: ENV.defaults.clientId,
+    clientBaseUrl: ENV.defaults.clientBaseUrl,
     scope: 'read-passwords read-userinfo',
     accessToken: null,
     accessTokenExpiration: null,

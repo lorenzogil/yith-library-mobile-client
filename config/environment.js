@@ -12,6 +12,12 @@ module.exports = function(environment) {
       }
     },
 
+    defaults: {
+      clientId: 'd866fbc8-a367-44a2-9d6f-8ae2ffbd2748',
+      clientBaseUrl: 'http://192.168.2.5:4200',
+      serverBaseUrl: 'http://192.168.2.5:6543'
+    },
+
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created
@@ -31,7 +37,9 @@ module.exports = function(environment) {
   }
 
   if (environment === 'production') {
-
+    ENV.defaults.clientId = 'to-be-created';
+    ENV.defaults.clientBaseUrl = 'https://yithlibrary-offlineclient.herokuapp.com';
+    ENV.defaults.serverBaseUrl = 'https://yithlibrary.herokuapp.com';
   }
 
   return ENV;

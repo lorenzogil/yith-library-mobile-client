@@ -3,7 +3,7 @@ import Ember from 'ember';
 export default Ember.Object.extend({
 
     defaults: {
-        'serverBaseUrl': 'http://192.168.2.5:6543'
+        'serverBaseUrl': YithLibraryMobileClientENV.defaults.serverBaseUrl
     },
 
     getSetting: function (name) {
