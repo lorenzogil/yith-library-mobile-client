@@ -37,7 +37,7 @@ module.exports = function(environment) {
   }
 
   if (environment === 'production') {
-    ENV.defaults.clientId = 'to-be-created';
+    ENV.defaults.clientId = '58c09352-b208-4add-83b7-0dc75d0c8ee3';
     ENV.defaults.clientBaseUrl = 'https://yithlibrary-offlineclient.herokuapp.com';
     ENV.defaults.serverBaseUrl = 'https://yithlibrary.herokuapp.com';
   }
