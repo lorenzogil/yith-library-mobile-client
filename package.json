@@ -1,6 +1,6 @@
 {
   "name": "yith-library-mobile-client",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "directories": {
     "doc": "doc",
@@ -11,7 +11,7 @@
     "build": "ember build",
     "test": "ember test"
   },
-  "repository": "https://github.com/stefanpenner/ember-cli",
+  "repository": "https://github.com/lorenzogil/yith-library-mobile-client",
   "engines": {
     "node": ">= 0.10.0"
   },
