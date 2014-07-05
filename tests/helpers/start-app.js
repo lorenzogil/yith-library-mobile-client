@@ -2,6 +2,7 @@
 
 var Application = require('yith-library-mobile-client/app')['default'];
 var Router = require('yith-library-mobile-client/router')['default'];
+import Ember from 'ember';
 
 export default function startApp(attrs) {
   var App;
