@@ -13,6 +13,7 @@ export default Ember.ArrayController.extend({
     isAuthorizing: false,
     isSearching: false,
     statusMessage: null,
+    isOnline: navigator.onLine,
 
     title: function () {
         return this.get('controllers.application.model.displayName');
@@ -47,6 +48,14 @@ export default Ember.ArrayController.extend({
             return 'onviewport';
         }
     }.property('statusMessage'),
+
+    syncButtonDisabled: function () {
+        return this.get('isSyncing') || !this.get('isOnline');
+    }.property('isSyncing', 'isOnline'),
+
+    loginButtonDisabled: function () {
+        return !this.get('isOnline');
+    }.property('isOnline'),
 
     showMessage: function (msg) {
         this.set('statusMessage', msg);
@@ -157,6 +166,14 @@ export default Ember.ArrayController.extend({
             if (this.get('isSearching') === false) {
                 this.set('query', '');
             }
+        },
+
+        offline: function () {
+            this.set('isOnline', false);
+        },
+
+        online: function () {
+            this.set('isOnline', true);
         }
 
     }
