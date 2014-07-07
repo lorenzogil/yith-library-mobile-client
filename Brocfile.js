@@ -106,11 +106,15 @@ var firaSansFont = pickFiles('vendor/building-blocks/fonts/FiraSans', {
 // Fix image paths
 var fixedPaths = replace(app.toTree(), {
     files: [
+        'manifest.appcache',
         'assets/vendor.css'
     ],
     patterns: [{
         match: /style_unstable\//g,
         replacement: ''
+    }, {
+        match: 'projectVersion',
+        replacement: app.project.pkg.version
     }]
 });
 
