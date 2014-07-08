@@ -4,30 +4,29 @@
       </header>
 
       <article class="content scrollable header">
-        {{#if showInstructions}}
-          <header>
-            <h2>First time usage</h2>
-          </header>
-          <p>
-            As this is the first time you are using this application
-            you need to connect to the Yith Library server to access your
-            account information.
-          </p>
-          <p>
-            If you do not have an account at Yith Library you will create
-            one as part of this process.
-          </p>
-          <p>
-            After this step everything will be setup so you will be able to
-            access your secrets even if you are not online.
-          </p>
-          <form>
-            <p>
-              <button type="button" class="recommend" {{action 'connect'}}>Connect to YithLibrary.com</button>
-            </p>
-          </form>
-        {{else}}
-          <section data-type="list">
+        <section data-type="list">
+          {{#if showInstructions}}
+            <header>First time steps</header>
+            <ul>
+              <li>
+                <p>Connect to the server</p>
+                <p>to sign in or sign up</p>
+              </li>
+              <li>
+                <p>Retrieve your account information</p>
+                <p>so we know a little bit about you</p>
+              </li>
+              <li>
+                <p>Retrieve your secrets</p>
+                <p>and access them even when offline</p>
+              </li>
+            </ul>
+            <form>
+              <p>
+                <button type="button" class="recommend" {{action 'connect'}}>Connect to YithLibrary.com</button>
+              </p>
+            </form>
+          {{else}}
             <header>
               {{# if isFinished}}
                 Your secrets are ready!
