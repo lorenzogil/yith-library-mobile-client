@@ -38,8 +38,8 @@ http {
 
     location ~* .(eot|otf|woff|ttf|css|js|jpg|jpeg|gif|png|ico|html|txt|htm|appcache)$ {
       expires -1;
-      etag: off;
-      if_modified_since: off;
+      etag off;
+      if_modified_since off;
       log_not_found off;
       access_log off;
       fastcgi_hide_header Set-Cookie;
