@@ -37,7 +37,7 @@ http {
     }
 
     location ~* .(eot|otf|woff|ttf|css|js|jpg|jpeg|gif|png|ico|html|txt|htm|appcache)$ {
-      expires modified;
+      expires -1;
       log_not_found off;
       access_log off;
       add_header Cache-Control no-cache;
