@@ -6,7 +6,9 @@ export default DS.Model.extend({
     tags: DS.attr('string'),
 
     matches: function (tag, query) {
-        var tagMatch = true, queryMatch = true, tags = null;
+        var tagMatch = (tag === null),
+            queryMatch = (query === ''),
+            tags = '';
         if (tag !== null) {
             tags = this.get('tags');
             if (tags) {
