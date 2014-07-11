@@ -1,0 +1,21 @@
+2014-07-10 0.3.0
+----------------
+
+FEATURE: Case insensitive search
+BUGFIX: Spinner size on the header for Firefox on Android
+
+2014-07-08 0.2.1
+----------------
+
+BUGFIX: Tag filter now works properly
+BUGFIX: nginx configuration to avoid caching the files
+
+2014-07-07 0.2.0
+----------------
+
+FEATURE: Simplify first time UI
+
+2014-07-06 0.1.0
+----------------
+
+Initial realease
