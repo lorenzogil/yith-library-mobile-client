@@ -9,16 +9,17 @@ export default DS.Model.extend({
         var tagMatch = (tag === null),
             queryMatch = (query === ''),
             tags = '';
-        if (tag !== null) {
+        if (!tagMatch) {
             tags = this.get('tags');
             if (tags) {
                 tagMatch = tags.indexOf(tag) !== -1;
             }
         }
-        if (query !== '') {
+        if (!queryMatch) {
+            query = query.toLowerCase();
             queryMatch = (
-                (this.get('service').indexOf(query) !== -1) ||
-                (this.get('account').indexOf(query) !== -1)
+                (this.get('service').toLowerCase().indexOf(query) !== -1) ||
+                (this.get('account').toLowerCase().indexOf(query) !== -1)
             );
         }
         return tagMatch && queryMatch;
