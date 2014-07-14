@@ -30,6 +30,11 @@ http {
     root dist;
     index index.html;
 
+    if ($http_x_forwarded_proto = "http") {
+      return 301 https://$host$request_uri;
+    }
+
+
     location / {
       if (!-e $request_filename){
         rewrite ^(.*)$ /index.html break;
