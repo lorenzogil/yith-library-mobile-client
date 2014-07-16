@@ -158,6 +158,11 @@ progress:not([value]) {
 section[role=region] {
     height: 100%;
 }
+
+[data-type="list"] small {
+    text-transform: none;
+}
+
 span.tag {
     background: #f1e372;
     border-radius: 3px 0 0 3px;
@@ -167,7 +172,7 @@ span.tag {
     line-height: 26px;
     padding: 0 20px 0 23px;
     position: relative;
-    margin-top: 10px;
+    text-transform: none;
 }
 
 span.tag::before {
