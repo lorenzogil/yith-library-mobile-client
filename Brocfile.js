@@ -111,6 +111,9 @@ var fixedPaths = replace(app.toTree(), {
         'assets/vendor.css'
     ],
     patterns: [{
+        match: /style\//g,
+        replacement: ''
+    }, {
         match: /style_unstable\//g,
         replacement: ''
     }, {

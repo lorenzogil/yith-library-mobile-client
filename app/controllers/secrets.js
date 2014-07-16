@@ -11,7 +11,6 @@ export default Ember.ArrayController.extend({
     query: '',
     isSyncing: false,
     isAuthorizing: false,
-    isSearching: false,
     statusMessage: null,
     isOnline: navigator.onLine,
 
@@ -149,6 +148,10 @@ export default Ember.ArrayController.extend({
             }
         },
 
+        clearQuery: function () {
+            this.set('query', '');
+        },
+
         login: function () {
             Ember.run.next(this, function () {
                 this.authorizeInServer();
@@ -159,13 +162,6 @@ export default Ember.ArrayController.extend({
             Ember.run.next(this, function () {
                 this.syncFromServer();
             });
-        },
-
-        toggleSearch: function () {
-            this.toggleProperty('isSearching');
-            if (this.get('isSearching') === false) {
-                this.set('query', '');
-            }
         },
 
         offline: function () {
