@@ -35,15 +35,28 @@ export default Ember.Object.extend({
         return newRecord;
     },
 
-    updateAccountStore: function (data) {
-        data = this.convertRecord(data);
-        return this.store.createRecord('account', {
-            id: data.id,
-            email: data.email,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            screenName: data.screenName
-        }).save();
+    updateAccountStore: function (rawData) {
+        var self = this,
+            data = this.convertRecord(rawData),
+            existingRecord = this.store.getById('account', data.id);
+
+        if (existingRecord === null) {
+            // create account
+            return self.store.createRecord('account', {
+                id: data.id,
+                email: data.email,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                screenName: data.screenName
+            }).save();
+        } else {
+            // update account
+            record.set('email', data.email);
+            record.set('firstName', data.firstName);
+            record.set('lastName', data.lastName);
+            record.set('screenName', data.screenName);
+            return record.save();
+        }
     },
 
     fetchSecrets: function (accessToken, serverBaseUrl, clientId) {
