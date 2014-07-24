@@ -51,11 +51,11 @@ export default Ember.Object.extend({
             }).save();
         } else {
             // update account
-            record.set('email', data.email);
-            record.set('firstName', data.firstName);
-            record.set('lastName', data.lastName);
-            record.set('screenName', data.screenName);
-            return record.save();
+            existingRecord.set('email', data.email);
+            existingRecord.set('firstName', data.firstName);
+            existingRecord.set('lastName', data.lastName);
+            existingRecord.set('screenName', data.screenName);
+            return existingRecord.save();
         }
     },
 
