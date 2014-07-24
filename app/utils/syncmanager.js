@@ -36,27 +36,34 @@ export default Ember.Object.extend({
     },
 
     updateAccountStore: function (rawData) {
-        var self = this,
-            data = this.convertRecord(rawData),
-            existingRecord = this.store.getById('account', data.id);
+        var self = this;
 
-        if (existingRecord === null) {
-            // create account
-            return self.store.createRecord('account', {
-                id: data.id,
-                email: data.email,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                screenName: data.screenName
-            }).save();
-        } else {
-            // update account
-            existingRecord.set('email', data.email);
-            existingRecord.set('firstName', data.firstName);
-            existingRecord.set('lastName', data.lastName);
-            existingRecord.set('screenName', data.screenName);
-            return existingRecord.save();
-        }
+        return new Ember.RSVP.Promise(function (resolve /*, reject */) {
+            var data = self.convertRecord(rawData);
+            self.store.findById('account', data.id).then(
+                function (existingRecord) {
+                    // update account
+                    existingRecord.set('email', data.email);
+                    existingRecord.set('firstName', data.firstName);
+                    existingRecord.set('lastName', data.lastName);
+                    existingRecord.set('screenName', data.screenName);
+                    resolve(existingRecord);
+                }, function () {
+                    // create account
+                    var newRecord = self.store.createRecord('account', {
+                        id: data.id,
+                        email: data.email,
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                        screenName: data.screenName
+                    });
+                    resolve(newRecord);
+                }
+            );
+
+        }).then(function (record) {
+            return record.save();
+        });
     },
 
     fetchSecrets: function (accessToken, serverBaseUrl, clientId) {
