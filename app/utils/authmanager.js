@@ -17,7 +17,7 @@ export default Ember.Object.extend({
     },
 
     redirectUri: function () {
-        return this.get('clientBaseUrl') + '/auth-callback.html';
+        return this.get('clientBaseUrl') + '/assets/auth-callback.html';
     }.property('clientBaseUrl'),
 
     authUri: function () {
