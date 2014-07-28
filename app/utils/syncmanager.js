@@ -50,8 +50,11 @@ export default Ember.Object.extend({
                     resolve(existingRecord);
                 }, function () {
                     // create account
-                    var newRecord = self.store.createRecord('account', {
-                        id: data.id,
+                    // because we try to find it, it is already in the store
+                    // but the record is empty.
+                    var newRecord = self.store.recordForId('account', data.id);
+                    newRecord.loadedData();
+                    newRecord.setProperties({
                         email: data.email,
                         firstName: data.firstName,
                         lastName: data.lastName,
