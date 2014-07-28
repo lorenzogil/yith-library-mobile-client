@@ -27,7 +27,6 @@
     "express": "^4.1.1",
     "glob": "^3.2.9",
     "originate": "0.1.5",
-    "broccoli-asset-rev": "0.0.11",
     "broccoli-merge-trees": "0.1.4",
     "broccoli-replace": "0.1.7",
     "broccoli-static-compiler": "0.1.4"
