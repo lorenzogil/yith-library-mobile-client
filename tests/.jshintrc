@@ -36,7 +36,6 @@
     "find",
     "findWithAssert",
     "wait",
-    "Ember",
     "DS",
     "keyEvent",
     "isolatedContainer",
