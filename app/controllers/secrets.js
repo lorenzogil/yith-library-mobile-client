@@ -14,7 +14,7 @@ export default Ember.ArrayController.extend({
     statusMessage: null,
     isOnline: navigator.onLine,
 
-    title: function () {
+    displayName: function () {
         return this.get('controllers.application.model.displayName');
     }.property('controllers.application.model.displayName'),
 
