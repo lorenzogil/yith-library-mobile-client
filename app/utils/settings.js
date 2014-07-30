@@ -18,6 +18,10 @@ export default Ember.Object.extend({
     setSetting: function (name, value) {
         var serialized = JSON.stringify(value);
         return window.localStorage.setItem(name, serialized);
+    },
+
+    deleteSetting: function (name) {
+        window.localStorage.removeItem(name);
     }
 
 });

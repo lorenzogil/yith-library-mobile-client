@@ -153,12 +153,26 @@ export default Ember.ArrayController.extend({
         },
 
         login: function () {
+            this.set('state', 'drawer-closed');
             Ember.run.next(this, function () {
                 this.authorizeInServer();
             });
         },
 
+        logout: function () {
+            this.set('state', 'drawer-closed');
+            Ember.run.next(this, function () {
+                var self = this;
+                this.authManager.deleteToken();
+                this.settings.deleteSetting('lastAccount');
+                this.syncManager.deleteAccount().then(function () {
+                    self.transitionToRoute('firstTime');
+                });
+            });
+        },
+
         sync: function () {
+            this.set('state', 'drawer-closed');
             Ember.run.next(this, function () {
                 this.syncFromServer();
             });

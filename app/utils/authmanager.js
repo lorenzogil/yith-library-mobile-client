@@ -99,6 +99,11 @@ export default Ember.Object.extend({
         this.set('accessTokenExpiration', expiration);
     },
 
+    deleteToken: function () {
+        window.localStorage.removeItem('accessToken');
+        window.localStorage.removeItem('accessTokenExpiration');
+    },
+
     now: function () {
         return Math.round(new Date().getTime() / 1000.0);
     },

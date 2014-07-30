@@ -176,6 +176,21 @@ export default Ember.Object.extend({
         record.set('name', name);
         record.set('count', count);
         return record.save();
+    },
+
+    deleteAccount: function () {
+        var promises = [];
+        this.store.all('secret').forEach(function (secret) {
+            promises.push(secret.destroyRecord());
+        }, this);
+        this.store.all('tag').forEach(function (tag) {
+            promises.push(tag.destroyRecord());
+        }, this);
+        this.store.all('account').forEach(function (account) {
+            promises.push(account.destroyRecord());
+        }, this);
+
+        return Ember.RSVP.all(promises);
     }
 
 });
