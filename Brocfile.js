@@ -103,6 +103,12 @@ var firaSansFont = pickFiles('vendor/building-blocks/fonts/FiraSans', {
 });
 
 
+var manifest = '';
+if (app.env === 'production') {
+    manifest = 'manifest.appcache';
+}
+
+
 // Fix image paths
 var fixedPaths = replace(app.toTree(), {
     files: [
@@ -119,6 +125,9 @@ var fixedPaths = replace(app.toTree(), {
     }, {
         match: 'projectVersion',
         replacement: app.project.pkg.version
+    }, {
+        match: /\{\{MANIFEST\}\}/g,
+        replacement: manifest
     }]
 });
 
