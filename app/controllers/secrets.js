@@ -7,12 +7,24 @@ export default Ember.ArrayController.extend({
     position: '',
     state: 'drawer-closed',
     tags: [],
+    tagsToDisplay: 5,
+    tagsSortProperties: ['count:desc'],
+    sortedTags: Ember.computed.sort('tags', 'tagsSortProperties'),
     selectedTag: null,
     query: '',
     isSyncing: false,
     isAuthorizing: false,
     statusMessage: null,
     isOnline: navigator.onLine,
+
+    mostUsedTags: function () {
+        var tags = this.get('sortedTags');
+        return tags.slice(0, this.get('tagsToDisplay'));
+    }.property('sortedTags.[]'),
+
+    hasMoreTags: function () {
+        return this.get('sortedTags').length > this.get('tagsToDisplay');
+    }.property('sortedTags.[]'),
 
     displayName: function () {
         return this.get('controllers.application.model.displayName');
