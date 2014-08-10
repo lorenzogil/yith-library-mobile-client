@@ -1,6 +1,7 @@
 import Ember from 'ember';
 
 export default Ember.ArrayController.extend({
+    queryParams: ['tag'],
     needs: ['application'],
     sortProperties: ['service', 'account'],
     sortAscending: true,
@@ -10,7 +11,7 @@ export default Ember.ArrayController.extend({
     tagsToDisplay: 5,
     tagsSortProperties: ['count:desc'],
     sortedTags: Ember.computed.sort('tags', 'tagsSortProperties'),
-    selectedTag: null,
+    tag: '',
     query: '',
     isSyncing: false,
     isAuthorizing: false,
@@ -19,8 +20,39 @@ export default Ember.ArrayController.extend({
 
     mostUsedTags: function () {
         var tags = this.get('sortedTags');
-        return tags.slice(0, this.get('tagsToDisplay'));
-    }.property('sortedTags.[]'),
+        var mostUsed = tags.slice(0, this.get('tagsToDisplay'));
+        var selectedTag = this.get('tag');
+        var foundSelectedTag = false;
+        var wrapped = mostUsed.map(function (element) {
+            var name = element.get('name');
+            if (name === selectedTag) {
+                foundSelectedTag = true;
+            }
+            return {
+                'name': name,
+                'count': element.get('count'),
+                'selectTag': name === selectedTag ? '' : name
+            };
+        });
+        if (!foundSelectedTag && selectedTag !== '') {
+            wrapped.pop();
+            wrapped.push({
+                'name': selectedTag,
+                'count': this.get('selectedTagCount'),
+                'selectTag': ''
+            });
+        }
+        return wrapped;
+    }.property('sortedTags.[]', 'tag'),
+
+    selectedTagCount: function () {
+        var tag = this.get('sortedTags').findBy('name', this.get('tag'));
+        if (tag) {
+            return tag.get('count');
+        } else {
+            return 0;
+        }
+    }.property('mostUsedTags'),
 
     hasMoreTags: function () {
         return this.get('sortedTags').length > this.get('tagsToDisplay');
@@ -30,15 +62,21 @@ export default Ember.ArrayController.extend({
         return this.get('controllers.application.model.displayName');
     }.property('controllers.application.model.displayName'),
 
+    tagChanged: function () {
+        if (this.get('state') !== 'drawer-closed') {
+            this.set('state', 'drawer-closed');
+        }
+    }.observes('tag'),
+
     secrets: function () {
-        var selectedTag = this.get('selectedTag'),
+        var tag = this.get('tag'),
             query = this.get('query'),
             content = this.get('content').sortBy('service', 'account');
 
         return content.filter(function (item) {
-            return item.matches(selectedTag, query);
+            return item.matches(tag, query);
         });
-    }.property('content.isLoaded', 'selectedTag', 'query'),
+    }.property('content.isLoaded', 'tag', 'query'),
 
     secretsCount: function () {
         return this.get('secrets').length;
@@ -134,16 +172,6 @@ export default Ember.ArrayController.extend({
 
         closeDrawer: function () {
             this.set('state', 'drawer-closed');
-        },
-
-        selectTag: function (tag) {
-            var selectedTag = this.get('selectedTag');
-            this.set('state', 'drawer-closed');
-            if (selectedTag === tag) {
-                this.set('selectedTag', null);
-            } else {
-                this.set('selectedTag', tag);
-            }
         },
 
         openSecret: function () {

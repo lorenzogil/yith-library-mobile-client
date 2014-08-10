@@ -11,6 +11,7 @@ Router.map(function() {
         queryParams: ['tag']
     }, function () {
         this.resource('secret', {path: '/:secret_id'});
+        this.route('tags', {path: '/tags'});
     });
 });
 
