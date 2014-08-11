@@ -174,20 +174,6 @@ export default Ember.ArrayController.extend({
             this.set('state', 'drawer-closed');
         },
 
-        openSecret: function () {
-            this.set('position', 'left');
-        },
-
-        closeSecret: function () {
-            this.set('position', 'current');
-        },
-
-        secretAnimationEnd: function () {
-            if (this.get('position') === 'current') {
-                this.transitionToRoute('secrets.index');
-            }
-        },
-
         clearQuery: function () {
             this.set('query', '');
         },
