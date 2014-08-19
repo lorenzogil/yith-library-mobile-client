@@ -14,8 +14,8 @@ module.exports = function(environment) {
 
     defaults: {
       clientId: 'd866fbc8-a367-44a2-9d6f-8ae2ffbd2748',
-      clientBaseUrl: 'http://192.168.2.3:4200',
-      serverBaseUrl: 'http://192.168.2.3:6543'
+      clientBaseUrl: 'http://localyith:4200',
+      serverBaseUrl: 'http://localyith:6543'
     },
 
     APP: {
