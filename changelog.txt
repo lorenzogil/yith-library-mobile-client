@@ -1,3 +1,15 @@
+2014-08-18 0.6.0
+----------------
+FEATURE: more robust and simpler transition to secret route
+FEATURE: Show only the most common tags, with better UI
+FEATURE: do not use appcache on development
+FEATURE: Logout
+FEATURE: Simpler secrets page
+FEATURE: Update to ember 1.7.0 beta 4
+FEATURE: Update to ember-cli 0.0.40
+FEATURE: Better page title and meta for mobile
+BUGFIX: Fix progress bar assets
+
 2014-07-23 0.5.2
 ----------------
 BUGFIX: Don't crash when syncing if the account already exist
