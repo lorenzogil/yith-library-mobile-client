@@ -5,7 +5,7 @@ export default Ember.ArrayController.extend({
     needs: ['application'],
     sortProperties: ['service', 'account'],
     sortAscending: true,
-    position: '',
+    position: 'current',
     state: 'drawer-closed',
     tags: [],
     tagsToDisplay: 5,

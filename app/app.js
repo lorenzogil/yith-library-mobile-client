@@ -5,8 +5,11 @@ import loadInitializers from 'ember/load-initializers';
 Ember.MODEL_FACTORY_INJECTIONS = true;
 
 var App = Ember.Application.extend({
-  modulePrefix: 'yith-library-mobile-client', // TODO: loaded via config
-  Resolver: Resolver
+    modulePrefix: 'yith-library-mobile-client', // TODO: loaded via config
+    Resolver: Resolver,
+    customEvents: {
+        'animationEnd webkitAnimationEnd mozAnimationEnd MSAnimationEnd oAnimationEnd': 'animationEnd'
+    }
 });
 
 loadInitializers(App, 'yith-library-mobile-client');
