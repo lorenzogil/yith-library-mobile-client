@@ -8,7 +8,7 @@ var App = Ember.Application.extend({
     modulePrefix: 'yith-library-mobile-client', // TODO: loaded via config
     Resolver: Resolver,
     customEvents: {
-        'animationEnd webkitAnimationEnd mozAnimationEnd MSAnimationEnd oAnimationEnd': 'animationEnd'
+        'animationend animationEnd webkitAnimationEnd mozAnimationEnd MSAnimationEnd oAnimationEnd': 'animationEnd'
     }
 });
 
