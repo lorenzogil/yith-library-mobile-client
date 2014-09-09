@@ -4,6 +4,8 @@ export default Ember.View.extend({
     templateName: 'secret-revealer',
     tagName: 'form',
     classNames: ['secret-revealer'],
+    attributeBindings: ['autocomplete'],
+    autocomplete: 'off',
     buttonClass: 'recommend',
     buttonText: 'Reveal secret',
     decryptedSecret: null,
@@ -119,6 +121,10 @@ export default Ember.View.extend({
             x: x + (radius * Math.cos(radians)),
             y: y + (radius * Math.sin(radians))
         };
+    },
+
+    didInsertElement: function () {
+        this.$('input').focus();
     },
 
     willDestroy: function () {
