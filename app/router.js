@@ -9,6 +9,7 @@ Router.map(function() {
     this.resource('secrets', {path: '/secrets'}, function () {
         this.resource('secret', {path: '/:secret_id'});
         this.route('tags', {path: '/tags'});
+        this.route('drawer', {path: '/drawer'});
     });
 });
 
