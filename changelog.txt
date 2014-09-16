@@ -1,3 +1,12 @@
+2014-09-15 0.7.0
+----------------
+FEATURE: Update to ember 1.7.0
+FEATURE: Update to ember-cli 0.0.40
+FEATURE: Make the drawer an independent route
+FEATURE: Autofocus on the master password input
+FEATURE: Update to ember-indexeddb-adapter 0.7.0
+BUGFIX: fix route out of sync in Firefox
+
 2014-08-18 0.6.0
 ----------------
 FEATURE: more robust and simpler transition to secret route
