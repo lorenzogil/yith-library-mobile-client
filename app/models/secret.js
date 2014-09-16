@@ -1,3 +1,5 @@
+import DS from "ember-data";
+
 export default DS.Model.extend({
     service: DS.attr('string'),
     account: DS.attr('string'),

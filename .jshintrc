@@ -3,7 +3,10 @@
     "document": true,
     "window": true,
     "-Promise": true,
-    "YithLibraryMobileClientENV": true
+    "YithLibraryMobileClient": true,
+    "YithLibraryMobileClientENV": true,
+    "$": true,
+    "sjcl": true
   },
   "browser" : true,
   "boss" : true,

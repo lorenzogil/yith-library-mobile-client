@@ -1,3 +1,5 @@
+import DS from "ember-data";
+
 export default DS.IndexedDBAdapter.extend({
     databaseName: 'yithlibrary',
     version: 1,
