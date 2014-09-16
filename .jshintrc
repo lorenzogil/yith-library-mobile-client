@@ -2,10 +2,7 @@
   "predef": {
     "document": true,
     "window": true,
-    "$": true,
-    "sjcl": true,
-    "DS": true,
-    "YithLibraryMobileClient": true,
+    "-Promise": true,
     "YithLibraryMobileClientENV": true
   },
   "browser" : true,

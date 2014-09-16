@@ -1,8 +1,6 @@
-/* global require */
-
-var Application = require('yith-library-mobile-client/app')['default'];
-var Router = require('yith-library-mobile-client/router')['default'];
 import Ember from 'ember';
+import Application from 'yith-library-mobile-client/app';
+import Router from 'yith-library-mobile-client/router';
 
 export default function startApp(attrs) {
   var App;
@@ -10,7 +8,7 @@ export default function startApp(attrs) {
   var attributes = Ember.merge({
     // useful Test defaults
     rootElement: '#ember-testing',
-    LOG_ACTIVE_GENERATION:false,
+    LOG_ACTIVE_GENERATION: false,
     LOG_VIEW_LOOKUPS: false
   }, attrs); // but you can override;
 
@@ -18,7 +16,7 @@ export default function startApp(attrs) {
     location: 'none'
   });
 
-  Ember.run(function(){
+  Ember.run(function() {
     App = Application.create(attributes);
     App.setupForTesting();
     App.injectTestHelpers();

@@ -25,45 +25,45 @@ var app = new EmberApp({
 // along with the exports of each module as its value.
 
 // Ember IndexedDB Adapter
-app.import('vendor/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_migration.js');
-app.import('vendor/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_serializer.js');
-app.import('vendor/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_smartsearch.js');
-app.import('vendor/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_adapter.js');
+app.import('bower_components/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_migration.js');
+app.import('bower_components/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_serializer.js');
+app.import('bower_components/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_smartsearch.js');
+app.import('bower_components/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_adapter.js');
 
 // SJCL
-app.import('vendor/sjcl/sjcl.js');
+app.import('bower_components/sjcl/sjcl.js');
 
 // Building Blocks CSS
-app.import('vendor/building-blocks/style/action_menu.css');
-app.import('vendor/building-blocks/style/buttons.css');
-app.import('vendor/building-blocks/style/confirm.css');
-app.import('vendor/building-blocks/style/edit_mode.css');
-app.import('vendor/building-blocks/style/headers.css');
-app.import('vendor/building-blocks/style/input_areas.css');
-app.import('vendor/building-blocks/style/status.css');
-app.import('vendor/building-blocks/style/switches.css');
-app.import('vendor/building-blocks/style_unstable/drawer.css');
-app.import('vendor/building-blocks/style_unstable/lists.css');
-app.import('vendor/building-blocks/style_unstable/progress_activity.css');
-app.import('vendor/building-blocks/style_unstable/scrolling.css');
-app.import('vendor/building-blocks/style_unstable/seekbars.css');
-app.import('vendor/building-blocks/style_unstable/tabs.css');
-app.import('vendor/building-blocks/style_unstable/toolbars.css');
+app.import('bower_components/building-blocks/style/action_menu.css');
+app.import('bower_components/building-blocks/style/buttons.css');
+app.import('bower_components/building-blocks/style/confirm.css');
+app.import('bower_components/building-blocks/style/edit_mode.css');
+app.import('bower_components/building-blocks/style/headers.css');
+app.import('bower_components/building-blocks/style/input_areas.css');
+app.import('bower_components/building-blocks/style/status.css');
+app.import('bower_components/building-blocks/style/switches.css');
+app.import('bower_components/building-blocks/style_unstable/drawer.css');
+app.import('bower_components/building-blocks/style_unstable/lists.css');
+app.import('bower_components/building-blocks/style_unstable/progress_activity.css');
+app.import('bower_components/building-blocks/style_unstable/scrolling.css');
+app.import('bower_components/building-blocks/style_unstable/seekbars.css');
+app.import('bower_components/building-blocks/style_unstable/tabs.css');
+app.import('bower_components/building-blocks/style_unstable/toolbars.css');
 
-app.import('vendor/building-blocks/style/icons.css');
-app.import('vendor/building-blocks/icons/styles/action_icons.css');
-app.import('vendor/building-blocks/icons/styles/comms_icons.css');
-app.import('vendor/building-blocks/icons/styles/media_icons.css');
-app.import('vendor/building-blocks/icons/styles/settings_icons.css');
+app.import('bower_components/building-blocks/style/icons.css');
+app.import('bower_components/building-blocks/icons/styles/action_icons.css');
+app.import('bower_components/building-blocks/icons/styles/comms_icons.css');
+app.import('bower_components/building-blocks/icons/styles/media_icons.css');
+app.import('bower_components/building-blocks/icons/styles/settings_icons.css');
 
-app.import('vendor/building-blocks/transitions.css');
+app.import('bower_components/building-blocks/transitions.css');
 
-app.import('vendor/building-blocks/util.css');
-app.import('vendor/building-blocks/fonts.css');
-app.import('vendor/building-blocks/cross_browser.css');
+app.import('bower_components/building-blocks/util.css');
+app.import('bower_components/building-blocks/fonts.css');
+app.import('bower_components/building-blocks/cross_browser.css');
 
 // Building Blocks Images
-var bbImages = pickFiles('vendor/building-blocks/style', {
+var bbImages = pickFiles('bower_components/building-blocks/style', {
     srcDir: '/',
     files: [
         '**/*.png',
@@ -71,7 +71,7 @@ var bbImages = pickFiles('vendor/building-blocks/style', {
     destDir: '/assets/'
 });
 
-var bbImagesUnstable = pickFiles('vendor/building-blocks/style_unstable', {
+var bbImagesUnstable = pickFiles('bower_components/building-blocks/style_unstable', {
     srcDir: '/',
     files: [
         '**/*.png',
@@ -79,7 +79,7 @@ var bbImagesUnstable = pickFiles('vendor/building-blocks/style_unstable', {
     destDir: '/assets/'
 });
 
-var bbIcons = pickFiles('vendor/building-blocks/icons/styles', {
+var bbIcons = pickFiles('bower_components/building-blocks/icons/styles', {
     srcDir: '/',
     files: [
         '*.png',
@@ -87,7 +87,7 @@ var bbIcons = pickFiles('vendor/building-blocks/icons/styles', {
     destDir: '/assets/'
 });
 
-var bbImagesUnstable2 = pickFiles('vendor/building-blocks/style_unstable', {
+var bbImagesUnstable2 = pickFiles('bower_components/building-blocks/style_unstable', {
     srcDir: '/',
     files: [
         '**/*.png',
@@ -96,7 +96,7 @@ var bbImagesUnstable2 = pickFiles('vendor/building-blocks/style_unstable', {
 });
 
 // Building Blocks fonts
-var firaSansFont = pickFiles('vendor/building-blocks/fonts/FiraSans', {
+var firaSansFont = pickFiles('bower_components/building-blocks/fonts/FiraSans', {
     srcDir: '/',
     files: ['**/*.eot', '**/*.otf', '**/*.ttf', '**/*.woff'],
     destDir: '/assets/fonts/FiraSans'
