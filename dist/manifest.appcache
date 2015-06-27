@@ -1,0 +1,34 @@
+CACHE MANIFEST
+# version 0.7.0
+
+CACHE:
+index.html
+auth-callback.html
+assets/vendor.css
+assets/yith-library-mobile-client.css
+assets/yith-library-mobile-client.js
+assets/vendor.js
+assets/fonts/FiraSans/FiraSans-Regular.woff
+assets/fonts/FiraSans/FiraSans-Light.woff
+assets/fonts/FiraSans/FiraSans-Medium.woff
+assets/action_icons.png
+assets/buttons/images/ui/recommend.png
+assets/drawer/images/ui/header.png
+assets/drawer/images/ui/pattern.png
+assets/drawer/images/ui/separator.png
+assets/drawer/images/ui/shadow.png
+assets/drawer/images/ui/shadow_header.png
+assets/headers/images/icons/back.png
+assets/headers/images/icons/clear.png
+assets/headers/images/icons/menu.png
+assets/headers/images/ui/shadow.png
+assets/input_areas/images/icons/clear.png
+assets/input_areas/images/icons/search.png
+assets/input_areas/images/ui/shadow.png
+assets/input_areas/images/ui/shadow-search.png
+assets/progress_activity/images/ui/default.png
+assets/progress_activity/images/ui/activity.png
+assets/status/images/ui/pattern.png
+
+NETWORK:
+*

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Yith Library</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <base href="/">
+
+    <link rel="stylesheet" href="assets/vendor.css">
+    <link rel="stylesheet" href="assets/yith-library-mobile-client.css">
+  </head>
+  <body>
+    <script>
+      window.YithLibraryMobileClientENV = {"environment":"production","baseURL":"/","locationType":"auto","EmberENV":{"FEATURES":{}},"defaults":{"clientId":"58c09352-b208-4add-83b7-0dc75d0c8ee3","clientBaseUrl":"https://yithlibrary-mobileclient.herokuapp.com","serverBaseUrl":"https://yithlibrary.herokuapp.com"},"APP":{"version":"0.7.0"}};
+      window.EmberENV = window.YithLibraryMobileClientENV.EmberENV;
+    </script>
+    <script src="assets/vendor.js"></script>
+    <script src="assets/yith-library-mobile-client.js"></script>
+    <script>
+      window.YithLibraryMobileClient = require('yith-library-mobile-client/app')['default'].create(YithLibraryMobileClientENV.APP);
+    </script>
+  </body>
+</html>
