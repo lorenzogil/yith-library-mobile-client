@@ -38,9 +38,9 @@ module.exports = function(environment) {
   }
 
   if (environment === 'production') {
-    ENV.defaults.clientId = '58c09352-b208-4add-83b7-0dc75d0c8ee3';
-    ENV.defaults.clientBaseUrl = 'https://yithlibrary-mobileclient.herokuapp.com';
-    ENV.defaults.serverBaseUrl = 'https://yithlibrary.herokuapp.com';
+    ENV.defaults.clientId = 'f38e013c-3653-4010-8e98-48d91c2f5373';
+    ENV.defaults.clientBaseUrl = 'https://mobile.yithlibrary.com';
+    ENV.defaults.serverBaseUrl = 'https://www.yithlibrary.com';
   }
 
   return ENV;
