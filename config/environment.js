@@ -38,7 +38,7 @@ module.exports = function(environment) {
   }
 
   if (environment === 'production') {
-    ENV.defaults.clientId = 'f38e013c-3653-4010-8e98-48d91c2f5373';
+    ENV.defaults.clientId = '2c48642d-6113-4fa3-949d-5a5922ed1ff1';
     ENV.defaults.clientBaseUrl = 'https://mobile.yithlibrary.com';
     ENV.defaults.serverBaseUrl = 'https://www.yithlibrary.com';
   }
