@@ -2,4 +2,3 @@
 
 rm $OPENSHIFT_REPO_DIR/public -rf
 cp -R $OPENSHIFT_REPO_DIR/dist/ $OPENSHIFT_REPO_DIR/public
-cp -R $OPENSHIFT_REPO_DIR/.htaccess $OPENSHIFT_REPO_DIR/public
