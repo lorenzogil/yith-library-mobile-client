@@ -1,9 +1,10 @@
 import Ember from 'ember';
+import ENV from '../config/environment';
 
 export default Ember.Object.extend({
 
     defaults: {
-        'serverBaseUrl': YithLibraryMobileClientENV.defaults.serverBaseUrl
+        'serverBaseUrl': ENV.defaults.serverBaseUrl
     },
 
     getSetting: function (name) {

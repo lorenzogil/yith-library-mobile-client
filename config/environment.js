@@ -2,6 +2,7 @@
 
 module.exports = function(environment) {
   var ENV = {
+    modulePrefix: 'yith-library-mobile-client',
     environment: environment,
     baseURL: '/',
     locationType: 'auto',
@@ -34,10 +35,19 @@ module.exports = function(environment) {
   }
 
   if (environment === 'test') {
-    ENV.baseURL = '/'; // Testem prefers this...
+    // Testem prefers this...
+    ENV.baseURL = '/';
+    ENV.locationType = 'auto';
+
+    // keep test console output quieter
+    ENV.APP.LOG_ACTIVE_GENERATION = false;
+    ENV.APP.LOG_VIEW_LOOKUPS = false;
+
+    ENV.APP.rootElement = '#ember-testing';
   }
 
   if (environment === 'production') {
+
     ENV.defaults.clientId = '2c48642d-6113-4fa3-949d-5a5922ed1ff1';
     ENV.defaults.clientBaseUrl = 'https://mobile.yithlibrary.com';
     ENV.defaults.serverBaseUrl = 'https://www.yithlibrary.com';

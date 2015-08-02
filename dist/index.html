@@ -15,13 +15,12 @@
   </head>
   <body>
     <script>
-      window.YithLibraryMobileClientENV = {"environment":"production","baseURL":"/","locationType":"auto","EmberENV":{"FEATURES":{}},"defaults":{"clientId":"2c48642d-6113-4fa3-949d-5a5922ed1ff1","clientBaseUrl":"https://mobile.yithlibrary.com","serverBaseUrl":"https://www.yithlibrary.com"},"APP":{"version":"0.7.0"}};
-      window.EmberENV = window.YithLibraryMobileClientENV.EmberENV;
+      window.EmberENV = {"modulePrefix":"yith-library-mobile-client","environment":"production","baseURL":"/","locationType":"auto","EmberENV":{"FEATURES":{}},"defaults":{"clientId":"2c48642d-6113-4fa3-949d-5a5922ed1ff1","clientBaseUrl":"https://mobile.yithlibrary.com","serverBaseUrl":"https://www.yithlibrary.com"},"APP":{"version":"0.7.0"}};
     </script>
     <script src="assets/vendor.js"></script>
     <script src="assets/yith-library-mobile-client.js"></script>
     <script>
-      window.YithLibraryMobileClient = require('yith-library-mobile-client/app')['default'].create(YithLibraryMobileClientENV.APP);
+      window.YithLibraryMobileClient = require('yith-library-mobile-client/app')['default'].create({"version":"0.7.0"});
     </script>
   </body>
 </html>
