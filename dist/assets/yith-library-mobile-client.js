@@ -26,6 +26,8 @@ eval("//# sourceURL=vendor/ember-cli/loader.js");
 
 ;eval("define(\"yith-library-mobile-client/utils/snake-case-to-camel-case\", \n  [\"exports\"],\n  function(__exports__) {\n    \"use strict\";\n    __exports__[\"default\"] = function snakeCaseToCamelCase (symbol) {\n        return symbol.split(\'_\').filter(function (word) {\n            return word !== \'\';\n        }).map(function (word, idx) {\n            if (idx === 0) {\n                return word;\n            } else {\n                return word.charAt(0).toUpperCase() + word.slice(1);\n            }\n        }).join(\'\');\n    }\n  });//# sourceURL=yith-library-mobile-client/utils/snake-case-to-camel-case.js");
 
+;eval("define(\"yith-library-mobile-client/initializers/export-application-global\", \n  [\"ember\",\"yith-library-mobile-client/config/environment\",\"exports\"],\n  function(__dependency1__, __dependency2__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    var config = __dependency2__[\"default\"];\n\n    function initialize(container, application) {\n      if (config.exportApplicationGlobal !== false) {\n        var value = config.exportApplicationGlobal;\n        var globalName;\n\n        if (typeof value === \'string\') {\n          globalName = value;\n        } else {\n          globalName = Ember.String.classify(config.modulePrefix);\n        }\n\n        if (!window[globalName]) {\n          window[globalName] = application;\n\n          application.reopen({\n            willDestroy: function(){\n              this._super.apply(this, arguments);\n              delete window[globalName];\n            }\n          });\n        }\n      }\n    };\n    __exports__.initialize = initialize;\n    __exports__[\"default\"] = {\n      name: \'export-application-global\',\n\n      initialize: initialize\n    };\n  });//# sourceURL=yith-library-mobile-client/initializers/export-application-global.js");
+
 ;eval("define(\"yith-library-mobile-client/initializers/settings\", \n  [\"yith-library-mobile-client/utils/settings\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Settings = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = {\n        name: \'settings\',\n\n        initialize: function (container, application) {\n            application.register(\'settings:main\', Settings);\n\n            application.inject(\'route\', \'settings\', \'settings:main\');\n            application.inject(\'controller\', \'settings\', \'settings:main\');\n        }\n    };\n  });//# sourceURL=yith-library-mobile-client/initializers/settings.js");
 
 ;eval("define(\"yith-library-mobile-client/utils/settings\", \n  [\"ember\",\"yith-library-mobile-client/config/environment\",\"exports\"],\n  function(__dependency1__, __dependency2__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    var ENV = __dependency2__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Object.extend({\n\n        defaults: {\n            \'serverBaseUrl\': ENV.defaults.serverBaseUrl\n        },\n\n        getSetting: function (name) {\n            var setting = window.localStorage.getItem(name);\n            if (setting === null) {\n                return this.defaults[name] || null;\n            } else {\n                return JSON.parse(setting);\n            }\n        },\n\n        setSetting: function (name, value) {\n            var serialized = JSON.stringify(value);\n            return window.localStorage.setItem(name, serialized);\n        },\n\n        deleteSetting: function (name) {\n            window.localStorage.removeItem(name);\n        }\n\n    });\n  });//# sourceURL=yith-library-mobile-client/utils/settings.js");
@@ -175,11 +177,23 @@ eval("//# sourceURL=vendor/ember-cli/loader.js");
 /* jshint ignore:start */
 
 define('yith-library-mobile-client/config/environment', ['ember'], function(Ember) {
-  var metaName = 'yith-library-mobile-client/config/environment';
+  var prefix = 'yith-library-mobile-client';
+/* jshint ignore:start */
+
+try {
+  var metaName = prefix + '/config/environment';
   var rawConfig = Ember['default'].$('meta[name="' + metaName + '"]').attr('content');
   var config = JSON.parse(unescape(rawConfig));
 
   return { 'default': config };
+}
+catch(err) {
+  throw new Error('Could not read config from meta tag with name "' + metaName + '".');
+}
+
+/* jshint ignore:end */
+
+
 });
 
 if (runningTests) {

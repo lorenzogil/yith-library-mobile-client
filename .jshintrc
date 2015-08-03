@@ -1,13 +1,13 @@
 {
-  "predef": {
-    "document": true,
-    "window": true,
-    "-Promise": true,
-    "YithLibraryMobileClient": true,
-    "EmberENV": true,
-    "$": true,
-    "sjcl": true
-  },
+  "predef": [
+    "document",
+    "window",
+    "-Promise",
+    "YithLibraryMobileClient",
+    "EmberENV",
+    "$",
+    "sjcl"
+  ],
   "browser" : true,
   "boss" : true,
   "curly": true,
