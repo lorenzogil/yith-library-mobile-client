@@ -2,11 +2,7 @@
   "predef": [
     "document",
     "window",
-    "-Promise",
-    "YithLibraryMobileClient",
-    "EmberENV",
-    "$",
-    "sjcl"
+    "-Promise"
   ],
   "browser": true,
   "boss": true,

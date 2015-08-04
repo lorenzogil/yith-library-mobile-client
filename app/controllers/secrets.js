@@ -11,7 +11,7 @@ export default Ember.ArrayController.extend({
     isSyncing: false,
     isAuthorizing: false,
     statusMessage: null,
-    isOnline: navigator.onLine,
+    isOnline: window.navigator.onLine,
 
     secrets: function () {
         var tag = this.get('tag'),

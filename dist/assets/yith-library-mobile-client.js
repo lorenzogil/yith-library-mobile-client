@@ -1,16 +1,16 @@
 define('yith-library-mobile-client/adapters/application', ['exports', 'ember-data'], function (exports, DS) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = DS['default'].IndexedDBAdapter.extend({
-    databaseName: "yithlibrary",
-    version: 1,
-    migrations: function () {
-      this.addModel("account", { keyPath: "id", autoIncrement: false });
-      this.addModel("secret", { keyPath: "id", autoIncrement: false });
-      this.addModel("tag");
-    }
-  });
+    exports['default'] = DS['default'].IndexedDBAdapter.extend({
+        databaseName: "yithlibrary",
+        version: 1,
+        migrations: function () {
+            this.addModel("account", { keyPath: "id", autoIncrement: false });
+            this.addModel("secret", { keyPath: "id", autoIncrement: false });
+            this.addModel("tag");
+        }
+    });
 
 });
 define('yith-library-mobile-client/app', ['exports', 'ember', 'ember/resolver', 'ember/load-initializers', 'yith-library-mobile-client/config/environment'], function (exports, Ember, Resolver, loadInitializers, config) {
@@ -46,374 +46,389 @@ define('yith-library-mobile-client/controllers/application', ['exports', 'ember'
 });
 define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].ObjectController.extend({
-    needs: ["application"],
-    step: 0,
+    exports['default'] = Ember['default'].ObjectController.extend({
+        needs: ["application"],
+        step: 0,
 
-    showInstructions: (function () {
-      return this.get("step") === 0;
-    }).property("step"),
+        showInstructions: (function () {
+            return this.get("step") === 0;
+        }).property("step"),
 
-    isConnectingToServer: (function () {
-      return this.get("step") === 1;
-    }).property("step"),
+        isConnectingToServer: (function () {
+            return this.get("step") === 1;
+        }).property("step"),
 
-    isServerConnected: (function () {
-      return this.get("step") > 1;
-    }).property("step"),
+        isServerConnected: (function () {
+            return this.get("step") > 1;
+        }).property("step"),
 
-    isGettingAccountInformation: (function () {
-      return this.get("step") === 2;
-    }).property("step"),
+        isGettingAccountInformation: (function () {
+            return this.get("step") === 2;
+        }).property("step"),
 
-    isAccountInformationRetrieved: (function () {
-      return this.get("step") > 2;
-    }).property("step"),
+        isAccountInformationRetrieved: (function () {
+            return this.get("step") > 2;
+        }).property("step"),
 
-    accountDisabled: (function () {
-      return this.get("step") < 2 ? "true" : "false";
-    }).property("step"),
+        accountDisabled: (function () {
+            return this.get("step") < 2 ? "true" : "false";
+        }).property("step"),
 
-    isGettingSecrets: (function () {
-      return this.get("step") === 3;
-    }).property("step"),
+        isGettingSecrets: (function () {
+            return this.get("step") === 3;
+        }).property("step"),
 
-    areSecretsRetrieved: (function () {
-      return this.get("step") > 3;
-    }).property("step"),
+        areSecretsRetrieved: (function () {
+            return this.get("step") > 3;
+        }).property("step"),
 
-    secretsDisabled: (function () {
-      return this.get("step") < 3 ? "true" : "false";
-    }).property("step"),
+        secretsDisabled: (function () {
+            return this.get("step") < 3 ? "true" : "false";
+        }).property("step"),
 
-    isFinished: (function () {
-      return this.get("step") === 4;
-    }).property("step"),
+        isFinished: (function () {
+            return this.get("step") === 4;
+        }).property("step"),
 
-    connectToServer: function () {
-      var controller = this,
-          syncManager = this.syncManager,
-          authManager = this.authManager,
-          clientId = this.authManager.get("clientId"),
-          serverBaseUrl = this.settings.getSetting("serverBaseUrl"),
-          accessToken = null;
+        connectToServer: function () {
+            var controller = this,
+                syncManager = this.syncManager,
+                authManager = this.authManager,
+                clientId = this.authManager.get("clientId"),
+                serverBaseUrl = this.settings.getSetting("serverBaseUrl"),
+                accessToken = null;
 
-      this.incrementProperty("step");
+            this.incrementProperty("step");
 
-      this.authManager.authorize(serverBaseUrl).then(function () {
-        accessToken = authManager.get("accessToken");
-        controller.incrementProperty("step");
-        return syncManager.fetchUserInfo(accessToken, serverBaseUrl, clientId);
-      }).then(function (user) {
-        controller.settings.setSetting("lastAccount", user.get("id"));
-        controller.get("controllers.application").set("model", user);
-        controller.incrementProperty("step");
-        return syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId);
-      }).then(function () {
-        controller.settings.setSetting("lastSync", new Date());
-        controller.incrementProperty("step");
-      });
-    },
+            this.authManager.authorize(serverBaseUrl).then(function () {
+                accessToken = authManager.get("accessToken");
+                controller.incrementProperty("step");
+                return syncManager.fetchUserInfo(accessToken, serverBaseUrl, clientId);
+            }).then(function (user) {
+                controller.settings.setSetting("lastAccount", user.get("id"));
+                controller.get("controllers.application").set("model", user);
+                controller.incrementProperty("step");
+                return syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId);
+            }).then(function () {
+                controller.settings.setSetting("lastSync", new Date());
+                controller.incrementProperty("step");
+            });
+        },
 
-    actions: {
-      connect: function () {
-        Ember['default'].run.next(this, function () {
-          this.connectToServer();
-        });
-      },
+        actions: {
+            connect: function () {
+                Ember['default'].run.next(this, function () {
+                    this.connectToServer();
+                });
+            },
 
-      secrets: function () {
-        this.transitionToRoute("secrets.index");
-      }
-    }
-  });
+            secrets: function () {
+                this.transitionToRoute("secrets.index");
+            }
+        }
+    });
 
 });
 define('yith-library-mobile-client/controllers/secret', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].ObjectController.extend({
+    exports['default'] = Ember['default'].ObjectController.extend({
 
-    position: "current" });
+        position: "current" });
 
 });
 define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].ArrayController.extend({
-    queryParams: ["tag"],
-    sortProperties: ["service", "account"],
-    sortAscending: true,
-    position: "current",
-    state: "",
-    tag: "",
-    query: "",
-    isSyncing: false,
-    isAuthorizing: false,
-    statusMessage: null,
-    isOnline: navigator.onLine,
+    exports['default'] = Ember['default'].ArrayController.extend({
+        queryParams: ["tag"],
+        sortProperties: ["service", "account"],
+        sortAscending: true,
+        position: "current",
+        state: "",
+        tag: "",
+        query: "",
+        isSyncing: false,
+        isAuthorizing: false,
+        statusMessage: null,
+        isOnline: window.navigator.onLine,
 
-    secrets: (function () {
-      var tag = this.get("tag"),
-          query = this.get("query"),
-          content = this.get("content").sortBy("service", "account");
+        secrets: (function () {
+            var tag = this.get("tag"),
+                query = this.get("query"),
+                content = this.get("content").sortBy("service", "account");
 
-      return content.filter(function (item) {
-        return item.matches(tag, query);
-      });
-    }).property("content.isLoaded", "tag", "query"),
+            return content.filter(function (item) {
+                return item.matches(tag, query);
+            });
+        }).property("content.isLoaded", "tag", "query"),
 
-    secretsCount: (function () {
-      return this.get("secrets").length;
-    }).property("secrets"),
+        secretsCount: (function () {
+            return this.get("secrets").length;
+        }).property("secrets"),
 
-    secretsNoun: (function () {
-      var secretsCount = this.get("secretsCount");
-      return secretsCount === 1 ? "secret" : "secrets";
-    }).property("secretsCount"),
+        secretsNoun: (function () {
+            var secretsCount = this.get("secretsCount");
+            return secretsCount === 1 ? "secret" : "secrets";
+        }).property("secretsCount"),
 
-    statusClass: (function () {
-      var msg = this.get("statusMessage");
-      if (msg === null) {
-        return "hidden";
-      } else if (msg === "") {
-        return "";
-      } else {
-        return "onviewport";
-      }
-    }).property("statusMessage"),
+        statusClass: (function () {
+            var msg = this.get("statusMessage");
+            if (msg === null) {
+                return "hidden";
+            } else if (msg === "") {
+                return "";
+            } else {
+                return "onviewport";
+            }
+        }).property("statusMessage"),
 
-    showMessage: function (msg) {
-      this.set("statusMessage", msg);
-      Ember['default'].run.later(this, function () {
-        this.set("statusMessage", "");
-        Ember['default'].run.later(this, function () {
-          this.set("statusMessage", null);
-        }, 500);
-      }, 2500);
-    },
+        showMessage: function (msg) {
+            this.set("statusMessage", msg);
+            Ember['default'].run.later(this, function () {
+                this.set("statusMessage", "");
+                Ember['default'].run.later(this, function () {
+                    this.set("statusMessage", null);
+                }, 500);
+            }, 2500);
+        },
 
-    syncFromServer: function () {
-      var controller = this,
-          accessToken = null,
-          clientId = null,
-          serverBaseUrl = null;
+        syncFromServer: function () {
+            var controller = this,
+                accessToken = null,
+                clientId = null,
+                serverBaseUrl = null;
 
-      if (this.get("isSyncing") === true) {
-        return;
-      } else {
-        this.set("isSyncing", true);
+            if (this.get("isSyncing") === true) {
+                return;
+            } else {
+                this.set("isSyncing", true);
 
-        accessToken = this.authManager.get("accessToken");
-        clientId = this.authManager.get("clientId");
-        serverBaseUrl = this.settings.getSetting("serverBaseUrl");
+                accessToken = this.authManager.get("accessToken");
+                clientId = this.authManager.get("clientId");
+                serverBaseUrl = this.settings.getSetting("serverBaseUrl");
 
-        this.syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId).then(function (results) {
-          var msg = [],
-              length;
-          controller.settings.setSetting("lastSync", new Date());
-          controller.set("isSyncing", false);
-          length = results.secrets.length;
-          if (length > 0) {
-            msg.push("" + length);
-            msg.push(length > 1 ? "secrets have" : "secret has");
-            msg.push("been succesfully updated");
-          }
-          controller.showMessage(msg.join(" "));
-        });
-      }
-    },
+                this.syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId).then(function (results) {
+                    var msg = [],
+                        length;
+                    controller.settings.setSetting("lastSync", new Date());
+                    controller.set("isSyncing", false);
+                    length = results.secrets.length;
+                    if (length > 0) {
+                        msg.push("" + length);
+                        msg.push(length > 1 ? "secrets have" : "secret has");
+                        msg.push("been succesfully updated");
+                    }
+                    controller.showMessage(msg.join(" "));
+                });
+            }
+        },
 
-    authorizeInServer: function () {
-      var controller = this,
-          serverBaseUrl = null;
+        authorizeInServer: function () {
+            var controller = this,
+                serverBaseUrl = null;
 
-      if (this.get("isAuthorizing") === true) {
-        return;
-      } else {
-        this.set("isAuthorizing", true);
+            if (this.get("isAuthorizing") === true) {
+                return;
+            } else {
+                this.set("isAuthorizing", true);
 
-        serverBaseUrl = this.settings.getSetting("serverBaseUrl");
-        this.authManager.authorize(serverBaseUrl).then(function () {
-          controller.set("isAuthorizing", false);
-          controller.showMessage("You have succesfully logged in");
-        });
-      }
-    },
+                serverBaseUrl = this.settings.getSetting("serverBaseUrl");
+                this.authManager.authorize(serverBaseUrl).then(function () {
+                    controller.set("isAuthorizing", false);
+                    controller.showMessage("You have succesfully logged in");
+                });
+            }
+        },
 
-    logout: function () {
-      var self = this;
-      this.authManager.deleteToken();
-      this.settings.deleteSetting("lastAccount");
-      this.syncManager.deleteAccount().then(function () {
-        self.transitionToRoute("firstTime");
-      });
-    },
+        logout: function () {
+            var self = this;
+            this.authManager.deleteToken();
+            this.settings.deleteSetting("lastAccount");
+            this.syncManager.deleteAccount().then(function () {
+                self.transitionToRoute("firstTime");
+            });
+        },
 
-    actions: {
+        actions: {
 
-      clearQuery: function () {
-        this.set("query", "");
-      },
+            clearQuery: function () {
+                this.set("query", "");
+            },
 
-      offline: function () {
-        this.set("isOnline", false);
-      },
+            offline: function () {
+                this.set("isOnline", false);
+            },
 
-      online: function () {
-        this.set("isOnline", true);
-      }
+            online: function () {
+                this.set("isOnline", true);
+            }
 
-    }
-  });
+        }
+    });
 
 });
 define('yith-library-mobile-client/controllers/secrets/drawer', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].ArrayController.extend({
-    needs: ["application", "secrets"],
-    sortProperties: ["count:desc"],
-    sortedTags: Ember['default'].computed.sort("content", "sortProperties"),
-    tagsToDisplay: 5,
-    tag: Ember['default'].computed.alias("controllers.secrets.tag"),
+    exports['default'] = Ember['default'].ArrayController.extend({
+        needs: ["application", "secrets"],
+        sortProperties: ["count:desc"],
+        sortedTags: Ember['default'].computed.sort("content", "sortProperties"),
+        tagsToDisplay: 5,
+        tag: Ember['default'].computed.alias("controllers.secrets.tag"),
 
-    accountDisplayName: (function () {
-      return this.get("controllers.application.model.displayName");
-    }).property("controllers.application.model.displayName"),
+        accountDisplayName: (function () {
+            return this.get("controllers.application.model.displayName");
+        }).property("controllers.application.model.displayName"),
 
-    selectedTagCount: (function () {
-      var tag = this.get("sortedTags").findBy("name", this.get("tag"));
-      if (tag) {
-        return tag.get("count");
-      } else {
-        return 0;
-      }
-    }).property("sortedTags.[]", "tag"),
+        selectedTagCount: (function () {
+            var tag = this.get("sortedTags").findBy("name", this.get("tag"));
+            if (tag) {
+                return tag.get("count");
+            } else {
+                return 0;
+            }
+        }).property("sortedTags.[]", "tag"),
 
-    mostUsedTags: (function () {
-      var tags = this.get("sortedTags");
-      var mostUsed = tags.slice(0, this.get("tagsToDisplay"));
-      var selectedTag = this.get("tag");
-      var foundSelectedTag = false;
-      var wrapped = mostUsed.map(function (element) {
-        var name = element.get("name");
-        if (name === selectedTag) {
-          foundSelectedTag = true;
+        mostUsedTags: (function () {
+            var tags = this.get("sortedTags");
+            var mostUsed = tags.slice(0, this.get("tagsToDisplay"));
+            var selectedTag = this.get("tag");
+            var foundSelectedTag = false;
+            var wrapped = mostUsed.map(function (element) {
+                var name = element.get("name");
+                if (name === selectedTag) {
+                    foundSelectedTag = true;
+                }
+                return {
+                    name: name,
+                    count: element.get("count"),
+                    selectTag: name === selectedTag ? "" : name
+                };
+            });
+            if (!foundSelectedTag && selectedTag !== "") {
+                wrapped.pop();
+                wrapped.push({
+                    name: selectedTag,
+                    count: this.get("selectedTagCount"),
+                    selectTag: ""
+                });
+            }
+            return wrapped;
+        }).property("selectedTagCount", "sortedTags.[]", "tag", "tagsToDisplay"),
+
+        hasMoreTags: (function () {
+            return this.get("sortedTags").length > this.get("tagsToDisplay");
+        }).property("sortedTags.[]", "tagsToDisplay"),
+
+        syncButtonDisabled: (function () {
+            return this.get("controllers.secrets.isSyncing") || !this.get("controllers.secrets.isOnline");
+        }).property("controllers.secrets.isSyncing", "controllers.secrets.isOnline"),
+
+        loginButtonDisabled: (function () {
+            return !this.get("isOnline");
+        }).property("controllers.secrets.isOnline"),
+
+        actions: {
+            login: function () {
+                this.transitionToRoute("secrets");
+                Ember['default'].run.next(this, function () {
+                    this.get("controllers.secrets").authorizeInServer();
+                });
+            },
+
+            sync: function () {
+                this.transitionToRoute("secrets");
+                Ember['default'].run.next(this, function () {
+                    this.get("controllers.secrets").syncFromServer();
+                });
+            },
+
+            logout: function () {
+                this.transitionToRoute("secrets");
+                Ember['default'].run.next(this, function () {
+                    this.get("controllers.secrets").logout();
+                });
+            }
         }
-        return {
-          name: name,
-          count: element.get("count"),
-          selectTag: name === selectedTag ? "" : name
-        };
-      });
-      if (!foundSelectedTag && selectedTag !== "") {
-        wrapped.pop();
-        wrapped.push({
-          name: selectedTag,
-          count: this.get("selectedTagCount"),
-          selectTag: ""
-        });
-      }
-      return wrapped;
-    }).property("selectedTagCount", "sortedTags.[]", "tag", "tagsToDisplay"),
 
-    hasMoreTags: (function () {
-      return this.get("sortedTags").length > this.get("tagsToDisplay");
-    }).property("sortedTags.[]", "tagsToDisplay"),
-
-    syncButtonDisabled: (function () {
-      return this.get("controllers.secrets.isSyncing") || !this.get("controllers.secrets.isOnline");
-    }).property("controllers.secrets.isSyncing", "controllers.secrets.isOnline"),
-
-    loginButtonDisabled: (function () {
-      return !this.get("isOnline");
-    }).property("controllers.secrets.isOnline"),
-
-    actions: {
-      login: function () {
-        this.transitionToRoute("secrets");
-        Ember['default'].run.next(this, function () {
-          this.get("controllers.secrets").authorizeInServer();
-        });
-      },
-
-      sync: function () {
-        this.transitionToRoute("secrets");
-        Ember['default'].run.next(this, function () {
-          this.get("controllers.secrets").syncFromServer();
-        });
-      },
-
-      logout: function () {
-        this.transitionToRoute("secrets");
-        Ember['default'].run.next(this, function () {
-          this.get("controllers.secrets").logout();
-        });
-      }
-    }
-
-  });
+    });
 
 });
 define('yith-library-mobile-client/controllers/secrets/tags', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].ArrayController.extend({
-    tagsSortProperties: ["name:asc"],
-    sortedTags: Ember['default'].computed.sort("content", "tagsSortProperties"),
-    actions: {
-      selectTag: function (tagName) {
-        this.transitionToRoute("secrets", { queryParams: { tag: tagName } });
-      },
+    exports['default'] = Ember['default'].ArrayController.extend({
+        tagsSortProperties: ["name:asc"],
+        sortedTags: Ember['default'].computed.sort("content", "tagsSortProperties"),
+        actions: {
+            selectTag: function (tagName) {
+                this.transitionToRoute("secrets", { queryParams: { tag: tagName } });
+            },
 
-      cancel: function () {
-        this.transitionToRoute("secrets");
-      }
-    }
-  });
+            cancel: function () {
+                this.transitionToRoute("secrets");
+            }
+        }
+    });
 
 });
 define('yith-library-mobile-client/helpers/current-tag', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Handlebars.makeBoundHelper(function (tagName, selectedTag) {
-    return tagName === selectedTag ? "*" : "";
-  });
+    exports['default'] = Ember['default'].Handlebars.makeBoundHelper(function (tagName, selectedTag) {
+        return tagName === selectedTag ? "*" : "";
+    });
 
 });
 define('yith-library-mobile-client/helpers/current-version', ['exports', 'ember'], function (exports, Ember) {
 
+    'use strict';
+
+    exports['default'] = Ember['default'].Handlebars.makeBoundHelper(function () {
+        var versionStatus = ["<section role=\"status\" class=\"onviewport\">",
+        //        '<p><small>v' + YithLibraryMobileClient.get('version') + '</small></p>',
+        "</section>"];
+        return new Ember['default'].Handlebars.SafeString(versionStatus.join(""));
+    });
+
+});
+define('yith-library-mobile-client/initializers/app-version', ['exports', 'yith-library-mobile-client/config/environment', 'ember'], function (exports, config, Ember) {
+
   'use strict';
 
-  exports['default'] = Ember['default'].Handlebars.makeBoundHelper(function () {
-    var versionStatus = ["<section role=\"status\" class=\"onviewport\">",
-    //        '<p><small>v' + YithLibraryMobileClient.get('version') + '</small></p>',
-    "</section>"];
-    return new Ember['default'].Handlebars.SafeString(versionStatus.join(""));
-  });
+  var classify = Ember['default'].String.classify;
+
+  exports['default'] = {
+    name: "App Version",
+    initialize: function (container, application) {
+      var appName = classify(application.toString());
+      Ember['default'].libraries.register(appName, config['default'].APP.version);
+    }
+  };
 
 });
 define('yith-library-mobile-client/initializers/authmanager', ['exports', 'yith-library-mobile-client/utils/authmanager'], function (exports, AuthManager) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = {
-    name: "authManager",
+    exports['default'] = {
+        name: "authManager",
 
-    initialize: function (container, application) {
-      application.register("authmanager:main", AuthManager['default']);
+        initialize: function (container, application) {
+            application.register("authmanager:main", AuthManager['default']);
 
-      application.inject("controller", "authManager", "authmanager:main");
-    }
-  };
+            application.inject("controller", "authManager", "authmanager:main");
+        }
+    };
 
 });
 define('yith-library-mobile-client/initializers/export-application-global', ['exports', 'ember', 'yith-library-mobile-client/config/environment'], function (exports, Ember, config) {
@@ -455,40 +470,43 @@ define('yith-library-mobile-client/initializers/export-application-global', ['ex
 });
 define('yith-library-mobile-client/initializers/settings', ['exports', 'yith-library-mobile-client/utils/settings'], function (exports, Settings) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = {
-    name: "settings",
+    exports['default'] = {
+        name: "settings",
 
-    initialize: function (container, application) {
-      application.register("settings:main", Settings['default']);
+        initialize: function (container, application) {
+            application.register("settings:main", Settings['default']);
 
-      application.inject("route", "settings", "settings:main");
-      application.inject("controller", "settings", "settings:main");
-    }
-  };
+            application.inject("route", "settings", "settings:main");
+            application.inject("controller", "settings", "settings:main");
+        }
+    };
 
 });
 define('yith-library-mobile-client/initializers/syncmanager', ['exports', 'yith-library-mobile-client/utils/syncmanager'], function (exports, SyncManager) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = {
-    name: "syncManager",
+    exports['default'] = {
+        name: "syncManager",
 
-    initialize: function (container, application) {
-      application.register("syncmanager:main", SyncManager['default']);
+        initialize: function (container, application) {
+            application.register("syncmanager:main", SyncManager['default']);
 
-      application.inject("controller", "syncManager", "syncmanager:main");
-      application.inject("syncmanager", "store", "store:main");
-    }
-  };
+            application.inject("controller", "syncManager", "syncmanager:main");
+            application.inject("syncmanager", "store", "store:main");
+        }
+    };
 
 });
 define('yith-library-mobile-client/main', ['exports', 'ember'], function (exports, Ember) {
 
   'use strict';
 
+
+
+  exports['default'] = bootApp;
   /* global requirejs, require */
   function bootApp(prefix, attributes) {
     var App = require(prefix + "/app")["default"];
@@ -506,132 +524,131 @@ define('yith-library-mobile-client/main', ['exports', 'ember'], function (export
 
     return App.create(attributes || {});
   }
-  exports['default'] = bootApp;
 
 });
 define('yith-library-mobile-client/models/account', ['exports', 'ember-data'], function (exports, DS) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = DS['default'].Model.extend({
-    email: DS['default'].attr("string"),
-    firstName: DS['default'].attr("string"),
-    lastName: DS['default'].attr("string"),
-    screenName: DS['default'].attr("string"),
+    exports['default'] = DS['default'].Model.extend({
+        email: DS['default'].attr("string"),
+        firstName: DS['default'].attr("string"),
+        lastName: DS['default'].attr("string"),
+        screenName: DS['default'].attr("string"),
 
-    fullName: (function () {
-      var firstName = this.get("firstName"),
-          lastName = this.get("lastName"),
-          parts = [];
+        fullName: (function () {
+            var firstName = this.get("firstName"),
+                lastName = this.get("lastName"),
+                parts = [];
 
-      if (firstName) {
-        parts.push(firstName);
-      }
-      if (lastName) {
-        parts.push(lastName);
-      }
-      return parts.join(" ");
-    }).property("firstName", "lastName"),
+            if (firstName) {
+                parts.push(firstName);
+            }
+            if (lastName) {
+                parts.push(lastName);
+            }
+            return parts.join(" ");
+        }).property("firstName", "lastName"),
 
-    displayName: (function () {
-      var screenName = this.get("screenName"),
-          fullName = "";
+        displayName: (function () {
+            var screenName = this.get("screenName"),
+                fullName = "";
 
-      if (screenName) {
-        return screenName;
-      } else {
-        fullName = this.get("fullName");
-        if (fullName) {
-          return fullName;
-        } else {
-          return this.get("email");
-        }
-      }
-    }).property("screenName", "fullName", "email")
+            if (screenName) {
+                return screenName;
+            } else {
+                fullName = this.get("fullName");
+                if (fullName) {
+                    return fullName;
+                } else {
+                    return this.get("email");
+                }
+            }
+        }).property("screenName", "fullName", "email")
 
-  });
+    });
 
 });
 define('yith-library-mobile-client/models/secret', ['exports', 'ember-data'], function (exports, DS) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = DS['default'].Model.extend({
-    service: DS['default'].attr("string"),
-    account: DS['default'].attr("string"),
-    secret: DS['default'].attr("string"),
-    notes: DS['default'].attr("string"),
-    tags: DS['default'].attr("string"),
+    exports['default'] = DS['default'].Model.extend({
+        service: DS['default'].attr("string"),
+        account: DS['default'].attr("string"),
+        secret: DS['default'].attr("string"),
+        notes: DS['default'].attr("string"),
+        tags: DS['default'].attr("string"),
 
-    matches: function (tag, query) {
-      var tagMatch = tag === "",
-          queryMatch = query === "",
-          tags = "";
-      if (!tagMatch) {
-        tags = this.get("tags");
-        if (tags) {
-          tagMatch = tags.indexOf(tag) !== -1;
+        matches: function (tag, query) {
+            var tagMatch = tag === "",
+                queryMatch = query === "",
+                tags = "";
+            if (!tagMatch) {
+                tags = this.get("tags");
+                if (tags) {
+                    tagMatch = tags.indexOf(tag) !== -1;
+                }
+            }
+            if (!queryMatch) {
+                query = query.toLowerCase();
+                queryMatch = this.get("service").toLowerCase().indexOf(query) !== -1 || this.get("account").toLowerCase().indexOf(query) !== -1;
+            }
+            return tagMatch && queryMatch;
         }
-      }
-      if (!queryMatch) {
-        query = query.toLowerCase();
-        queryMatch = this.get("service").toLowerCase().indexOf(query) !== -1 || this.get("account").toLowerCase().indexOf(query) !== -1;
-      }
-      return tagMatch && queryMatch;
-    }
-  });
+    });
 
 });
 define('yith-library-mobile-client/models/tag', ['exports', 'ember-data'], function (exports, DS) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = DS['default'].Model.extend({
-    name: DS['default'].attr("string"),
-    count: DS['default'].attr("number")
-  });
+    exports['default'] = DS['default'].Model.extend({
+        name: DS['default'].attr("string"),
+        count: DS['default'].attr("number")
+    });
 
 });
 define('yith-library-mobile-client/router', ['exports', 'ember', 'yith-library-mobile-client/config/environment'], function (exports, Ember, config) {
 
-  'use strict';
+    'use strict';
 
-  var Router = Ember['default'].Router.extend({
-    location: config['default'].locationType
-  });
-
-  Router.map(function () {
-    this.route("firstTime", { path: "/first-time" });
-    this.resource("secrets", { path: "/secrets" }, function () {
-      this.resource("secret", { path: "/:secret_id" });
-      this.route("tags", { path: "/tags" });
-      this.route("drawer", { path: "/drawer" });
+    var Router = Ember['default'].Router.extend({
+        location: config['default'].locationType
     });
-  });
 
-  exports['default'] = Router;
+    Router.map(function () {
+        this.route("firstTime", { path: "/first-time" });
+        this.resource("secrets", { path: "/secrets" }, function () {
+            this.resource("secret", { path: "/:secret_id" });
+            this.route("tags", { path: "/tags" });
+            this.route("drawer", { path: "/drawer" });
+        });
+    });
+
+    exports['default'] = Router;
 
 });
 define('yith-library-mobile-client/routes/application', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Route.extend({
-    model: function () {
-      var lastAccount = this.settings.getSetting("lastAccount");
-      if (lastAccount) {
-        return this.store.find("account", lastAccount);
-      } else {
-        return null;
-      }
-    },
+    exports['default'] = Ember['default'].Route.extend({
+        model: function () {
+            var lastAccount = this.settings.getSetting("lastAccount");
+            if (lastAccount) {
+                return this.store.find("account", lastAccount);
+            } else {
+                return null;
+            }
+        },
 
-    afterModel: function (model) {
-      if (model === null) {
-        this.transitionTo("firstTime");
-      }
-    }
-  });
+        afterModel: function (model) {
+            if (model === null) {
+                this.transitionTo("firstTime");
+            }
+        }
+    });
 
 });
 define('yith-library-mobile-client/routes/first-time', ['exports', 'ember'], function (exports, Ember) {
@@ -643,175 +660,175 @@ define('yith-library-mobile-client/routes/first-time', ['exports', 'ember'], fun
 });
 define('yith-library-mobile-client/routes/index', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Route.extend({
+    exports['default'] = Ember['default'].Route.extend({
 
-    setupController: function () {
-      this.transitionTo("secrets");
-    }
+        setupController: function () {
+            this.transitionTo("secrets");
+        }
 
-  });
+    });
 
 });
 define('yith-library-mobile-client/routes/secret', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Route.extend({
+    exports['default'] = Ember['default'].Route.extend({
 
-    transitionToSecrets: null,
+        transitionToSecrets: null,
 
-    setupController: function (controller, model) {
-      this._super(controller, model);
-      var secretsController = this.controllerFor("secrets");
-      if (secretsController.get("position") !== "left") {
-        secretsController.set("position", "left");
-      }
-      controller.set("position", "current");
-    },
+        setupController: function (controller, model) {
+            this._super(controller, model);
+            var secretsController = this.controllerFor("secrets");
+            if (secretsController.get("position") !== "left") {
+                secretsController.set("position", "left");
+            }
+            controller.set("position", "current");
+        },
 
-    actions: {
-      willTransition: function (transition) {
-        var secretsController = this.controllerFor("secrets");
-        if (transition.targetName === "secrets.index") {
-          if (secretsController.get("position") === "left") {
-            secretsController.set("position", "current");
-            this.controller.set("position", "right");
-            this.set("transitionToSecrets", transition);
-            transition.abort();
-            return false;
-          }
-        } else if (transition.targetName === "secret") {
-          secretsController.set("position", "left");
-          this.controller.set("position", "current");
+        actions: {
+            willTransition: function (transition) {
+                var secretsController = this.controllerFor("secrets");
+                if (transition.targetName === "secrets.index") {
+                    if (secretsController.get("position") === "left") {
+                        secretsController.set("position", "current");
+                        this.controller.set("position", "right");
+                        this.set("transitionToSecrets", transition);
+                        transition.abort();
+                        return false;
+                    }
+                } else if (transition.targetName === "secret") {
+                    secretsController.set("position", "left");
+                    this.controller.set("position", "current");
+                }
+
+                return true;
+            },
+
+            finishTransition: function () {
+                var transition = this.get("transitionToSecrets");
+                if (transition) {
+                    this.set("transitionToSecrets", null);
+                    transition.retry();
+                }
+            }
         }
 
-        return true;
-      },
-
-      finishTransition: function () {
-        var transition = this.get("transitionToSecrets");
-        if (transition) {
-          this.set("transitionToSecrets", null);
-          transition.retry();
-        }
-      }
-    }
-
-  });
+    });
 
 });
 define('yith-library-mobile-client/routes/secrets-drawer', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Route.extend({
+    exports['default'] = Ember['default'].Route.extend({
 
-    model: function () {
-      return this.store.find("tag");
-    },
+        model: function () {
+            return this.store.find("tag");
+        },
 
-    renderTemplate: function () {
-      this.render({ outlet: "drawer" });
-    }
+        renderTemplate: function () {
+            this.render({ outlet: "drawer" });
+        }
 
-  });
+    });
 
 });
 define('yith-library-mobile-client/routes/secrets', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Route.extend({
+    exports['default'] = Ember['default'].Route.extend({
 
-    setupController: function (controller, model) {
-      this._super(controller, model);
-      controller.set("state", "");
-    },
+        setupController: function (controller, model) {
+            this._super(controller, model);
+            controller.set("state", "");
+        },
 
-    model: function () {
-      return this.store.find("secret");
-    },
+        model: function () {
+            return this.store.find("secret");
+        },
 
-    actions: {
-      willTransition: function (transition) {
-        if (transition.targetName === "secret") {
-          this.controller.set("position", "left");
-        } else if (transition.targetName === "secrets.index") {
-          this.controller.set("position", "current");
-          this.controller.set("state", "");
+        actions: {
+            willTransition: function (transition) {
+                if (transition.targetName === "secret") {
+                    this.controller.set("position", "left");
+                } else if (transition.targetName === "secrets.index") {
+                    this.controller.set("position", "current");
+                    this.controller.set("state", "");
+                }
+                return true;
+            }
+
         }
-        return true;
-      }
 
-    }
-
-  });
+    });
 
 });
 define('yith-library-mobile-client/routes/secrets/drawer', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Route.extend({
+    exports['default'] = Ember['default'].Route.extend({
 
-    transitionToSecrets: null,
+        transitionToSecrets: null,
 
-    setupController: function (controller, model) {
-      this._super(controller, model);
-      this.controllerFor("secrets").set("state", "drawer-opened");
-    },
+        setupController: function (controller, model) {
+            this._super(controller, model);
+            this.controllerFor("secrets").set("state", "drawer-opened");
+        },
 
-    model: function () {
-      return this.store.find("tag");
-    },
+        model: function () {
+            return this.store.find("tag");
+        },
 
-    renderTemplate: function () {
-      this.render({ outlet: "drawer" });
-    },
+        renderTemplate: function () {
+            this.render({ outlet: "drawer" });
+        },
 
-    actions: {
-      willTransition: function (transition) {
-        var secretsController = this.controllerFor("secrets");
-        if (transition.targetName === "secrets.index") {
-          // when the transition is retried (see finishTransition)
-          // this if condition will be false
-          if (secretsController.get("state") === "drawer-opened") {
-            secretsController.set("state", "");
-            this.set("transitionToSecrets", transition);
+        actions: {
+            willTransition: function (transition) {
+                var secretsController = this.controllerFor("secrets");
+                if (transition.targetName === "secrets.index") {
+                    // when the transition is retried (see finishTransition)
+                    // this if condition will be false
+                    if (secretsController.get("state") === "drawer-opened") {
+                        secretsController.set("state", "");
+                        this.set("transitionToSecrets", transition);
 
-            // abort the transition until the CSS transition finishes
-            transition.abort();
-            return false;
-          }
+                        // abort the transition until the CSS transition finishes
+                        transition.abort();
+                        return false;
+                    }
+                }
+                return true;
+            },
+
+            finishTransition: function () {
+                var transition = this.get("transitionToSecrets");
+                if (transition) {
+                    this.set("transitionToSecrets", null);
+                    transition.retry();
+                }
+            }
         }
-        return true;
-      },
 
-      finishTransition: function () {
-        var transition = this.get("transitionToSecrets");
-        if (transition) {
-          this.set("transitionToSecrets", null);
-          transition.retry();
-        }
-      }
-    }
-
-  });
+    });
 
 });
 define('yith-library-mobile-client/routes/secrets/tags', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Route.extend({
+    exports['default'] = Ember['default'].Route.extend({
 
-    model: function () {
-      return this.store.find("tag");
-    }
+        model: function () {
+            return this.store.find("tag");
+        }
 
-  });
+    });
 
 });
 define('yith-library-mobile-client/serializers/application', ['exports', 'ember-data'], function (exports, DS) {
@@ -1557,10 +1574,23 @@ define('yith-library-mobile-client/tests/helpers/resolver', ['exports', 'ember/r
   exports['default'] = resolver;
 
 });
+define('yith-library-mobile-client/tests/helpers/resolver.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - helpers');
+  test('helpers/resolver.js should pass jshint', function() { 
+    ok(true, 'helpers/resolver.js should pass jshint.'); 
+  });
+
+});
 define('yith-library-mobile-client/tests/helpers/start-app', ['exports', 'ember', 'yith-library-mobile-client/app', 'yith-library-mobile-client/router', 'yith-library-mobile-client/config/environment'], function (exports, Ember, Application, Router, config) {
 
   'use strict';
 
+
+
+  exports['default'] = startApp;
   function startApp(attrs) {
     var application;
 
@@ -1575,7 +1605,16 @@ define('yith-library-mobile-client/tests/helpers/start-app', ['exports', 'ember'
 
     return application;
   }
-  exports['default'] = startApp;
+
+});
+define('yith-library-mobile-client/tests/helpers/start-app.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - helpers');
+  test('helpers/start-app.js should pass jshint', function() { 
+    ok(true, 'helpers/start-app.js should pass jshint.'); 
+  });
 
 });
 define('yith-library-mobile-client/tests/initializers/authmanager.jshint', function () {
@@ -1754,11 +1793,15 @@ define('yith-library-mobile-client/tests/test-helper', ['yith-library-mobile-cli
 
 	ember_qunit.setResolver(resolver['default']);
 
-	document.write("<div id=\"ember-testing-container\"><div id=\"ember-testing\"></div></div>");
+});
+define('yith-library-mobile-client/tests/test-helper.jshint', function () {
 
-	QUnit.config.urlConfig.push({ id: "nocontainer", label: "Hide container" });
-	var containerVisibility = QUnit.urlParams.nocontainer ? "hidden" : "visible";
-	document.getElementById("ember-testing-container").style.visibility = containerVisibility;
+  'use strict';
+
+  module('JSHint - .');
+  test('test-helper.js should pass jshint', function() { 
+    ok(true, 'test-helper.js should pass jshint.'); 
+  });
 
 });
 define('yith-library-mobile-client/tests/test-loader', ['ember'], function (Ember) {
@@ -1770,6 +1813,16 @@ define('yith-library-mobile-client/tests/test-loader', ['ember'], function (Embe
     if (/\-test/.test(entry)) {
       require(entry, null, null, true);
     }
+  });
+
+});
+define('yith-library-mobile-client/tests/test-loader.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - .');
+  test('test-loader.js should pass jshint', function() { 
+    ok(true, 'test-loader.js should pass jshint.'); 
   });
 
 });
@@ -1839,7 +1892,7 @@ define('yith-library-mobile-client/tests/views/secret-revealer.jshint', function
 
   module('JSHint - views');
   test('views/secret-revealer.js should pass jshint', function() { 
-    ok(true, 'views/secret-revealer.js should pass jshint.'); 
+    ok(false, 'views/secret-revealer.js should pass jshint.\nviews/secret-revealer.js: line 39, col 35, \'sjcl\' is not defined.\n\n1 error'); 
   });
 
 });
@@ -1853,588 +1906,548 @@ define('yith-library-mobile-client/tests/views/secrets.jshint', function () {
   });
 
 });
-define('yith-library-mobile-client/tests/yith-library-mobile-client/tests/helpers/resolver.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - yith-library-mobile-client/tests/helpers');
-  test('yith-library-mobile-client/tests/helpers/resolver.js should pass jshint', function() { 
-    ok(true, 'yith-library-mobile-client/tests/helpers/resolver.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/yith-library-mobile-client/tests/helpers/start-app.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - yith-library-mobile-client/tests/helpers');
-  test('yith-library-mobile-client/tests/helpers/start-app.js should pass jshint', function() { 
-    ok(true, 'yith-library-mobile-client/tests/helpers/start-app.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/yith-library-mobile-client/tests/test-helper.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - yith-library-mobile-client/tests');
-  test('yith-library-mobile-client/tests/test-helper.js should pass jshint', function() { 
-    ok(true, 'yith-library-mobile-client/tests/test-helper.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/yith-library-mobile-client/tests/test-loader.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - yith-library-mobile-client/tests');
-  test('yith-library-mobile-client/tests/test-loader.js should pass jshint', function() { 
-    ok(true, 'yith-library-mobile-client/tests/test-loader.js should pass jshint.'); 
-  });
-
-});
 define('yith-library-mobile-client/utils/authmanager', ['exports', 'ember', 'yith-library-mobile-client/utils/snake-case-to-camel-case', 'yith-library-mobile-client/config/environment'], function (exports, Ember, snakeCaseToCamelCase, ENV) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Object.extend({
+    exports['default'] = Ember['default'].Object.extend({
 
-    clientId: ENV['default'].defaults.clientId,
-    clientBaseUrl: ENV['default'].defaults.clientBaseUrl,
-    scope: "read-passwords read-userinfo",
-    accessToken: null,
-    accessTokenExpiration: null,
+        clientId: ENV['default'].defaults.clientId,
+        clientBaseUrl: ENV['default'].defaults.clientBaseUrl,
+        scope: "read-passwords read-userinfo",
+        accessToken: null,
+        accessTokenExpiration: null,
 
-    init: function () {
-      this._super();
-      this.loadToken();
-    },
+        init: function () {
+            this._super();
+            this.loadToken();
+        },
 
-    redirectUri: (function () {
-      return this.get("clientBaseUrl") + "/assets/auth-callback.html";
-    }).property("clientBaseUrl"),
+        redirectUri: (function () {
+            return this.get("clientBaseUrl") + "/assets/auth-callback.html";
+        }).property("clientBaseUrl"),
 
-    authUri: (function () {
-      return [this.get("authBaseUri"), "?response_type=token", "&redirect_uri=" + encodeURIComponent(this.get("redirectUri")), "&client_id=" + encodeURIComponent(this.get("clientId")), "&scope=" + encodeURIComponent(this.get("scope"))].join("");
-    }).property("authBaseUri", "providerId", "clientId", "scope"),
+        authUri: (function () {
+            return [this.get("authBaseUri"), "?response_type=token", "&redirect_uri=" + encodeURIComponent(this.get("redirectUri")), "&client_id=" + encodeURIComponent(this.get("clientId")), "&scope=" + encodeURIComponent(this.get("scope"))].join("");
+        }).property("authBaseUri", "providerId", "clientId", "scope"),
 
-    hasValidAccessToken: (function () {
-      var accessToken = this.get("accessToken"),
-          expiration = this.get("accessTokenExpiration");
-      return accessToken !== null && this.now() < expiration;
-    }).property("accessToken", "accessTokenExpiration"),
+        hasValidAccessToken: (function () {
+            var accessToken = this.get("accessToken"),
+                expiration = this.get("accessTokenExpiration");
+            return accessToken !== null && this.now() < expiration;
+        }).property("accessToken", "accessTokenExpiration"),
 
-    authorize: function (serverBaseUrl) {
-      var self = this,
-          state = this.uuid(),
-          encodedState = encodeURIComponent(state),
-          authUri = this.get("authUri") + "&state=" + encodedState,
-          uri = serverBaseUrl + "/oauth2/endpoints/authorization" + authUri,
-          dialog = window.open(uri, "Authorize", "height=600, width=450"),
-          clientBaseUrl = this.get("clientBaseUrl");
+        authorize: function (serverBaseUrl) {
+            var self = this,
+                state = this.uuid(),
+                encodedState = encodeURIComponent(state),
+                authUri = this.get("authUri") + "&state=" + encodedState,
+                uri = serverBaseUrl + "/oauth2/endpoints/authorization" + authUri,
+                dialog = window.open(uri, "Authorize", "height=600, width=450"),
+                clientBaseUrl = this.get("clientBaseUrl");
 
-      if (window.focus) {
-        dialog.focus();
-      }
-
-      return new Ember['default'].RSVP.Promise(function (resolve, reject) {
-        $(window).on("message", function (event) {
-          var params;
-          if (event.originalEvent.origin === clientBaseUrl) {
-            dialog.close();
-            params = self.parseHash(event.originalEvent.data);
-            if (self.checkResponse(params, state)) {
-              self.saveToken(params);
-              resolve();
-            } else {
-              reject();
+            if (window.focus) {
+                dialog.focus();
             }
-          }
-        });
-      });
-    },
 
-    parseHash: function (hash) {
-      var params = {},
-          queryString = hash.substring(1),
-          // remove #
-      regex = /([^#?&=]+)=([^&]*)/g,
-          match = null,
-          key = null;
+            return new Ember['default'].RSVP.Promise(function (resolve, reject) {
+                $(window).on("message", function (event) {
+                    var params;
+                    if (event.originalEvent.origin === clientBaseUrl) {
+                        dialog.close();
+                        params = self.parseHash(event.originalEvent.data);
+                        if (self.checkResponse(params, state)) {
+                            self.saveToken(params);
+                            resolve();
+                        } else {
+                            reject();
+                        }
+                    }
+                });
+            });
+        },
 
-      while ((match = regex.exec(queryString)) !== null) {
-        key = snakeCaseToCamelCase['default'](decodeURIComponent(match[1]));
-        params[key] = decodeURIComponent(match[2]);
-      }
-      return params;
-    },
+        parseHash: function (hash) {
+            var params = {},
+                queryString = hash.substring(1),
+                // remove #
+            regex = /([^#?&=]+)=([^&]*)/g,
+                match = null,
+                key = null;
 
-    checkResponse: function (params, state) {
-      return params.accessToken && params.state === state;
-    },
+            while ((match = regex.exec(queryString)) !== null) {
+                key = snakeCaseToCamelCase['default'](decodeURIComponent(match[1]));
+                params[key] = decodeURIComponent(match[2]);
+            }
+            return params;
+        },
 
-    saveToken: function (token) {
-      var expiration = this.now() + parseInt(token.expiresIn, 10);
-      this.set("accessToken", token.accessToken);
-      this.set("accessTokenExpiration", expiration);
-      window.localStorage.setItem("accessToken", token.accessToken);
-      window.localStorage.setItem("accessTokenExpiration", expiration);
-    },
+        checkResponse: function (params, state) {
+            return params.accessToken && params.state === state;
+        },
 
-    loadToken: function () {
-      var accessToken = window.localStorage.getItem("accessToken"),
-          expiration = window.localStorage.getItem("accessTokenExpiration");
-      this.set("accessToken", accessToken);
-      this.set("accessTokenExpiration", expiration);
-    },
+        saveToken: function (token) {
+            var expiration = this.now() + parseInt(token.expiresIn, 10);
+            this.set("accessToken", token.accessToken);
+            this.set("accessTokenExpiration", expiration);
+            window.localStorage.setItem("accessToken", token.accessToken);
+            window.localStorage.setItem("accessTokenExpiration", expiration);
+        },
 
-    deleteToken: function () {
-      window.localStorage.removeItem("accessToken");
-      window.localStorage.removeItem("accessTokenExpiration");
-    },
+        loadToken: function () {
+            var accessToken = window.localStorage.getItem("accessToken"),
+                expiration = window.localStorage.getItem("accessTokenExpiration");
+            this.set("accessToken", accessToken);
+            this.set("accessTokenExpiration", expiration);
+        },
 
-    now: function () {
-      return Math.round(new Date().getTime() / 1000);
-    },
+        deleteToken: function () {
+            window.localStorage.removeItem("accessToken");
+            window.localStorage.removeItem("accessTokenExpiration");
+        },
 
-    uuid: function () {
-      var template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
-      return template.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0,
-            v = c === "x" ? r : r & 3 | 8;
-        return v.toString(16);
-      });
-    }
-  });
+        now: function () {
+            return Math.round(new Date().getTime() / 1000);
+        },
+
+        uuid: function () {
+            var template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+            return template.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0,
+                    v = c === "x" ? r : r & 3 | 8;
+                return v.toString(16);
+            });
+        }
+    });
 
 });
 define('yith-library-mobile-client/utils/prefix-event', ['exports'], function (exports) {
 
-  'use strict';
+    'use strict';
 
-  function prefixEvent(event) {
-    var vendorPrefixes = ["webkit", "moz", "MS", "o", ""];
-    var prefixedEventNames = vendorPrefixes.map(function (prefix) {
-      return prefix ? prefix + event : event.toLowerCase();
-    });
-    return prefixedEventNames.join(" ");
-  }
-  exports['default'] = prefixEvent;
+    exports['default'] = prefixEvent;
+    function prefixEvent(event) {
+        var vendorPrefixes = ["webkit", "moz", "MS", "o", ""];
+        var prefixedEventNames = vendorPrefixes.map(function (prefix) {
+            return prefix ? prefix + event : event.toLowerCase();
+        });
+        return prefixedEventNames.join(" ");
+    }
 
 });
 define('yith-library-mobile-client/utils/settings', ['exports', 'ember', 'yith-library-mobile-client/config/environment'], function (exports, Ember, ENV) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Object.extend({
+    exports['default'] = Ember['default'].Object.extend({
 
-    defaults: {
-      serverBaseUrl: ENV['default'].defaults.serverBaseUrl
-    },
+        defaults: {
+            serverBaseUrl: ENV['default'].defaults.serverBaseUrl
+        },
 
-    getSetting: function (name) {
-      var setting = window.localStorage.getItem(name);
-      if (setting === null) {
-        return this.defaults[name] || null;
-      } else {
-        return JSON.parse(setting);
-      }
-    },
+        getSetting: function (name) {
+            var setting = window.localStorage.getItem(name);
+            if (setting === null) {
+                return this.defaults[name] || null;
+            } else {
+                return JSON.parse(setting);
+            }
+        },
 
-    setSetting: function (name, value) {
-      var serialized = JSON.stringify(value);
-      return window.localStorage.setItem(name, serialized);
-    },
+        setSetting: function (name, value) {
+            var serialized = JSON.stringify(value);
+            return window.localStorage.setItem(name, serialized);
+        },
 
-    deleteSetting: function (name) {
-      window.localStorage.removeItem(name);
-    }
+        deleteSetting: function (name) {
+            window.localStorage.removeItem(name);
+        }
 
-  });
+    });
 
 });
 define('yith-library-mobile-client/utils/snake-case-to-camel-case', ['exports'], function (exports) {
 
-  'use strict';
+    'use strict';
 
-  function snakeCaseToCamelCase(symbol) {
-    return symbol.split("_").filter(function (word) {
-      return word !== "";
-    }).map(function (word, idx) {
-      if (idx === 0) {
-        return word;
-      } else {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      }
-    }).join("");
-  }
-  exports['default'] = snakeCaseToCamelCase;
+    exports['default'] = snakeCaseToCamelCase;
+    function snakeCaseToCamelCase(symbol) {
+        return symbol.split("_").filter(function (word) {
+            return word !== "";
+        }).map(function (word, idx) {
+            if (idx === 0) {
+                return word;
+            } else {
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            }
+        }).join("");
+    }
 
 });
 define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yith-library-mobile-client/utils/snake-case-to-camel-case'], function (exports, Ember, snakeCaseToCamelCase) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Object.extend({
+    exports['default'] = Ember['default'].Object.extend({
 
-    fetchUserInfo: function (accessToken, serverBaseUrl, clientId) {
-      var self = this;
+        fetchUserInfo: function (accessToken, serverBaseUrl, clientId) {
+            var self = this;
 
-      return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
-        $.ajax({
-          url: serverBaseUrl + "/user?client_id=" + clientId,
-          type: "GET",
-          crossDomain: true,
-          headers: {
-            Authorization: "Bearer " + accessToken
-          }
-        }).done(function (data /*, textStatus, jqXHR*/) {
-          resolve(data);
-        });
-      }).then(function (data) {
-        return self.updateAccountStore(data);
-      });
-    },
+            return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
+                $.ajax({
+                    url: serverBaseUrl + "/user?client_id=" + clientId,
+                    type: "GET",
+                    crossDomain: true,
+                    headers: {
+                        Authorization: "Bearer " + accessToken
+                    }
+                }).done(function (data /*, textStatus, jqXHR*/) {
+                    resolve(data);
+                });
+            }).then(function (data) {
+                return self.updateAccountStore(data);
+            });
+        },
 
-    /* Convert all the keys of the record to be in camelCase
-       instead of snake_case */
-    convertRecord: function (record) {
-      var newRecord = {},
-          key = null,
-          newKey = null;
-      for (key in record) {
-        if (record.hasOwnProperty(key)) {
-          newKey = snakeCaseToCamelCase['default'](key);
-          newRecord[newKey] = record[key];
+        /* Convert all the keys of the record to be in camelCase
+           instead of snake_case */
+        convertRecord: function (record) {
+            var newRecord = {},
+                key = null,
+                newKey = null;
+            for (key in record) {
+                if (record.hasOwnProperty(key)) {
+                    newKey = snakeCaseToCamelCase['default'](key);
+                    newRecord[newKey] = record[key];
+                }
+            }
+            return newRecord;
+        },
+
+        updateAccountStore: function (rawData) {
+            var self = this;
+
+            return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
+                var data = self.convertRecord(rawData);
+                self.store.findById("account", data.id).then(function (existingRecord) {
+                    // update account
+                    existingRecord.set("email", data.email);
+                    existingRecord.set("firstName", data.firstName);
+                    existingRecord.set("lastName", data.lastName);
+                    existingRecord.set("screenName", data.screenName);
+                    resolve(existingRecord);
+                }, function () {
+                    // create account
+                    // because we try to find it, it is already in the store
+                    // but the record is empty.
+                    var newRecord = self.store.recordForId("account", data.id);
+                    newRecord.loadedData();
+                    newRecord.setProperties({
+                        email: data.email,
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                        screenName: data.screenName
+                    });
+                    resolve(newRecord);
+                });
+            }).then(function (record) {
+                return record.save();
+            });
+        },
+
+        fetchSecrets: function (accessToken, serverBaseUrl, clientId) {
+            var self = this;
+
+            return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
+                $.ajax({
+                    url: serverBaseUrl + "/passwords?client_id=" + clientId,
+                    type: "GET",
+                    crossDomain: true,
+                    headers: {
+                        Authorization: "Bearer " + accessToken
+                    }
+                }).done(function (data /*, textStatus, jqXHR*/) {
+                    resolve(data);
+                });
+            }).then(function (data) {
+                return self.updateSecretsStore(data);
+            });
+        },
+
+        updateSecretsStore: function (data) {
+            var self = this,
+                promises = {
+                secrets: this.store.find("secret"),
+                tags: this.store.find("tag")
+            };
+            return Ember['default'].RSVP.hash(promises).then(function (results) {
+                var secretsPromise = Ember['default'].RSVP.all(self.updateSecrets(results.secrets, data.passwords)),
+                    tagsPromise = Ember['default'].RSVP.all(self.updateTags(results.tags, data.passwords));
+                return Ember['default'].RSVP.hash({
+                    secrets: secretsPromise,
+                    tags: tagsPromise
+                });
+            });
+        },
+
+        updateSecrets: function (existingRecords, passwords) {
+            var self = this,
+                result = [];
+            passwords.forEach(function (password) {
+                var existingRecord = existingRecords.findBy("id", password.id);
+                if (existingRecord !== undefined) {
+                    result.push(self.updateSecret(existingRecord, password));
+                } else {
+                    result.push(self.createSecret(password));
+                }
+            });
+            return result;
+        },
+
+        createSecret: function (data) {
+            return this.store.createRecord("secret", {
+                id: data.id,
+                service: data.service,
+                account: data.account,
+                secret: data.secret,
+                notes: data.notes,
+                tags: data.tags.join(" ")
+            }).save();
+        },
+
+        updateSecret: function (record, data) {
+            record.set("service", data.service);
+            record.set("account", data.account);
+            record.set("secret", data.secret);
+            record.set("notes", data.notes);
+            record.set("tags", data.tags.join(" "));
+            return record.save();
+        },
+
+        updateTags: function (existingRecords, passwords) {
+            var self = this,
+                newTags = new Ember['default'].Map(),
+                result = [];
+            passwords.forEach(function (password) {
+                password.tags.forEach(function (tag) {
+                    if (newTags.has(tag)) {
+                        newTags.set(tag, newTags.get(tag) + 1);
+                    } else {
+                        newTags.set(tag, 1);
+                    }
+                });
+            });
+
+            newTags.forEach(function (name, count) {
+                var existingRecord = existingRecords.findBy("name", name);
+                if (existingRecord !== undefined) {
+                    result.push(self.updateTag(existingRecord, name, count));
+                } else {
+                    result.push(self.createTag(name, count));
+                }
+            });
+            return result;
+        },
+
+        createTag: function (name, count) {
+            return this.store.createRecord("tag", {
+                name: name,
+                count: count
+            }).save();
+        },
+
+        updateTag: function (record, name, count) {
+            record.set("name", name);
+            record.set("count", count);
+            return record.save();
+        },
+
+        deleteAccount: function () {
+            var promises = [];
+            this.store.all("secret").forEach(function (secret) {
+                promises.push(secret.destroyRecord());
+            }, this);
+            this.store.all("tag").forEach(function (tag) {
+                promises.push(tag.destroyRecord());
+            }, this);
+            this.store.all("account").forEach(function (account) {
+                promises.push(account.destroyRecord());
+            }, this);
+
+            return Ember['default'].RSVP.all(promises);
         }
-      }
-      return newRecord;
-    },
 
-    updateAccountStore: function (rawData) {
-      var self = this;
-
-      return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
-        var data = self.convertRecord(rawData);
-        self.store.findById("account", data.id).then(function (existingRecord) {
-          // update account
-          existingRecord.set("email", data.email);
-          existingRecord.set("firstName", data.firstName);
-          existingRecord.set("lastName", data.lastName);
-          existingRecord.set("screenName", data.screenName);
-          resolve(existingRecord);
-        }, function () {
-          // create account
-          // because we try to find it, it is already in the store
-          // but the record is empty.
-          var newRecord = self.store.recordForId("account", data.id);
-          newRecord.loadedData();
-          newRecord.setProperties({
-            email: data.email,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            screenName: data.screenName
-          });
-          resolve(newRecord);
-        });
-      }).then(function (record) {
-        return record.save();
-      });
-    },
-
-    fetchSecrets: function (accessToken, serverBaseUrl, clientId) {
-      var self = this;
-
-      return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
-        $.ajax({
-          url: serverBaseUrl + "/passwords?client_id=" + clientId,
-          type: "GET",
-          crossDomain: true,
-          headers: {
-            Authorization: "Bearer " + accessToken
-          }
-        }).done(function (data /*, textStatus, jqXHR*/) {
-          resolve(data);
-        });
-      }).then(function (data) {
-        return self.updateSecretsStore(data);
-      });
-    },
-
-    updateSecretsStore: function (data) {
-      var self = this,
-          promises = {
-        secrets: this.store.find("secret"),
-        tags: this.store.find("tag")
-      };
-      return Ember['default'].RSVP.hash(promises).then(function (results) {
-        var secretsPromise = Ember['default'].RSVP.all(self.updateSecrets(results.secrets, data.passwords)),
-            tagsPromise = Ember['default'].RSVP.all(self.updateTags(results.tags, data.passwords));
-        return Ember['default'].RSVP.hash({
-          secrets: secretsPromise,
-          tags: tagsPromise
-        });
-      });
-    },
-
-    updateSecrets: function (existingRecords, passwords) {
-      var self = this,
-          result = [];
-      passwords.forEach(function (password) {
-        var existingRecord = existingRecords.findBy("id", password.id);
-        if (existingRecord !== undefined) {
-          result.push(self.updateSecret(existingRecord, password));
-        } else {
-          result.push(self.createSecret(password));
-        }
-      });
-      return result;
-    },
-
-    createSecret: function (data) {
-      return this.store.createRecord("secret", {
-        id: data.id,
-        service: data.service,
-        account: data.account,
-        secret: data.secret,
-        notes: data.notes,
-        tags: data.tags.join(" ")
-      }).save();
-    },
-
-    updateSecret: function (record, data) {
-      record.set("service", data.service);
-      record.set("account", data.account);
-      record.set("secret", data.secret);
-      record.set("notes", data.notes);
-      record.set("tags", data.tags.join(" "));
-      return record.save();
-    },
-
-    updateTags: function (existingRecords, passwords) {
-      var self = this,
-          newTags = new Ember['default'].Map(),
-          result = [];
-      passwords.forEach(function (password) {
-        password.tags.forEach(function (tag) {
-          if (newTags.has(tag)) {
-            newTags.set(tag, newTags.get(tag) + 1);
-          } else {
-            newTags.set(tag, 1);
-          }
-        });
-      });
-
-      newTags.forEach(function (name, count) {
-        var existingRecord = existingRecords.findBy("name", name);
-        if (existingRecord !== undefined) {
-          result.push(self.updateTag(existingRecord, name, count));
-        } else {
-          result.push(self.createTag(name, count));
-        }
-      });
-      return result;
-    },
-
-    createTag: function (name, count) {
-      return this.store.createRecord("tag", {
-        name: name,
-        count: count
-      }).save();
-    },
-
-    updateTag: function (record, name, count) {
-      record.set("name", name);
-      record.set("count", count);
-      return record.save();
-    },
-
-    deleteAccount: function () {
-      var promises = [];
-      this.store.all("secret").forEach(function (secret) {
-        promises.push(secret.destroyRecord());
-      }, this);
-      this.store.all("tag").forEach(function (tag) {
-        promises.push(tag.destroyRecord());
-      }, this);
-      this.store.all("account").forEach(function (account) {
-        promises.push(account.destroyRecord());
-      }, this);
-
-      return Ember['default'].RSVP.all(promises);
-    }
-
-  });
+    });
 
 });
 define('yith-library-mobile-client/views/application', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].View.extend({
-    classNames: ["full-height"]
-  });
+    exports['default'] = Ember['default'].View.extend({
+        classNames: ["full-height"]
+    });
 
 });
 define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].View.extend({
-    templateName: "secret-revealer",
-    tagName: "form",
-    classNames: ["secret-revealer"],
-    attributeBindings: ["autocomplete"],
-    autocomplete: "off",
-    buttonClass: "recommend",
-    buttonText: "Reveal secret",
-    decryptedSecret: null,
-    encryptedSecret: "",
+    exports['default'] = Ember['default'].View.extend({
+        templateName: "secret-revealer",
+        tagName: "form",
+        classNames: ["secret-revealer"],
+        attributeBindings: ["autocomplete"],
+        autocomplete: "off",
+        buttonClass: "recommend",
+        buttonText: "Reveal secret",
+        decryptedSecret: null,
+        encryptedSecret: "",
 
-    click: function (event) {
-      var $target = $(event.target);
+        click: function (event) {
+            var $target = $(event.target);
 
-      if ($target.is("button")) {
-        this.buttonClicked();
-      }
+            if ($target.is("button")) {
+                this.buttonClicked();
+            }
 
-      // Don't bubble up any more events
-      return false;
-    },
+            // Don't bubble up any more events
+            return false;
+        },
 
-    buttonClicked: function () {
-      var $masterPasswordInput = null,
-          masterPasswordValue = null,
-          secret = "";
+        buttonClicked: function () {
+            var $masterPasswordInput = null,
+                masterPasswordValue = null,
+                secret = "";
 
-      if (this.get("decryptedSecret") !== null) {
-        this.hideSecret();
-      } else {
-        $masterPasswordInput = this.$("input[type=password]");
-        masterPasswordValue = $masterPasswordInput.val();
-        $masterPasswordInput.val("");
-        secret = this.get("encryptedSecret");
-        try {
-          this.revealSecret(sjcl.decrypt(masterPasswordValue, secret));
-          masterPasswordValue = null;
-        } catch (err) {
-          this.badMasterPassword();
+            if (this.get("decryptedSecret") !== null) {
+                this.hideSecret();
+            } else {
+                $masterPasswordInput = this.$("input[type=password]");
+                masterPasswordValue = $masterPasswordInput.val();
+                $masterPasswordInput.val("");
+                secret = this.get("encryptedSecret");
+                try {
+                    this.revealSecret(sjcl.decrypt(masterPasswordValue, secret));
+                    masterPasswordValue = null;
+                } catch (err) {
+                    this.badMasterPassword();
+                }
+            }
+        },
+
+        hideSecret: function () {
+            this.stopTimer();
+
+            this.set("buttonText", "Reveal secret");
+            this.set("buttonClass", "recommend");
+            this.set("decryptedSecret", null);
+        },
+
+        badMasterPassword: function () {
+            this.set("buttonText", "Wrong master password, try again");
+            this.set("buttonClass", "danger");
+            this.$("input[type=password]").focus();
+        },
+
+        revealSecret: function (secret) {
+            this.set("buttonText", "Hide secret");
+            this.set("buttonClass", "recommend");
+            this.set("decryptedSecret", secret);
+
+            Ember['default'].run.scheduleOnce("afterRender", this, function () {
+                this.$("input[type=text]").focus().select();
+                this.startTimer();
+            });
+        },
+
+        startTimer: function () {
+            this.start = new Date();
+
+            this.totalTime = this.getTotalTime();
+
+            this.timer = window.requestAnimationFrame(this.tick.bind(this));
+        },
+
+        stopTimer: function () {
+            if (this.timer) {
+                window.cancelAnimationFrame(this.timer);
+            }
+        },
+
+        getTotalTime: function () {
+            return 60;
+        },
+
+        tick: function () {
+            var $timer = this.$("svg"),
+                width = $timer.width(),
+                width2 = width / 2,
+                radius = width * 0.45,
+                now = new Date(),
+                elapsed = (now - this.start) / 1000,
+                completion = elapsed / this.totalTime,
+                endAngle = 360 * completion,
+                endPoint = this.polarToCartesian(width2, width2, radius, endAngle),
+                arcSweep = endAngle <= 180 ? "1" : "0",
+                d = ["M", width2, width2 - radius, "A", radius, radius, 0, arcSweep, 0, endPoint.x, endPoint.y, "L", width2, width2, "Z"].join(" ");
+
+            this.$("path").attr("d", d);
+
+            // If completion is 100% hide the secret
+            if (completion >= 1) {
+                this.hideSecret();
+            } else {
+                this.timer = window.requestAnimationFrame(this.tick.bind(this));
+            }
+        },
+
+        polarToCartesian: function (x, y, radius, degrees) {
+            var radians = (degrees - 90) * Math.PI / 180;
+            return {
+                x: x + radius * Math.cos(radians),
+                y: y + radius * Math.sin(radians)
+            };
+        },
+
+        didInsertElement: function () {
+            this.$("input").focus();
+        },
+
+        willDestroy: function () {
+            this.hideSecret();
         }
-      }
-    },
-
-    hideSecret: function () {
-      this.stopTimer();
-
-      this.set("buttonText", "Reveal secret");
-      this.set("buttonClass", "recommend");
-      this.set("decryptedSecret", null);
-    },
-
-    badMasterPassword: function () {
-      this.set("buttonText", "Wrong master password, try again");
-      this.set("buttonClass", "danger");
-      this.$("input[type=password]").focus();
-    },
-
-    revealSecret: function (secret) {
-      this.set("buttonText", "Hide secret");
-      this.set("buttonClass", "recommend");
-      this.set("decryptedSecret", secret);
-
-      Ember['default'].run.scheduleOnce("afterRender", this, function () {
-        this.$("input[type=text]").focus().select();
-        this.startTimer();
-      });
-    },
-
-    startTimer: function () {
-      this.start = new Date();
-
-      this.totalTime = this.getTotalTime();
-
-      this.timer = window.requestAnimationFrame(this.tick.bind(this));
-    },
-
-    stopTimer: function () {
-      if (this.timer) {
-        window.cancelAnimationFrame(this.timer);
-      }
-    },
-
-    getTotalTime: function () {
-      return 60;
-    },
-
-    tick: function () {
-      var $timer = this.$("svg"),
-          width = $timer.width(),
-          width2 = width / 2,
-          radius = width * 0.45,
-          now = new Date(),
-          elapsed = (now - this.start) / 1000,
-          completion = elapsed / this.totalTime,
-          endAngle = 360 * completion,
-          endPoint = this.polarToCartesian(width2, width2, radius, endAngle),
-          arcSweep = endAngle <= 180 ? "1" : "0",
-          d = ["M", width2, width2 - radius, "A", radius, radius, 0, arcSweep, 0, endPoint.x, endPoint.y, "L", width2, width2, "Z"].join(" ");
-
-      this.$("path").attr("d", d);
-
-      // If completion is 100% hide the secret
-      if (completion >= 1) {
-        this.hideSecret();
-      } else {
-        this.timer = window.requestAnimationFrame(this.tick.bind(this));
-      }
-    },
-
-    polarToCartesian: function (x, y, radius, degrees) {
-      var radians = (degrees - 90) * Math.PI / 180;
-      return {
-        x: x + radius * Math.cos(radians),
-        y: y + radius * Math.sin(radians)
-      };
-    },
-
-    didInsertElement: function () {
-      this.$("input").focus();
-    },
-
-    willDestroy: function () {
-      this.hideSecret();
-    }
-  });
+    });
 
 });
 define('yith-library-mobile-client/views/secrets', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].View.extend({
-    classNames: ["full-height"],
+    exports['default'] = Ember['default'].View.extend({
+        classNames: ["full-height"],
 
-    didInsertElement: function () {
-      window.addEventListener("offline", this);
-      window.addEventListener("online", this);
-    },
+        didInsertElement: function () {
+            window.addEventListener("offline", this);
+            window.addEventListener("online", this);
+        },
 
-    handleEvent: function (event) {
-      switch (event.type) {
-        case "offline":
-          this.get("controller").send("offline");
-          break;
-        case "online":
-          this.get("controller").send("online");
-          break;
-      }
-    },
+        handleEvent: function (event) {
+            switch (event.type) {
+                case "offline":
+                    this.get("controller").send("offline");
+                    break;
+                case "online":
+                    this.get("controller").send("online");
+                    break;
+            }
+        },
 
-    willDestroy: function () {
-      window.removeEventListener("offline", this);
-      window.removeEventListener("online", this);
-    }
-  });
+        willDestroy: function () {
+            window.removeEventListener("offline", this);
+            window.removeEventListener("online", this);
+        }
+    });
 
 });
 /* jshint ignore:start */
@@ -2461,7 +2474,7 @@ catch(err) {
 if (runningTests) {
   require("yith-library-mobile-client/tests/test-helper");
 } else {
-  require("yith-library-mobile-client/app")["default"].create({"version":"@@projectVersion"});
+  require("yith-library-mobile-client/app")["default"].create({"version":"@@projectVersion","name":"yith-library-mobile-client"});
 }
 
 /* jshint ignore:end */
