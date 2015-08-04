@@ -1,179 +1,2476 @@
-eval("//# sourceURL=vendor/ember-cli/loader.js");
-
-;eval("define(\"yith-library-mobile-client/adapters/application\", \n  [\"ember-data\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var DS = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = DS.IndexedDBAdapter.extend({\n        databaseName: \"yithlibrary\",\n        version: 1,\n        migrations: function () {\n            this.addModel(\"account\", {keyPath: \"id\", autoIncrement: false});\n            this.addModel(\"secret\", {keyPath: \"id\", autoIncrement: false});\n            this.addModel(\"tag\");\n        }\n    });\n  });//# sourceURL=yith-library-mobile-client/adapters/application.js");
-
-;eval("define(\"yith-library-mobile-client/app\", \n  [\"ember\",\"ember/resolver\",\"ember/load-initializers\",\"yith-library-mobile-client/config/environment\",\"exports\"],\n  function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    var Resolver = __dependency2__[\"default\"];\n    var loadInitializers = __dependency3__[\"default\"];\n    var config = __dependency4__[\"default\"];\n\n    Ember.MODEL_FACTORY_INJECTIONS = true;\n\n    var App = Ember.Application.extend({\n      modulePrefix: config.modulePrefix,\n      podModulePrefix: config.podModulePrefix,\n      Resolver: Resolver,\n      customEvents: {\n        \"animationend animationEnd webkitAnimationEnd mozAnimationEnd MSAnimationEnd oAnimationEnd\": \"animationEnd\",\n        \"transitionend transitionEnd webkitTransitionEnd mozTransitionEnd MSTransitionEnd oTransitionEnd\": \"transitionEnd\"\n      }\n    });\n\n    loadInitializers(App, config.modulePrefix);\n\n    __exports__[\"default\"] = App;\n  });//# sourceURL=yith-library-mobile-client/app.js");
-
-;eval("define(\"yith-library-mobile-client/controllers/application\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.ObjectController.extend({\n\n        // The active Account object will be set as the model for this controller\n\n    });\n  });//# sourceURL=yith-library-mobile-client/controllers/application.js");
-
-;eval("define(\"yith-library-mobile-client/controllers/first-time\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.ObjectController.extend({\n        needs: [\"application\"],\n        step: 0,\n\n        showInstructions: function () {\n            return this.get(\"step\") === 0;\n        }.property(\"step\"),\n\n        isConnectingToServer: function () {\n            return this.get(\"step\") === 1;\n        }.property(\"step\"),\n\n        isServerConnected: function () {\n            return this.get(\"step\") > 1;\n        }.property(\"step\"),\n\n        isGettingAccountInformation: function () {\n            return this.get(\"step\") === 2;\n        }.property(\"step\"),\n\n        isAccountInformationRetrieved: function () {\n            return this.get(\"step\") > 2;\n        }.property(\"step\"),\n\n        accountDisabled: function () {\n            return (this.get(\"step\") < 2 ? \"true\": \"false\");\n        }.property(\"step\"),\n\n        isGettingSecrets: function () {\n            return this.get(\"step\") === 3;\n        }.property(\"step\"),\n\n        areSecretsRetrieved: function () {\n            return this.get(\"step\") > 3;\n        }.property(\"step\"),\n\n        secretsDisabled: function () {\n            return (this.get(\"step\") < 3 ? \"true\": \"false\");\n        }.property(\"step\"),\n\n        isFinished: function () {\n            return this.get(\"step\") === 4;\n        }.property(\"step\"),\n\n        connectToServer: function () {\n            var controller = this,\n                syncManager = this.syncManager,\n                authManager = this.authManager,\n                clientId = this.authManager.get(\"clientId\"),\n                serverBaseUrl = this.settings.getSetting(\"serverBaseUrl\"),\n                accessToken = null;\n\n            this.incrementProperty(\"step\");\n\n            this.authManager.authorize(serverBaseUrl)\n                .then(function () {\n                    accessToken = authManager.get(\"accessToken\");\n                    controller.incrementProperty(\"step\");\n                    return syncManager.fetchUserInfo(\n                        accessToken, serverBaseUrl, clientId\n                    );\n                })\n                .then(function (user) {\n                    controller.settings.setSetting(\"lastAccount\", user.get(\"id\"));\n                    controller.get(\"controllers.application\").set(\"model\", user);\n                    controller.incrementProperty(\"step\");\n                    return syncManager.fetchSecrets(\n                        accessToken, serverBaseUrl, clientId\n                    );\n                })\n                .then(function () {\n                    controller.settings.setSetting(\"lastSync\", new Date());\n                    controller.incrementProperty(\"step\");\n                });\n        },\n\n        actions: {\n            connect: function () {\n                Ember.run.next(this, function () {\n                    this.connectToServer();\n                });\n            },\n\n            secrets: function () {\n                this.transitionToRoute(\"secrets.index\");\n            }\n        }\n    });\n  });//# sourceURL=yith-library-mobile-client/controllers/first-time.js");
-
-;eval("define(\"yith-library-mobile-client/controllers/secret\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.ObjectController.extend({\n\n        position: \"current\",\n\n    });\n  });//# sourceURL=yith-library-mobile-client/controllers/secret.js");
-
-;eval("define(\"yith-library-mobile-client/controllers/secrets\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.ArrayController.extend({\n        queryParams: [\"tag\"],\n        sortProperties: [\"service\", \"account\"],\n        sortAscending: true,\n        position: \"current\",\n        state: \"\",\n        tag: \"\",\n        query: \"\",\n        isSyncing: false,\n        isAuthorizing: false,\n        statusMessage: null,\n        isOnline: navigator.onLine,\n\n        secrets: function () {\n            var tag = this.get(\"tag\"),\n                query = this.get(\"query\"),\n                content = this.get(\"content\").sortBy(\"service\", \"account\");\n\n            return content.filter(function (item) {\n                return item.matches(tag, query);\n            });\n        }.property(\"content.isLoaded\", \"tag\", \"query\"),\n\n        secretsCount: function () {\n            return this.get(\"secrets\").length;\n        }.property(\"secrets\"),\n\n        secretsNoun: function () {\n            var secretsCount = this.get(\"secretsCount\");\n            return (secretsCount === 1) ? \"secret\": \"secrets\";\n        }.property(\"secretsCount\"),\n\n        statusClass: function () {\n            var msg = this.get(\"statusMessage\");\n            if (msg === null) {\n                return \"hidden\";\n            } else if (msg === \"\") {\n                return \"\";\n            } else {\n                return \"onviewport\";\n            }\n        }.property(\"statusMessage\"),\n\n        showMessage: function (msg) {\n            this.set(\"statusMessage\", msg);\n            Ember.run.later(this, function () {\n                this.set(\"statusMessage\", \"\");\n                Ember.run.later(this, function () {\n                    this.set(\"statusMessage\", null);\n                }, 500);\n            }, 2500);\n        },\n\n        syncFromServer: function () {\n            var controller = this,\n                accessToken = null,\n                clientId = null,\n                serverBaseUrl = null;\n\n            if (this.get(\"isSyncing\") === true) {\n                return;\n            } else {\n                this.set(\"isSyncing\", true);\n\n                accessToken = this.authManager.get(\"accessToken\");\n                clientId = this.authManager.get(\"clientId\");\n                serverBaseUrl = this.settings.getSetting(\"serverBaseUrl\");\n\n                this.syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId)\n                    .then(function (results) {\n                        var msg = [], length;\n                        controller.settings.setSetting(\"lastSync\", new Date());\n                        controller.set(\"isSyncing\", false);\n                        length = results.secrets.length;\n                        if (length > 0) {\n                            msg.push(\"\" + length);\n                            msg.push(length > 1 ? \"secrets have\": \"secret has\");\n                            msg.push(\"been succesfully updated\");\n                        }\n                        controller.showMessage(msg.join(\" \"));\n                    });\n            }\n        },\n\n        authorizeInServer: function () {\n            var controller = this,\n                serverBaseUrl = null;\n\n            if (this.get(\"isAuthorizing\") === true) {\n                return;\n            } else {\n                this.set(\"isAuthorizing\", true);\n\n                serverBaseUrl = this.settings.getSetting(\"serverBaseUrl\");\n                this.authManager.authorize(serverBaseUrl)\n                    .then(function () {\n                        controller.set(\"isAuthorizing\", false);\n                        controller.showMessage(\"You have succesfully logged in\");\n                    });\n            }\n        },\n\n        logout: function () {\n            var self = this;\n            this.authManager.deleteToken();\n            this.settings.deleteSetting(\"lastAccount\");\n            this.syncManager.deleteAccount().then(function () {\n                self.transitionToRoute(\"firstTime\");\n            });\n        },\n\n        actions: {\n\n            clearQuery: function () {\n                this.set(\"query\", \"\");\n            },\n\n            offline: function () {\n                this.set(\"isOnline\", false);\n            },\n\n            online: function () {\n                this.set(\"isOnline\", true);\n            }\n\n        }\n    });\n  });//# sourceURL=yith-library-mobile-client/controllers/secrets.js");
-
-;eval("define(\"yith-library-mobile-client/controllers/secrets/drawer\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.ArrayController.extend({\n        needs: [\"application\", \"secrets\"],\n        sortProperties: [\"count:desc\"],\n        sortedTags: Ember.computed.sort(\"content\", \"sortProperties\"),\n        tagsToDisplay: 5,\n        tag: Ember.computed.alias(\"controllers.secrets.tag\"),\n\n        accountDisplayName: function () {\n            return this.get(\"controllers.application.model.displayName\");\n        }.property(\"controllers.application.model.displayName\"),\n\n        selectedTagCount: function () {\n            var tag = this.get(\"sortedTags\").findBy(\"name\", this.get(\"tag\"));\n            if (tag) {\n                return tag.get(\"count\");\n            } else {\n                return 0;\n            }\n        }.property(\"sortedTags.[]\", \"tag\"),\n\n        mostUsedTags: function () {\n            var tags = this.get(\"sortedTags\");\n            var mostUsed = tags.slice(0, this.get(\"tagsToDisplay\"));\n            var selectedTag = this.get(\"tag\");\n            var foundSelectedTag = false;\n            var wrapped = mostUsed.map(function (element) {\n                var name = element.get(\"name\");\n                if (name === selectedTag) {\n                    foundSelectedTag = true;\n                }\n                return {\n                    \"name\": name,\n                    \"count\": element.get(\"count\"),\n                    \"selectTag\": name === selectedTag ? \"\" : name\n                };\n            });\n            if (!foundSelectedTag && selectedTag !== \"\") {\n                wrapped.pop();\n                wrapped.push({\n                    \"name\": selectedTag,\n                    \"count\": this.get(\"selectedTagCount\"),\n                    \"selectTag\": \"\"\n                });\n            }\n            return wrapped;\n        }.property(\"selectedTagCount\", \"sortedTags.[]\", \"tag\", \"tagsToDisplay\"),\n\n        hasMoreTags: function () {\n            return this.get(\"sortedTags\").length > this.get(\"tagsToDisplay\");\n        }.property(\"sortedTags.[]\", \"tagsToDisplay\"),\n\n        syncButtonDisabled: function () {\n            return this.get(\"controllers.secrets.isSyncing\") || !this.get(\"controllers.secrets.isOnline\");\n        }.property(\"controllers.secrets.isSyncing\", \"controllers.secrets.isOnline\"),\n\n        loginButtonDisabled: function () {\n            return !this.get(\"isOnline\");\n        }.property(\"controllers.secrets.isOnline\"),\n\n        actions: {\n            login: function () {\n                this.transitionToRoute(\"secrets\");\n                Ember.run.next(this, function () {\n                    this.get(\"controllers.secrets\").authorizeInServer();\n                });\n            },\n\n            sync: function () {\n                this.transitionToRoute(\"secrets\");\n                Ember.run.next(this, function () {\n                    this.get(\"controllers.secrets\").syncFromServer();\n                });\n            },\n\n            logout: function () {\n                this.transitionToRoute(\"secrets\");\n                Ember.run.next(this, function () {\n                    this.get(\"controllers.secrets\").logout();\n                });\n            }\n        }\n\n    });\n  });//# sourceURL=yith-library-mobile-client/controllers/secrets/drawer.js");
-
-;eval("define(\"yith-library-mobile-client/controllers/secrets/tags\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.ArrayController.extend({\n        tagsSortProperties: [\"name:asc\"],\n        sortedTags: Ember.computed.sort(\"content\", \"tagsSortProperties\"),\n        actions: {\n            selectTag: function (tagName) {\n                this.transitionToRoute(\"secrets\", {queryParams: {tag: tagName}});\n            },\n\n            cancel: function () {\n                this.transitionToRoute(\"secrets\");\n            }\n        }\n    });\n  });//# sourceURL=yith-library-mobile-client/controllers/secrets/tags.js");
-
-;eval("define(\"yith-library-mobile-client/helpers/current-tag\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Handlebars.makeBoundHelper(function (tagName, selectedTag) {\n        return (tagName === selectedTag ? \"*\" : \"\");\n    });\n  });//# sourceURL=yith-library-mobile-client/helpers/current-tag.js");
-
-;eval("define(\"yith-library-mobile-client/helpers/current-version\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Handlebars.makeBoundHelper(function () {\n        var versionStatus = [\n            \"<section role=\\\"status\\\" class=\\\"onviewport\\\">\",\n    //        \'<p><small>v\' + YithLibraryMobileClient.get(\'version\') + \'</small></p>\',\n            \"</section>\"\n        ];\n        return new Ember.Handlebars.SafeString(versionStatus.join(\"\"));\n    });\n  });//# sourceURL=yith-library-mobile-client/helpers/current-version.js");
-
-;eval("define(\"yith-library-mobile-client/initializers/authmanager\", \n  [\"yith-library-mobile-client/utils/authmanager\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var AuthManager = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = {\n        name: \"authManager\",\n\n        initialize: function (container, application) {\n            application.register(\"authmanager:main\", AuthManager);\n\n            application.inject(\"controller\", \"authManager\", \"authmanager:main\");\n        }\n    };\n  });//# sourceURL=yith-library-mobile-client/initializers/authmanager.js");
-
-;eval("define(\"yith-library-mobile-client/utils/authmanager\", \n  [\"ember\",\"yith-library-mobile-client/utils/snake-case-to-camel-case\",\"yith-library-mobile-client/config/environment\",\"exports\"],\n  function(__dependency1__, __dependency2__, __dependency3__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    var snakeCaseToCamelCase = __dependency2__[\"default\"];\n    var ENV = __dependency3__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Object.extend({\n\n        clientId: ENV.defaults.clientId,\n        clientBaseUrl: ENV.defaults.clientBaseUrl,\n        scope: \"read-passwords read-userinfo\",\n        accessToken: null,\n        accessTokenExpiration: null,\n\n        init: function () {\n            this._super();\n            this.loadToken();\n        },\n\n        redirectUri: function () {\n            return this.get(\"clientBaseUrl\") + \"/assets/auth-callback.html\";\n        }.property(\"clientBaseUrl\"),\n\n        authUri: function () {\n            return [\n                this.get(\"authBaseUri\"),\n                \"?response_type=token\",\n                \"&redirect_uri=\" + encodeURIComponent(this.get(\"redirectUri\")),\n                \"&client_id=\" + encodeURIComponent(this.get(\"clientId\")),\n                \"&scope=\" + encodeURIComponent(this.get(\"scope\")),\n            ].join(\"\");\n        }.property(\"authBaseUri\", \"providerId\", \"clientId\", \"scope\"),\n\n        hasValidAccessToken: function () {\n            var accessToken = this.get(\"accessToken\"),\n                expiration = this.get(\"accessTokenExpiration\");\n            return accessToken !== null && this.now() < expiration;\n        }.property(\"accessToken\", \"accessTokenExpiration\"),\n\n        authorize: function (serverBaseUrl) {\n            var self = this,\n                state = this.uuid(),\n                encodedState = encodeURIComponent(state),\n                authUri = this.get(\"authUri\") + \"&state=\" + encodedState,\n                uri = serverBaseUrl + \"/oauth2/endpoints/authorization\" + authUri,\n                dialog = window.open(uri, \"Authorize\", \"height=600, width=450\"),\n                clientBaseUrl = this.get(\"clientBaseUrl\");\n\n            if (window.focus) {\n                dialog.focus();\n            }\n\n            return new Ember.RSVP.Promise(function (resolve, reject) {\n                $(window).on(\"message\", function (event) {\n                    var params;\n                    if (event.originalEvent.origin === clientBaseUrl) {\n                        dialog.close();\n                        params = self.parseHash(event.originalEvent.data);\n                        if (self.checkResponse(params, state)) {\n                            self.saveToken(params);\n                            resolve();\n                        } else {\n                            reject();\n                        }\n                    }\n                });\n            });\n        },\n\n        parseHash: function (hash) {\n            var params = {},\n                queryString = hash.substring(1),  // remove #\n                regex =  /([^#?&=]+)=([^&]*)/g,\n                match = null,\n                key = null;\n\n            while ((match = regex.exec(queryString)) !== null) {\n                key = snakeCaseToCamelCase(decodeURIComponent(match[1]));\n                params[key] = decodeURIComponent(match[2]);\n            }\n            return params;\n        },\n\n        checkResponse: function (params, state) {\n            return params.accessToken && params.state === state;\n        },\n\n        saveToken: function (token) {\n            var expiration = this.now() + parseInt(token.expiresIn, 10);\n            this.set(\"accessToken\", token.accessToken);\n            this.set(\"accessTokenExpiration\", expiration);\n            window.localStorage.setItem(\"accessToken\", token.accessToken);\n            window.localStorage.setItem(\"accessTokenExpiration\", expiration);\n        },\n\n        loadToken: function () {\n            var accessToken = window.localStorage.getItem(\"accessToken\"),\n                expiration = window.localStorage.getItem(\"accessTokenExpiration\");\n            this.set(\"accessToken\", accessToken);\n            this.set(\"accessTokenExpiration\", expiration);\n        },\n\n        deleteToken: function () {\n            window.localStorage.removeItem(\"accessToken\");\n            window.localStorage.removeItem(\"accessTokenExpiration\");\n        },\n\n        now: function () {\n            return Math.round(new Date().getTime() / 1000);\n        },\n\n        uuid: function () {\n            var template = \"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\";\n            return template.replace(/[xy]/g, function (c) {\n                var r = Math.random() * 16 | 0,\n                    v = (c === \"x\" ? r : (r & 3 | 8));\n                return v.toString(16);\n            });\n        }\n    });\n  });//# sourceURL=yith-library-mobile-client/utils/authmanager.js");
-
-;eval("define(\"yith-library-mobile-client/utils/snake-case-to-camel-case\", \n  [\"exports\"],\n  function(__exports__) {\n    \"use strict\";\n    __exports__[\"default\"] = function snakeCaseToCamelCase (symbol) {\n        return symbol.split(\"_\").filter(function (word) {\n            return word !== \"\";\n        }).map(function (word, idx) {\n            if (idx === 0) {\n                return word;\n            } else {\n                return word.charAt(0).toUpperCase() + word.slice(1);\n            }\n        }).join(\"\");\n    }\n  });//# sourceURL=yith-library-mobile-client/utils/snake-case-to-camel-case.js");
-
-;eval("define(\"yith-library-mobile-client/initializers/export-application-global\", \n  [\"ember\",\"yith-library-mobile-client/config/environment\",\"exports\"],\n  function(__dependency1__, __dependency2__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    var config = __dependency2__[\"default\"];\n\n    function initialize(container, application) {\n      if (config.exportApplicationGlobal !== false) {\n        var value = config.exportApplicationGlobal;\n        var globalName;\n\n        if (typeof value === \"string\") {\n          globalName = value;\n        } else {\n          globalName = Ember.String.classify(config.modulePrefix);\n        }\n\n        if (!window[globalName]) {\n          window[globalName] = application;\n\n          application.reopen({\n            willDestroy: function(){\n              this._super.apply(this, arguments);\n              delete window[globalName];\n            }\n          });\n        }\n      }\n    };\n    __exports__.initialize = initialize;\n    __exports__[\"default\"] = {\n      name: \"export-application-global\",\n\n      initialize: initialize\n    };\n  });//# sourceURL=yith-library-mobile-client/initializers/export-application-global.js");
-
-;eval("define(\"yith-library-mobile-client/initializers/settings\", \n  [\"yith-library-mobile-client/utils/settings\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Settings = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = {\n        name: \"settings\",\n\n        initialize: function (container, application) {\n            application.register(\"settings:main\", Settings);\n\n            application.inject(\"route\", \"settings\", \"settings:main\");\n            application.inject(\"controller\", \"settings\", \"settings:main\");\n        }\n    };\n  });//# sourceURL=yith-library-mobile-client/initializers/settings.js");
-
-;eval("define(\"yith-library-mobile-client/utils/settings\", \n  [\"ember\",\"yith-library-mobile-client/config/environment\",\"exports\"],\n  function(__dependency1__, __dependency2__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    var ENV = __dependency2__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Object.extend({\n\n        defaults: {\n            \"serverBaseUrl\": ENV.defaults.serverBaseUrl\n        },\n\n        getSetting: function (name) {\n            var setting = window.localStorage.getItem(name);\n            if (setting === null) {\n                return this.defaults[name] || null;\n            } else {\n                return JSON.parse(setting);\n            }\n        },\n\n        setSetting: function (name, value) {\n            var serialized = JSON.stringify(value);\n            return window.localStorage.setItem(name, serialized);\n        },\n\n        deleteSetting: function (name) {\n            window.localStorage.removeItem(name);\n        }\n\n    });\n  });//# sourceURL=yith-library-mobile-client/utils/settings.js");
-
-;eval("define(\"yith-library-mobile-client/initializers/syncmanager\", \n  [\"yith-library-mobile-client/utils/syncmanager\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var SyncManager = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = {\n        name: \"syncManager\",\n\n        initialize: function (container, application) {\n            application.register(\"syncmanager:main\", SyncManager);\n\n            application.inject(\"controller\", \"syncManager\", \"syncmanager:main\");\n            application.inject(\"syncmanager\", \"store\", \"store:main\");\n        }\n    };\n  });//# sourceURL=yith-library-mobile-client/initializers/syncmanager.js");
-
-;eval("define(\"yith-library-mobile-client/utils/syncmanager\", \n  [\"ember\",\"yith-library-mobile-client/utils/snake-case-to-camel-case\",\"exports\"],\n  function(__dependency1__, __dependency2__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    var snakeCaseToCamelCase = __dependency2__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Object.extend({\n\n        fetchUserInfo: function (accessToken, serverBaseUrl, clientId) {\n            var self = this;\n\n            return new Ember.RSVP.Promise(function (resolve /*, reject */) {\n                $.ajax({\n                    url: serverBaseUrl + \"/user?client_id=\" + clientId,\n                    type: \"GET\",\n                    crossDomain: true,\n                    headers: {\n                        \"Authorization\": \"Bearer \" + accessToken\n                    }\n                }).done(function (data /*, textStatus, jqXHR*/) {\n                    resolve(data);\n                });\n            }).then(function (data) {\n                return self.updateAccountStore(data);\n            });\n        },\n\n        /* Convert all the keys of the record to be in camelCase\n           instead of snake_case */\n        convertRecord: function (record) {\n            var newRecord = {}, key = null, newKey = null;\n            for (key in record) {\n                if (record.hasOwnProperty(key)) {\n                    newKey = snakeCaseToCamelCase(key);\n                    newRecord[newKey] = record[key];\n                }\n            }\n            return newRecord;\n        },\n\n        updateAccountStore: function (rawData) {\n            var self = this;\n\n            return new Ember.RSVP.Promise(function (resolve /*, reject */) {\n                var data = self.convertRecord(rawData);\n                self.store.findById(\"account\", data.id).then(\n                    function (existingRecord) {\n                        // update account\n                        existingRecord.set(\"email\", data.email);\n                        existingRecord.set(\"firstName\", data.firstName);\n                        existingRecord.set(\"lastName\", data.lastName);\n                        existingRecord.set(\"screenName\", data.screenName);\n                        resolve(existingRecord);\n                    }, function () {\n                        // create account\n                        // because we try to find it, it is already in the store\n                        // but the record is empty.\n                        var newRecord = self.store.recordForId(\"account\", data.id);\n                        newRecord.loadedData();\n                        newRecord.setProperties({\n                            email: data.email,\n                            firstName: data.firstName,\n                            lastName: data.lastName,\n                            screenName: data.screenName\n                        });\n                        resolve(newRecord);\n                    }\n                );\n\n            }).then(function (record) {\n                return record.save();\n            });\n        },\n\n        fetchSecrets: function (accessToken, serverBaseUrl, clientId) {\n            var self = this;\n\n            return new Ember.RSVP.Promise(function (resolve /*, reject */) {\n                $.ajax({\n                    url: serverBaseUrl + \"/passwords?client_id=\" + clientId,\n                    type: \"GET\",\n                    crossDomain: true,\n                    headers: {\n                        \"Authorization\": \"Bearer \" + accessToken\n                    }\n                }).done(function (data /*, textStatus, jqXHR*/) {\n                    resolve(data);\n                });\n            }).then(function (data) {\n                return self.updateSecretsStore(data);\n            });\n        },\n\n        updateSecretsStore: function (data) {\n            var self = this,\n                promises = {\n                    secrets: this.store.find(\"secret\"),\n                    tags: this.store.find(\"tag\")\n                };\n            return Ember.RSVP.hash(promises).then(function (results) {\n                var secretsPromise = Ember.RSVP.all(self.updateSecrets(\n                    results.secrets,\n                    data.passwords\n                )), tagsPromise = Ember.RSVP.all(self.updateTags(\n                    results.tags,\n                    data.passwords\n                ));\n                return Ember.RSVP.hash({\n                    secrets: secretsPromise,\n                    tags: tagsPromise\n                });\n            });\n        },\n\n        updateSecrets: function (existingRecords, passwords) {\n            var self = this, result = [];\n            passwords.forEach(function (password) {\n                var existingRecord = existingRecords.findBy(\"id\", password.id);\n                if (existingRecord !== undefined) {\n                    result.push(self.updateSecret(existingRecord, password));\n                } else {\n                    result.push(self.createSecret(password));\n                }\n            });\n            return result;\n        },\n\n        createSecret: function (data) {\n            return this.store.createRecord(\"secret\", {\n                id: data.id,\n                service: data.service,\n                account: data.account,\n                secret: data.secret,\n                notes: data.notes,\n                tags: data.tags.join(\" \")\n            }).save();\n        },\n\n        updateSecret: function (record, data) {\n            record.set(\"service\", data.service);\n            record.set(\"account\", data.account);\n            record.set(\"secret\", data.secret);\n            record.set(\"notes\", data.notes);\n            record.set(\"tags\", data.tags.join(\" \"));\n            return record.save();\n        },\n\n        updateTags: function (existingRecords, passwords) {\n            var self = this, newTags = new Ember.Map(), result = [];\n            passwords.forEach(function (password) {\n                password.tags.forEach(function (tag) {\n                    if (newTags.has(tag)) {\n                        newTags.set(tag, newTags.get(tag) + 1);\n                    } else {\n                        newTags.set(tag, 1);\n                    }\n                });\n            });\n\n            newTags.forEach(function (name, count) {\n                var existingRecord = existingRecords.findBy(\"name\", name);\n                if (existingRecord !== undefined) {\n                    result.push(self.updateTag(existingRecord, name, count));\n                } else {\n                    result.push(self.createTag(name, count));\n                }\n            });\n            return result;\n        },\n\n        createTag: function (name, count) {\n            return this.store.createRecord(\"tag\", {\n                name: name,\n                count: count\n            }).save();\n        },\n\n        updateTag: function (record, name, count) {\n            record.set(\"name\", name);\n            record.set(\"count\", count);\n            return record.save();\n        },\n\n        deleteAccount: function () {\n            var promises = [];\n            this.store.all(\"secret\").forEach(function (secret) {\n                promises.push(secret.destroyRecord());\n            }, this);\n            this.store.all(\"tag\").forEach(function (tag) {\n                promises.push(tag.destroyRecord());\n            }, this);\n            this.store.all(\"account\").forEach(function (account) {\n                promises.push(account.destroyRecord());\n            }, this);\n\n            return Ember.RSVP.all(promises);\n        }\n\n    });\n  });//# sourceURL=yith-library-mobile-client/utils/syncmanager.js");
-
-;eval("define(\"yith-library-mobile-client/main\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    /* global requirejs, require */\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = function bootApp(prefix, attributes) {\n      var App                = require(prefix + \"/app\")[\"default\"];\n      var initializersRegExp = new RegExp(prefix + \"/initializers\");\n\n      Ember.keys(requirejs._eak_seen).filter(function(key) {\n        return initializersRegExp.test(key);\n      }).forEach(function(moduleName) {\n        var module = require(moduleName, null, null, true);\n        if (!module) { throw new Error(moduleName + \" must export an initializer.\"); }\n        App.initializer(module[\"default\"]);\n      });\n\n      return App.create(attributes || {});\n    }\n  });//# sourceURL=yith-library-mobile-client/main.js");
-
-;eval("define(\"yith-library-mobile-client/models/account\", \n  [\"ember-data\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var DS = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = DS.Model.extend({\n        email: DS.attr(\"string\"),\n        firstName: DS.attr(\"string\"),\n        lastName: DS.attr(\"string\"),\n        screenName: DS.attr(\"string\"),\n\n        fullName: function () {\n            var firstName = this.get(\"firstName\"),\n                lastName = this.get(\"lastName\"),\n                parts = [];\n\n            if (firstName) {\n                parts.push(firstName);\n            }\n            if (lastName) {\n                parts.push(lastName);\n            }\n            return parts.join(\" \");\n        }.property(\"firstName\", \"lastName\"),\n\n        displayName: function () {\n            var screenName = this.get(\"screenName\"),\n                fullName = \"\";\n\n            if (screenName) {\n                return screenName;\n            } else {\n                fullName = this.get(\"fullName\");\n                if (fullName) {\n                    return fullName;\n                } else {\n                    return this.get(\"email\");\n                }\n            }\n        }.property(\"screenName\", \"fullName\", \"email\")\n\n    });\n  });//# sourceURL=yith-library-mobile-client/models/account.js");
-
-;eval("define(\"yith-library-mobile-client/models/secret\", \n  [\"ember-data\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var DS = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = DS.Model.extend({\n        service: DS.attr(\"string\"),\n        account: DS.attr(\"string\"),\n        secret: DS.attr(\"string\"),\n        notes: DS.attr(\"string\"),\n        tags: DS.attr(\"string\"),\n\n        matches: function (tag, query) {\n            var tagMatch = (tag === \"\"),\n                queryMatch = (query === \"\"),\n                tags = \"\";\n            if (!tagMatch) {\n                tags = this.get(\"tags\");\n                if (tags) {\n                    tagMatch = tags.indexOf(tag) !== -1;\n                }\n            }\n            if (!queryMatch) {\n                query = query.toLowerCase();\n                queryMatch = (\n                    (this.get(\"service\").toLowerCase().indexOf(query) !== -1) ||\n                    (this.get(\"account\").toLowerCase().indexOf(query) !== -1)\n                );\n            }\n            return tagMatch && queryMatch;\n        }\n    });\n  });//# sourceURL=yith-library-mobile-client/models/secret.js");
-
-;eval("define(\"yith-library-mobile-client/models/tag\", \n  [\"ember-data\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var DS = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = DS.Model.extend({\n        name: DS.attr(\"string\"),\n        count: DS.attr(\"number\")\n    });\n  });//# sourceURL=yith-library-mobile-client/models/tag.js");
-
-;eval("define(\"yith-library-mobile-client/router\", \n  [\"ember\",\"yith-library-mobile-client/config/environment\",\"exports\"],\n  function(__dependency1__, __dependency2__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    var config = __dependency2__[\"default\"];\n\n    var Router = Ember.Router.extend({\n      location: config.locationType\n    });\n\n    Router.map(function() {\n        this.route(\"firstTime\", {path: \"/first-time\"});\n        this.resource(\"secrets\", {path: \"/secrets\"}, function () {\n            this.resource(\"secret\", {path: \"/:secret_id\"});\n            this.route(\"tags\", {path: \"/tags\"});\n            this.route(\"drawer\", {path: \"/drawer\"});\n        });\n    });\n\n    __exports__[\"default\"] = Router;\n  });//# sourceURL=yith-library-mobile-client/router.js");
-
-;eval("define(\"yith-library-mobile-client/routes/application\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Route.extend({\n        model: function () {\n            var lastAccount = this.settings.getSetting(\"lastAccount\");\n            if (lastAccount) {\n                return this.store.find(\"account\", lastAccount);\n            } else {\n                return null;\n            }\n        },\n\n        afterModel: function (model) {\n            if (model === null) {\n                this.transitionTo(\"firstTime\");\n            }\n        }\n    });\n  });//# sourceURL=yith-library-mobile-client/routes/application.js");
-
-;eval("define(\"yith-library-mobile-client/routes/first-time\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Route.extend({});\n  });//# sourceURL=yith-library-mobile-client/routes/first-time.js");
-
-;eval("define(\"yith-library-mobile-client/routes/index\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Route.extend({\n\n        setupController: function () {\n            this.transitionTo(\"secrets\");\n        }\n\n    });\n  });//# sourceURL=yith-library-mobile-client/routes/index.js");
-
-;eval("define(\"yith-library-mobile-client/routes/secret\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Route.extend({\n\n        transitionToSecrets: null,\n\n        setupController: function (controller, model) {\n            this._super(controller, model);\n            var secretsController = this.controllerFor(\"secrets\");\n            if (secretsController.get(\"position\") !== \"left\") {\n                secretsController.set(\"position\", \"left\");\n            }\n            controller.set(\"position\", \"current\");\n        },\n\n        actions: {\n            willTransition: function (transition) {\n                var secretsController = this.controllerFor(\"secrets\");\n                if (transition.targetName === \"secrets.index\") {\n                    if (secretsController.get(\"position\") === \"left\") {\n                        secretsController.set(\"position\", \"current\");\n                        this.controller.set(\"position\", \"right\");\n                        this.set(\"transitionToSecrets\", transition);\n                        transition.abort();\n                        return false;\n                    }\n                } else if (transition.targetName === \"secret\") {\n                    secretsController.set(\"position\", \"left\");\n                    this.controller.set(\"position\", \"current\");\n                }\n\n                return true;\n            },\n\n            finishTransition: function () {\n                var transition = this.get(\"transitionToSecrets\");\n                if (transition) {\n                    this.set(\"transitionToSecrets\", null);\n                    transition.retry();\n                }\n            }\n        }\n\n    });\n  });//# sourceURL=yith-library-mobile-client/routes/secret.js");
-
-;eval("define(\"yith-library-mobile-client/routes/secrets-drawer\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Route.extend({\n\n        model: function () {\n            return this.store.find(\"tag\");\n        },\n\n        renderTemplate: function () {\n            this.render({outlet: \"drawer\"});\n        }\n\n    });\n  });//# sourceURL=yith-library-mobile-client/routes/secrets-drawer.js");
-
-;eval("define(\"yith-library-mobile-client/routes/secrets\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Route.extend({\n\n        setupController: function (controller, model) {\n            this._super(controller, model);\n            controller.set(\"state\", \"\");\n        },\n\n        model: function () {\n            return this.store.find(\"secret\");\n        },\n\n        actions: {\n            willTransition: function (transition) {\n                if (transition.targetName === \"secret\") {\n                    this.controller.set(\"position\", \"left\");\n                } else if (transition.targetName === \"secrets.index\") {\n                    this.controller.set(\"position\", \"current\");\n                    this.controller.set(\"state\", \"\");\n                }\n                return true;\n            }\n\n        }\n\n    });\n  });//# sourceURL=yith-library-mobile-client/routes/secrets.js");
-
-;eval("define(\"yith-library-mobile-client/routes/secrets/drawer\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Route.extend({\n\n        transitionToSecrets: null,\n\n        setupController: function (controller, model) {\n            this._super(controller, model);\n            this.controllerFor(\"secrets\").set(\"state\", \"drawer-opened\");\n        },\n\n        model: function () {\n            return this.store.find(\"tag\");\n        },\n\n        renderTemplate: function () {\n            this.render({outlet: \"drawer\"});\n        },\n\n        actions: {\n            willTransition: function (transition) {\n                var secretsController = this.controllerFor(\"secrets\");\n                if (transition.targetName === \"secrets.index\") {\n                    // when the transition is retried (see finishTransition)\n                    // this if condition will be false\n                    if (secretsController.get(\"state\") === \"drawer-opened\") {\n                        secretsController.set(\"state\", \"\");\n                        this.set(\"transitionToSecrets\", transition);\n\n                        // abort the transition until the CSS transition finishes\n                        transition.abort();\n                        return false;\n                    }\n                }\n                return true;\n            },\n\n            finishTransition: function () {\n                var transition = this.get(\"transitionToSecrets\");\n                if (transition) {\n                    this.set(\"transitionToSecrets\", null);\n                    transition.retry();\n                }\n            }\n        }\n\n    });\n  });//# sourceURL=yith-library-mobile-client/routes/secrets/drawer.js");
-
-;eval("define(\"yith-library-mobile-client/routes/secrets/tags\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.Route.extend({\n\n        model: function () {\n            return this.store.find(\"tag\");\n        }\n\n    });\n  });//# sourceURL=yith-library-mobile-client/routes/secrets/tags.js");
-
-;eval("define(\"yith-library-mobile-client/serializers/application\", \n  [\"ember-data\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var DS = __dependency1__[\"default\"];\n    __exports__[\"default\"] = DS.IndexedDBSerializer.extend();\n  });//# sourceURL=yith-library-mobile-client/serializers/application.js");
-
-;eval("define(\"yith-library-mobile-client/templates/application\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    __exports__[\"default\"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data\n    /**/) {\n    this.compilerInfo = [4,\'>= 1.0.0\'];\n    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};\n      var buffer = \'\', stack1;\n\n\n      stack1 = helpers._triageMustache.call(depth0, \"outlet\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n\");\n      return buffer;\n      \n    });\n  });//# sourceURL=yith-library-mobile-client/templates/application.js");
-
-;eval("define(\"yith-library-mobile-client/templates/first-time\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    __exports__[\"default\"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data\n    /**/) {\n    this.compilerInfo = [4,\'>= 1.0.0\'];\n    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};\n      var buffer = \'\', stack1, escapeExpression=this.escapeExpression, self=this;\n\n    function program1(depth0,data) {\n      \n      var buffer = \'\';\n      data.buffer.push(\"\\n            <header>First time steps</header>\\n            <ul>\\n              <li>\\n                <p>Connect to the server</p>\\n                <p>to sign in or sign up</p>\\n              </li>\\n              <li>\\n                <p>Retrieve your account information</p>\\n                <p>so we know a little bit about you</p>\\n              </li>\\n              <li>\\n                <p>Retrieve your secrets</p>\\n                <p>and access them even when offline</p>\\n              </li>\\n            </ul>\\n            <form>\\n              <p>\\n                <button type=\\\"button\\\" class=\\\"recommend\\\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"connect\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">Connect to YithLibrary.com</button>\\n              </p>\\n            </form>\\n          \");\n      return buffer;\n      }\n\n    function program3(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n            <header>\\n              \");\n      stack1 = helpers[\'if\'].call(depth0, \"isFinished\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n            </header>\\n            <ul>\\n              <li>\\n                \");\n      stack1 = helpers[\'if\'].call(depth0, \"isConnectingToServer\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(10, program10, data),fn:self.program(8, program8, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n              </li>\\n              <li \");\n      data.buffer.push(escapeExpression(helpers[\'bind-attr\'].call(depth0, {hash:{\n        \'aria-disabled\': (\"accountDisabled\")\n      },hashTypes:{\'aria-disabled\': \"STRING\"},hashContexts:{\'aria-disabled\': depth0},contexts:[],types:[],data:data})));\n      data.buffer.push(\">\\n                \");\n      stack1 = helpers[\'if\'].call(depth0, \"isGettingAccountInformation\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(17, program17, data),fn:self.program(15, program15, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n              </li>\\n              <li \");\n      data.buffer.push(escapeExpression(helpers[\'bind-attr\'].call(depth0, {hash:{\n        \'aria-disabled\': (\"secretsDisabled\")\n      },hashTypes:{\'aria-disabled\': \"STRING\"},hashContexts:{\'aria-disabled\': depth0},contexts:[],types:[],data:data})));\n      data.buffer.push(\">\\n                \");\n      stack1 = helpers[\'if\'].call(depth0, \"isGettingSecrets\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(24, program24, data),fn:self.program(22, program22, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n              </li>\\n            </ul>\\n          </section>\\n          \");\n      stack1 = helpers[\'if\'].call(depth0, \"isFinished\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(29, program29, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n        \");\n      return buffer;\n      }\n    function program4(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n                Your secrets are ready!\\n              \");\n      }\n\n    function program6(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n                Running step \");\n      stack1 = helpers._triageMustache.call(depth0, \"step\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\" of 3\\n              \");\n      return buffer;\n      }\n\n    function program8(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n                  <aside class=\\\"pack-end\\\">\\n                    <progress></progress>\\n                  </aside>\\n                  <p>Connecting to the server...</p>\\n                \");\n      }\n\n    function program10(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n                  \");\n      stack1 = helpers[\'if\'].call(depth0, \"isServerConnected\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(13, program13, data),fn:self.program(11, program11, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n                \");\n      return buffer;\n      }\n    function program11(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n                    <p>Server connected!</p>\\n                  \");\n      }\n\n    function program13(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n                    <p>Waiting to connect to server.</p>\\n                  \");\n      }\n\n    function program15(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n                  <aside class=\\\"pack-end\\\">\\n                    <progress></progress>\\n                  </aside>\\n                  <p>Getting account information...</p>\\n                \");\n      }\n\n    function program17(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n                  \");\n      stack1 = helpers[\'if\'].call(depth0, \"isAccountInformationRetrieved\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(20, program20, data),fn:self.program(18, program18, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n                \");\n      return buffer;\n      }\n    function program18(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n                    <p>Account information retrieved!</p>\\n                  \");\n      }\n\n    function program20(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n                    <p>Waiting to retrieve account information.</p>\\n                  \");\n      }\n\n    function program22(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n                  <aside class=\\\"pack-end\\\">\\n                    <progress></progress>\\n                  </aside>\\n                  <p>Getting secrets...</p>\\n                \");\n      }\n\n    function program24(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n                  \");\n      stack1 = helpers[\'if\'].call(depth0, \"areSecretsRetrieved\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(27, program27, data),fn:self.program(25, program25, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n                \");\n      return buffer;\n      }\n    function program25(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n                    <p>Secrets retrieved!</p>\\n                  \");\n      }\n\n    function program27(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n                    <p>Waiting to retrieve secrets.</p>\\n                  \");\n      }\n\n    function program29(depth0,data) {\n      \n      var buffer = \'\';\n      data.buffer.push(\"\\n            <form>\\n              <p>\\n                <button type=\\\"button\\\" class=\\\"recommend\\\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"secrets\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">\\n                  Go to my secrets\\n                </button>\\n              </p>\\n            </form>\\n          \");\n      return buffer;\n      }\n\n      data.buffer.push(\"    <section id=\\\"login\\\" role=\\\"region\\\">\\n      <header class=\\\"fixed\\\">\\n        <h1>Yith Library</h1>\\n      </header>\\n\\n      <article class=\\\"content scrollable header\\\">\\n        <section data-type=\\\"list\\\">\\n          \");\n      stack1 = helpers[\'if\'].call(depth0, \"showInstructions\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n      </article>\\n\\n      \");\n      stack1 = helpers._triageMustache.call(depth0, \"current-version\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n\\n    </section>\\n\");\n      return buffer;\n      \n    });\n  });//# sourceURL=yith-library-mobile-client/templates/first-time.js");
-
-;eval("define(\"yith-library-mobile-client/templates/loading\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    __exports__[\"default\"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data\n    /**/) {\n    this.compilerInfo = [4,\'>= 1.0.0\'];\n    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};\n      \n\n\n      data.buffer.push(\"<section id=\\\"loading\\\" role=\\\"region\\\">\\n  <header class=\\\"fixed\\\">\\n    <h1>Loading data</h1>\\n  </header>\\n  <article class=\\\"content scrollable header\\\">\\n    <header>\\n      <h2>Please wait</h2>\\n    </header>\\n    <progress class=\\\"pack-activity\\\" max=\\\"100\\\" value=\\\"0\\\"></progress>\\n  </article>\\n</section>\\n\");\n      \n    });\n  });//# sourceURL=yith-library-mobile-client/templates/loading.js");
-
-;eval("define(\"yith-library-mobile-client/templates/secret-revealer\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    __exports__[\"default\"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data\n    /**/) {\n    this.compilerInfo = [4,\'>= 1.0.0\'];\n    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};\n      var buffer = \'\', stack1, escapeExpression=this.escapeExpression, self=this;\n\n    function program1(depth0,data) {\n      \n      var buffer = \'\';\n      data.buffer.push(\"\\n  <p>\\n    <input type=\\\"text\\\" readonly \");\n      data.buffer.push(escapeExpression(helpers[\'bind-attr\'].call(depth0, {hash:{\n        \'value\': (\"view.decryptedSecret\")\n      },hashTypes:{\'value\': \"ID\"},hashContexts:{\'value\': depth0},contexts:[],types:[],data:data})));\n      data.buffer.push(\" />\\n  </p>\\n  <p>\\n    <svg xmlns=\\\"http://www.w3.org/2000/svg\\\" width=\\\"40\\\" height=\\\"40\\\">\\n      <circle cx=\\\"50%\\\" cy=\\\"50%\\\" r=\\\"50%\\\" fill=\\\"buttonface\\\" />\\n      <path fill=\\\"white\\\" />\\n    </svg>\\n  </p>\\n\");\n      return buffer;\n      }\n\n    function program3(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n  <p>\\n    <input type=\\\"password\\\" placeholder=\\\"Enter your master password here\\\" autofocus />\\n    <button type=\\\"reset\\\">Clear</button>\\n  </p>\\n\");\n      }\n\n      stack1 = helpers[\'if\'].call(depth0, \"view.decryptedSecret\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n<p>\\n  <button \");\n      data.buffer.push(escapeExpression(helpers[\'bind-attr\'].call(depth0, {hash:{\n        \'class\': (\"view.buttonClass\")\n      },hashTypes:{\'class\': \"ID\"},hashContexts:{\'class\': depth0},contexts:[],types:[],data:data})));\n      data.buffer.push(\">\");\n      stack1 = helpers._triageMustache.call(depth0, \"view.buttonText\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"</button>\\n</p>\\n\");\n      return buffer;\n      \n    });\n  });//# sourceURL=yith-library-mobile-client/templates/secret-revealer.js");
-
-;eval("define(\"yith-library-mobile-client/templates/secret\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    __exports__[\"default\"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data\n    /**/) {\n    this.compilerInfo = [4,\'>= 1.0.0\'];\n    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};\n      var buffer = \'\', stack1, helper, options, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;\n\n    function program1(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n        <span class=\\\"icon icon-back\\\">back</span>\\n      \");\n      }\n\n    function program3(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n        <header>\\n          <h2>Notes</h2>\\n        </header>\\n        <p>\");\n      stack1 = helpers._triageMustache.call(depth0, \"notes\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"</p>\\n      \");\n      return buffer;\n      }\n\n    function program5(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n        <header>\\n          <h2>Tags</h2>\\n        </header>\\n        <p>\");\n      stack1 = helpers._triageMustache.call(depth0, \"tags\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"</p>\\n      \");\n      return buffer;\n      }\n\n      data.buffer.push(\"<section data-position=\\\"right\\\" role=\\\"region\\\" \");\n      data.buffer.push(escapeExpression(helpers[\'bind-attr\'].call(depth0, {hash:{\n        \'class\': (\"position\")\n      },hashTypes:{\'class\': \"STRING\"},hashContexts:{\'class\': depth0},contexts:[],types:[],data:data})));\n      data.buffer.push(\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"finishTransition\", {hash:{\n        \'on\': (\"animationEnd\")\n      },hashTypes:{\'on\': \"STRING\"},hashContexts:{\'on\': depth0},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\" >\\n    <header class=\\\"fixed\\\">\\n      \");\n      stack1 = (helper = helpers[\'link-to\'] || (depth0 && depth0[\'link-to\']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:[\"STRING\"],data:data},helper ? helper.call(depth0, \"secrets\", options) : helperMissing.call(depth0, \"link-to\", \"secrets\", options));\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n      <h1>\");\n      stack1 = helpers._triageMustache.call(depth0, \"service\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"</h1>\\n    </header>\\n\\n    <article class=\\\"content scrollable header\\\">\\n      \");\n      data.buffer.push(escapeExpression(helpers.view.call(depth0, \"secret-revealer\", {hash:{\n        \'encryptedSecret\': (\"secret\")\n      },hashTypes:{\'encryptedSecret\': \"ID\"},hashContexts:{\'encryptedSecret\': depth0},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\"\\n      <header>\\n        <h2>Account</h2>\\n      </header>\\n      <p>\");\n      stack1 = helpers._triageMustache.call(depth0, \"account\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"</p>\\n\\n      \");\n      stack1 = helpers[\'if\'].call(depth0, \"notes\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n\\n      \");\n      stack1 = helpers[\'if\'].call(depth0, \"tags\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n    </article>\\n</section>\");\n      return buffer;\n      \n    });\n  });//# sourceURL=yith-library-mobile-client/templates/secret.js");
-
-;eval("define(\"yith-library-mobile-client/templates/secrets\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    __exports__[\"default\"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data\n    /**/) {\n    this.compilerInfo = [4,\'>= 1.0.0\'];\n    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};\n      var buffer = \'\', stack1, helper, options, self=this, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;\n\n    function program1(depth0,data) {\n      \n      \n      data.buffer.push(\"\\n        <span class=\\\"icon icon-menu\\\">menu</span>\\n      \");\n      }\n\n    function program3(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n            <span class=\\\"tag\\\">\");\n      stack1 = helpers._triageMustache.call(depth0, \"tag\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"</span>\\n          \");\n      return buffer;\n      }\n\n    function program5(depth0,data) {\n      \n      var buffer = \'\', stack1, helper, options;\n      data.buffer.push(\"\\n            <li>\\n              \");\n      stack1 = (helper = helpers[\'link-to\'] || (depth0 && depth0[\'link-to\']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(6, program6, data),contexts:[depth0,depth0],types:[\"STRING\",\"ID\"],data:data},helper ? helper.call(depth0, \"secret\", \"id\", options) : helperMissing.call(depth0, \"link-to\", \"secret\", \"id\", options));\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n            </li>\\n          \");\n      return buffer;\n      }\n    function program6(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n                <p>\");\n      stack1 = helpers._triageMustache.call(depth0, \"service\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"</p>\\n                <p>\");\n      stack1 = helpers._triageMustache.call(depth0, \"account\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"</p>\\n              \");\n      return buffer;\n      }\n\n      data.buffer.push(\"<section data-position=\\\"current\\\" \");\n      data.buffer.push(escapeExpression(helpers[\'bind-attr\'].call(depth0, {hash:{\n        \'class\': (\"position\")\n      },hashTypes:{\'class\': \"STRING\"},hashContexts:{\'class\': depth0},contexts:[],types:[],data:data})));\n      data.buffer.push(\">\\n\\n  \");\n      data.buffer.push(escapeExpression((helper = helpers.outlet || (depth0 && depth0.outlet),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data},helper ? helper.call(depth0, \"drawer\", options) : helperMissing.call(depth0, \"outlet\", \"drawer\", options))));\n      data.buffer.push(\"\\n\\n  <section id=\\\"secrets\\\" role=\\\"region\\\" \");\n      data.buffer.push(escapeExpression(helpers[\'bind-attr\'].call(depth0, {hash:{\n        \'class\': (\"state\")\n      },hashTypes:{\'class\': \"STRING\"},hashContexts:{\'class\': depth0},contexts:[],types:[],data:data})));\n      data.buffer.push(\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"finishTransition\", {hash:{\n        \'on\': (\"transitionEnd\")\n      },hashTypes:{\'on\': \"STRING\"},hashContexts:{\'on\': depth0},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">\\n\\n    <header class=\\\"fixed\\\">\\n      \");\n      stack1 = (helper = helpers[\'link-to\'] || (depth0 && depth0[\'link-to\']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:[\"STRING\"],data:data},helper ? helper.call(depth0, \"secrets.drawer\", options) : helperMissing.call(depth0, \"link-to\", \"secrets.drawer\", options));\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n      <form action=\\\"#\\\">\\n        \");\n      data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{\n        \'placeholder\': (\"Search...\"),\n        \'value\': (\"query\")\n      },hashTypes:{\'placeholder\': \"STRING\",\'value\': \"ID\"},hashContexts:{\'placeholder\': depth0,\'value\': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, \"input\", options))));\n      data.buffer.push(\"\\n        <button type=\\\"reset\\\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"clearQuery\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">Remove text</button>\\n      </form>\\n    </header>\\n\\n    <article class=\\\"content scrollable header\\\">\\n      <div data-type=\\\"list\\\">\\n        <header>\\n          <small>\");\n      stack1 = helpers._triageMustache.call(depth0, \"secretsCount\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\" \");\n      stack1 = helpers._triageMustache.call(depth0, \"secretsNoun\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"</small>\\n          \");\n      stack1 = helpers[\'if\'].call(depth0, \"tag\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n        </header>\\n        <ul>\\n          \");\n      stack1 = helpers.each.call(depth0, \"secrets\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n        </ul>\\n      </div>\\n    </article>\\n  </section>\\n\\n</section>\\n\\n<section role=\\\"status\\\" \");\n      data.buffer.push(escapeExpression(helpers[\'bind-attr\'].call(depth0, {hash:{\n        \'class\': (\"statusClass\")\n      },hashTypes:{\'class\': \"STRING\"},hashContexts:{\'class\': depth0},contexts:[],types:[],data:data})));\n      data.buffer.push(\">\\n  <p>\");\n      stack1 = helpers._triageMustache.call(depth0, \"statusMessage\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"</p>\\n</section>\\n\\n\");\n      stack1 = helpers._triageMustache.call(depth0, \"outlet\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n\");\n      return buffer;\n      \n    });\n  });//# sourceURL=yith-library-mobile-client/templates/secrets.js");
-
-;eval("define(\"yith-library-mobile-client/templates/secrets/drawer\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    __exports__[\"default\"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data\n    /**/) {\n    this.compilerInfo = [4,\'>= 1.0.0\'];\n    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};\n      var buffer = \'\', stack1, helper, options, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;\n\n    function program1(depth0,data) {\n      \n      \n      data.buffer.push(\"Done\");\n      }\n\n    function program3(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n          \");\n      stack1 = helpers[\'if\'].call(depth0, \"syncButtonDisabled\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n        \");\n      return buffer;\n      }\n    function program4(depth0,data) {\n      \n      var buffer = \'\';\n      data.buffer.push(\"\\n            <a href=\\\"#\\\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"closeDrawer\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">Sync</a>\\n          \");\n      return buffer;\n      }\n\n    function program6(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n            \");\n      stack1 = helpers[\'if\'].call(depth0, \"isSyncing\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(9, program9, data),fn:self.program(7, program7, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n          \");\n      return buffer;\n      }\n    function program7(depth0,data) {\n      \n      var buffer = \'\';\n      data.buffer.push(\"\\n              <a href=\\\"#\\\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"closeDrawer\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">Syncing ...</a>\\n            \");\n      return buffer;\n      }\n\n    function program9(depth0,data) {\n      \n      var buffer = \'\';\n      data.buffer.push(\"\\n              <a href=\\\"#\\\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"sync\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">Sync</a>\\n            \");\n      return buffer;\n      }\n\n    function program11(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n          \");\n      stack1 = helpers[\'if\'].call(depth0, \"loginButtonDisableed\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(14, program14, data),fn:self.program(12, program12, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n        \");\n      return buffer;\n      }\n    function program12(depth0,data) {\n      \n      var buffer = \'\';\n      data.buffer.push(\"\\n            <a href=\\\"#\\\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"closeDrawer\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">Login</a>\\n          \");\n      return buffer;\n      }\n\n    function program14(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n            \");\n      stack1 = helpers[\'if\'].call(depth0, \"isAuthorizing\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(17, program17, data),fn:self.program(15, program15, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n          \");\n      return buffer;\n      }\n    function program15(depth0,data) {\n      \n      var buffer = \'\';\n      data.buffer.push(\"\\n              <a href=\\\"#\\\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"closeDrawer\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">Logging in ...</a>\\n            \");\n      return buffer;\n      }\n\n    function program17(depth0,data) {\n      \n      var buffer = \'\';\n      data.buffer.push(\"\\n              <a href=\\\"#\\\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"login\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">Log in</a>\\n            \");\n      return buffer;\n      }\n\n    function program19(depth0,data) {\n      \n      var buffer = \'\', stack1, helper, options;\n      data.buffer.push(\"\\n        <li>\\n          \");\n      stack1 = (helper = helpers[\'query-params\'] || (depth0 && depth0[\'query-params\']),options={hash:{\n        \'tag\': (\"currentTag.selectTag\")\n      },hashTypes:{\'tag\': \"ID\"},hashContexts:{\'tag\': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, \"query-params\", options));\n      stack1 = (helper = helpers[\'link-to\'] || (depth0 && depth0[\'link-to\']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(20, program20, data),contexts:[depth0,depth0],types:[\"STRING\",\"sexpr\"],data:data},helper ? helper.call(depth0, \"secrets\", stack1, options) : helperMissing.call(depth0, \"link-to\", \"secrets\", stack1, options));\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n        </li>\\n      \");\n      return buffer;\n      }\n    function program20(depth0,data) {\n      \n      var buffer = \'\', stack1, helper, options;\n      data.buffer.push(\"\\n            \");\n      data.buffer.push(escapeExpression((helper = helpers[\'current-tag\'] || (depth0 && depth0[\'current-tag\']),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:[\"ID\",\"ID\"],data:data},helper ? helper.call(depth0, \"currentTag.name\", \"tag\", options) : helperMissing.call(depth0, \"current-tag\", \"currentTag.name\", \"tag\", options))));\n      data.buffer.push(\"\\n            \");\n      stack1 = helpers._triageMustache.call(depth0, \"currentTag.name\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\" (\");\n      stack1 = helpers._triageMustache.call(depth0, \"currentTag.count\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\")\\n          \");\n      return buffer;\n      }\n\n    function program22(depth0,data) {\n      \n      var buffer = \'\', stack1, helper, options;\n      data.buffer.push(\"\\n        <li>\\n          \");\n      stack1 = (helper = helpers[\'link-to\'] || (depth0 && depth0[\'link-to\']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(23, program23, data),contexts:[depth0],types:[\"STRING\"],data:data},helper ? helper.call(depth0, \"secrets.tags\", options) : helperMissing.call(depth0, \"link-to\", \"secrets.tags\", options));\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n        </li>\\n      \");\n      return buffer;\n      }\n    function program23(depth0,data) {\n      \n      \n      data.buffer.push(\"See more tags ...\");\n      }\n\n      data.buffer.push(\"<section data-type=\\\"sidebar\\\">\\n  <header>\\n    <menu type=\\\"toolbar\\\">\\n      \");\n      stack1 = (helper = helpers[\'link-to\'] || (depth0 && depth0[\'link-to\']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:[\"STRING\"],data:data},helper ? helper.call(depth0, \"secrets\", options) : helperMissing.call(depth0, \"link-to\", \"secrets\", options));\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n    </menu>\\n    <h1>\");\n      stack1 = helpers._triageMustache.call(depth0, \"accountDisplayName\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"</h1>\\n  </header>\\n\\n  <nav>\\n    <h2>Account</h2>\\n    <ul>\\n      <li>\\n        \");\n      stack1 = helpers[\'if\'].call(depth0, \"authManager.hasValidAccessToken\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(11, program11, data),fn:self.program(3, program3, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n      </li>\\n      <li><a href=\\\"#\\\" \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"logout\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">Log out</a></li>\\n    </ul>\\n\\n    <h2>Tags</h2>\\n    <ul>\\n      \");\n      stack1 = helpers.each.call(depth0, \"currentTag\", \"in\", \"mostUsedTags\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(19, program19, data),contexts:[depth0,depth0,depth0],types:[\"ID\",\"ID\",\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n      \");\n      stack1 = helpers[\'if\'].call(depth0, \"hasMoreTags\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(22, program22, data),contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n    </ul>\\n  </nav>\\n  \");\n      stack1 = helpers._triageMustache.call(depth0, \"current-version\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n</section>\\n\");\n      return buffer;\n      \n    });\n  });//# sourceURL=yith-library-mobile-client/templates/secrets/drawer.js");
-
-;eval("define(\"yith-library-mobile-client/templates/secrets/tags\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    __exports__[\"default\"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data\n    /**/) {\n    this.compilerInfo = [4,\'>= 1.0.0\'];\n    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};\n      var buffer = \'\', stack1, escapeExpression=this.escapeExpression, self=this;\n\n    function program1(depth0,data) {\n      \n      var buffer = \'\', stack1;\n      data.buffer.push(\"\\n      <button type=\'button\' \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"selectTag\", \"tag.name\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:[\"STRING\",\"ID\"],data:data})));\n      data.buffer.push(\">\\n        \");\n      stack1 = helpers._triageMustache.call(depth0, \"tag.name\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\" (\");\n      stack1 = helpers._triageMustache.call(depth0, \"tag.count\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\")\\n      </button>\\n    \");\n      return buffer;\n      }\n\n      data.buffer.push(\"<form data-type=\\\"action\\\" role=\\\"dialog\\\">\\n  <header>Available tags</header>\\n  <menu>\\n    \");\n      stack1 = helpers.each.call(depth0, \"tag\", \"in\", \"sortedTags\", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0,depth0],types:[\"ID\",\"ID\",\"ID\"],data:data});\n      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }\n      data.buffer.push(\"\\n    <button type=\'button\' \");\n      data.buffer.push(escapeExpression(helpers.action.call(depth0, \"cancel\", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:[\"STRING\"],data:data})));\n      data.buffer.push(\">Cancel</button>\\n  </menu>\\n</form>\");\n      return buffer;\n      \n    });\n  });//# sourceURL=yith-library-mobile-client/templates/secrets/tags.js");
-
-;eval("define(\"yith-library-mobile-client/tests/adapters/application.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - adapters\');\n    test(\'adapters/application.js should pass jshint\', function() { \n      ok(true, \'adapters/application.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/adapters/application.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/app.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - .\');\n    test(\'app.js should pass jshint\', function() { \n      ok(true, \'app.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/app.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/controllers/application.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - controllers\');\n    test(\'controllers/application.js should pass jshint\', function() { \n      ok(true, \'controllers/application.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/controllers/application.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/controllers/first-time.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - controllers\');\n    test(\'controllers/first-time.js should pass jshint\', function() { \n      ok(true, \'controllers/first-time.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/controllers/first-time.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/controllers/secret.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - controllers\');\n    test(\'controllers/secret.js should pass jshint\', function() { \n      ok(true, \'controllers/secret.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/controllers/secret.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/controllers/secrets.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - controllers\');\n    test(\'controllers/secrets.js should pass jshint\', function() { \n      ok(true, \'controllers/secrets.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/controllers/secrets.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/controllers/secrets/drawer.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - controllers/secrets\');\n    test(\'controllers/secrets/drawer.js should pass jshint\', function() { \n      ok(true, \'controllers/secrets/drawer.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/controllers/secrets/drawer.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/controllers/secrets/tags.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - controllers/secrets\');\n    test(\'controllers/secrets/tags.js should pass jshint\', function() { \n      ok(true, \'controllers/secrets/tags.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/controllers/secrets/tags.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/helpers/current-tag.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - helpers\');\n    test(\'helpers/current-tag.js should pass jshint\', function() { \n      ok(true, \'helpers/current-tag.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/helpers/current-tag.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/helpers/current-version.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - helpers\');\n    test(\'helpers/current-version.js should pass jshint\', function() { \n      ok(true, \'helpers/current-version.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/helpers/current-version.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/helpers/resolver\", \n  [\"ember/resolver\",\"yith-library-mobile-client/config/environment\",\"exports\"],\n  function(__dependency1__, __dependency2__, __exports__) {\n    \"use strict\";\n    var Resolver = __dependency1__[\"default\"];\n    var config = __dependency2__[\"default\"];\n\n    var resolver = Resolver.create();\n\n    resolver.namespace = {\n      modulePrefix: config.modulePrefix,\n      podModulePrefix: config.podModulePrefix\n    };\n\n    __exports__[\"default\"] = resolver;\n  });//# sourceURL=yith-library-mobile-client/tests/helpers/resolver.js");
-
-;eval("define(\"yith-library-mobile-client/tests/helpers/start-app\", \n  [\"ember\",\"yith-library-mobile-client/app\",\"yith-library-mobile-client/router\",\"yith-library-mobile-client/config/environment\",\"exports\"],\n  function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n    var Application = __dependency2__[\"default\"];\n    var Router = __dependency3__[\"default\"];\n    var config = __dependency4__[\"default\"];\n\n    __exports__[\"default\"] = function startApp(attrs) {\n      var App;\n\n      var attributes = Ember.merge({}, config.APP);\n      attributes = Ember.merge(attributes, attrs); // use defaults, but you can override;\n\n      Ember.run(function() {\n        App = Application.create(attributes);\n        App.setupForTesting();\n        App.injectTestHelpers();\n      });\n\n      return App;\n    }\n  });//# sourceURL=yith-library-mobile-client/tests/helpers/start-app.js");
-
-;eval("define(\"yith-library-mobile-client/tests/initializers/authmanager.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - initializers\');\n    test(\'initializers/authmanager.js should pass jshint\', function() { \n      ok(true, \'initializers/authmanager.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/initializers/authmanager.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/initializers/settings.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - initializers\');\n    test(\'initializers/settings.js should pass jshint\', function() { \n      ok(true, \'initializers/settings.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/initializers/settings.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/initializers/syncmanager.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - initializers\');\n    test(\'initializers/syncmanager.js should pass jshint\', function() { \n      ok(true, \'initializers/syncmanager.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/initializers/syncmanager.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/main.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - .\');\n    test(\'main.js should pass jshint\', function() { \n      ok(true, \'main.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/main.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/models/account.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - models\');\n    test(\'models/account.js should pass jshint\', function() { \n      ok(true, \'models/account.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/models/account.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/models/secret.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - models\');\n    test(\'models/secret.js should pass jshint\', function() { \n      ok(true, \'models/secret.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/models/secret.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/models/tag.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - models\');\n    test(\'models/tag.js should pass jshint\', function() { \n      ok(true, \'models/tag.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/models/tag.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/router.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - .\');\n    test(\'router.js should pass jshint\', function() { \n      ok(true, \'router.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/router.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/routes/application.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - routes\');\n    test(\'routes/application.js should pass jshint\', function() { \n      ok(true, \'routes/application.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/routes/application.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/routes/first-time.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - routes\');\n    test(\'routes/first-time.js should pass jshint\', function() { \n      ok(true, \'routes/first-time.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/routes/first-time.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/routes/index.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - routes\');\n    test(\'routes/index.js should pass jshint\', function() { \n      ok(true, \'routes/index.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/routes/index.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/routes/secret.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - routes\');\n    test(\'routes/secret.js should pass jshint\', function() { \n      ok(true, \'routes/secret.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/routes/secret.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/routes/secrets-drawer.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - routes\');\n    test(\'routes/secrets-drawer.js should pass jshint\', function() { \n      ok(true, \'routes/secrets-drawer.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/routes/secrets-drawer.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/routes/secrets.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - routes\');\n    test(\'routes/secrets.js should pass jshint\', function() { \n      ok(true, \'routes/secrets.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/routes/secrets.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/routes/secrets/drawer.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - routes/secrets\');\n    test(\'routes/secrets/drawer.js should pass jshint\', function() { \n      ok(true, \'routes/secrets/drawer.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/routes/secrets/drawer.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/routes/secrets/tags.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - routes/secrets\');\n    test(\'routes/secrets/tags.js should pass jshint\', function() { \n      ok(true, \'routes/secrets/tags.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/routes/secrets/tags.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/serializers/application.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - serializers\');\n    test(\'serializers/application.js should pass jshint\', function() { \n      ok(true, \'serializers/application.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/serializers/application.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/test-helper\", \n  [\"yith-library-mobile-client/tests/helpers/resolver\",\"ember-qunit\"],\n  function(__dependency1__, __dependency2__) {\n    \"use strict\";\n    var resolver = __dependency1__[\"default\"];\n    var setResolver = __dependency2__.setResolver;\n\n    setResolver(resolver);\n\n    document.write(\"<div id=\\\"ember-testing-container\\\"><div id=\\\"ember-testing\\\"></div></div>\");\n\n    QUnit.config.urlConfig.push({ id: \"nocontainer\", label: \"Hide container\"});\n    var containerVisibility = QUnit.urlParams.nocontainer ? \"hidden\" : \"visible\";\n    document.getElementById(\"ember-testing-container\").style.visibility = containerVisibility;\n  });//# sourceURL=yith-library-mobile-client/tests/test-helper.js");
-
-;eval("define(\"yith-library-mobile-client/tests/test-loader\", \n  [\"ember\"],\n  function(__dependency1__) {\n    \"use strict\";\n    /* globals requirejs,require */\n    var Ember = __dependency1__[\"default\"];\n\n    // TODO: load based on params\n    Ember.keys(requirejs.entries).forEach(function(entry) {\n      if ((/\\-test/).test(entry)) {\n        require(entry, null, null, true);\n      }\n    });\n  });//# sourceURL=yith-library-mobile-client/tests/test-loader.js");
-
-;eval("define(\"yith-library-mobile-client/tests/utils/authmanager.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - utils\');\n    test(\'utils/authmanager.js should pass jshint\', function() { \n      ok(true, \'utils/authmanager.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/utils/authmanager.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/utils/prefix-event.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - utils\');\n    test(\'utils/prefix-event.js should pass jshint\', function() { \n      ok(true, \'utils/prefix-event.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/utils/prefix-event.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/utils/settings.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - utils\');\n    test(\'utils/settings.js should pass jshint\', function() { \n      ok(true, \'utils/settings.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/utils/settings.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/utils/snake-case-to-camel-case.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - utils\');\n    test(\'utils/snake-case-to-camel-case.js should pass jshint\', function() { \n      ok(true, \'utils/snake-case-to-camel-case.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/utils/snake-case-to-camel-case.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/utils/syncmanager.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - utils\');\n    test(\'utils/syncmanager.js should pass jshint\', function() { \n      ok(true, \'utils/syncmanager.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/utils/syncmanager.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/views/application.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - views\');\n    test(\'views/application.js should pass jshint\', function() { \n      ok(true, \'views/application.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/views/application.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/views/secret-revealer.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - views\');\n    test(\'views/secret-revealer.js should pass jshint\', function() { \n      ok(true, \'views/secret-revealer.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/views/secret-revealer.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/views/secrets.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - views\');\n    test(\'views/secrets.js should pass jshint\', function() { \n      ok(true, \'views/secrets.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/views/secrets.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/yith-library-mobile-client/tests/helpers/resolver.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - yith-library-mobile-client/tests/helpers\');\n    test(\'yith-library-mobile-client/tests/helpers/resolver.js should pass jshint\', function() { \n      ok(true, \'yith-library-mobile-client/tests/helpers/resolver.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/yith-library-mobile-client/tests/helpers/resolver.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/yith-library-mobile-client/tests/helpers/start-app.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - yith-library-mobile-client/tests/helpers\');\n    test(\'yith-library-mobile-client/tests/helpers/start-app.js should pass jshint\', function() { \n      ok(true, \'yith-library-mobile-client/tests/helpers/start-app.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/yith-library-mobile-client/tests/helpers/start-app.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/yith-library-mobile-client/tests/test-helper.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - yith-library-mobile-client/tests\');\n    test(\'yith-library-mobile-client/tests/test-helper.js should pass jshint\', function() { \n      ok(true, \'yith-library-mobile-client/tests/test-helper.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/yith-library-mobile-client/tests/test-helper.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/tests/yith-library-mobile-client/tests/test-loader.jshint\", \n  [],\n  function() {\n    \"use strict\";\n    module(\'JSHint - yith-library-mobile-client/tests\');\n    test(\'yith-library-mobile-client/tests/test-loader.js should pass jshint\', function() { \n      ok(true, \'yith-library-mobile-client/tests/test-loader.js should pass jshint.\'); \n    });\n  });//# sourceURL=yith-library-mobile-client/tests/yith-library-mobile-client/tests/test-loader.jshint.js");
-
-;eval("define(\"yith-library-mobile-client/utils/prefix-event\", \n  [\"exports\"],\n  function(__exports__) {\n    \"use strict\";\n    __exports__[\"default\"] = function prefixEvent (event) {\n        var vendorPrefixes = [\"webkit\", \"moz\", \"MS\", \"o\", \"\"];\n        var prefixedEventNames = vendorPrefixes.map(function (prefix) {\n            return (prefix ? prefix + event : event.toLowerCase());\n        });\n        return prefixedEventNames.join(\" \");\n    }\n  });//# sourceURL=yith-library-mobile-client/utils/prefix-event.js");
-
-;eval("define(\"yith-library-mobile-client/views/application\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.View.extend({\n        classNames: [\"full-height\"]\n    });\n  });//# sourceURL=yith-library-mobile-client/views/application.js");
-
-;eval("define(\"yith-library-mobile-client/views/secret-revealer\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.View.extend({\n        templateName: \"secret-revealer\",\n        tagName: \"form\",\n        classNames: [\"secret-revealer\"],\n        attributeBindings: [\"autocomplete\"],\n        autocomplete: \"off\",\n        buttonClass: \"recommend\",\n        buttonText: \"Reveal secret\",\n        decryptedSecret: null,\n        encryptedSecret: \"\",\n\n        click: function (event) {\n            var $target = $(event.target);\n\n            if ($target.is(\"button\")) {\n                this.buttonClicked();\n            }\n\n            // Don\'t bubble up any more events\n            return false;\n        },\n\n        buttonClicked: function () {\n            var $masterPasswordInput = null,\n                masterPasswordValue = null,\n                secret = \"\";\n\n            if (this.get(\"decryptedSecret\") !== null) {\n                this.hideSecret();\n            } else {\n\n                $masterPasswordInput = this.$(\"input[type=password]\");\n                masterPasswordValue = $masterPasswordInput.val();\n                $masterPasswordInput.val(\"\");\n                secret = this.get(\"encryptedSecret\");\n                try {\n                    this.revealSecret(sjcl.decrypt(masterPasswordValue, secret));\n                    masterPasswordValue = null;\n                } catch (err) {\n                    this.badMasterPassword();\n                }\n            }\n        },\n\n        hideSecret: function () {\n            this.stopTimer();\n\n            this.set(\"buttonText\", \"Reveal secret\");\n            this.set(\"buttonClass\", \"recommend\");\n            this.set(\"decryptedSecret\", null);\n        },\n\n        badMasterPassword: function () {\n            this.set(\"buttonText\", \"Wrong master password, try again\");\n            this.set(\"buttonClass\", \"danger\");\n            this.$(\"input[type=password]\").focus();\n        },\n\n        revealSecret: function (secret) {\n            this.set(\"buttonText\", \"Hide secret\");\n            this.set(\"buttonClass\", \"recommend\");\n            this.set(\"decryptedSecret\", secret);\n\n            Ember.run.scheduleOnce(\"afterRender\", this, function () {\n                this.$(\"input[type=text]\").focus().select();\n                this.startTimer();\n            });\n        },\n\n        startTimer: function () {\n            this.start = new Date();\n\n            this.totalTime = this.getTotalTime();\n\n            this.timer = window.requestAnimationFrame(this.tick.bind(this));\n        },\n\n        stopTimer: function () {\n            if (this.timer) {\n                window.cancelAnimationFrame(this.timer);\n            }\n        },\n\n        getTotalTime: function () {\n            return 60;\n        },\n\n        tick: function () {\n            var $timer = this.$(\"svg\"),\n                width = $timer.width(),\n                width2 = width / 2,\n                radius = width * 0.45,\n                now = new Date(),\n                elapsed = (now - this.start) / 1000,\n                completion = elapsed / this.totalTime,\n                endAngle = 360 * completion,\n                endPoint = this.polarToCartesian(width2, width2, radius, endAngle),\n                arcSweep = endAngle <= 180 ? \"1\": \"0\",\n                d = [\n                    \"M\", width2, width2 - radius,\n                    \"A\", radius, radius, 0, arcSweep, 0, endPoint.x, endPoint.y,\n                    \"L\", width2, width2,\n                    \"Z\"\n                ].join(\" \");\n\n            this.$(\"path\").attr(\"d\", d);\n\n            // If completion is 100% hide the secret\n            if (completion >= 1) {\n                this.hideSecret();\n            } else {\n                this.timer = window.requestAnimationFrame(this.tick.bind(this));\n            }\n        },\n\n        polarToCartesian: function (x, y, radius, degrees) {\n            var radians = (degrees - 90) * Math.PI / 180;\n            return {\n                x: x + (radius * Math.cos(radians)),\n                y: y + (radius * Math.sin(radians))\n            };\n        },\n\n        didInsertElement: function () {\n            this.$(\"input\").focus();\n        },\n\n        willDestroy: function () {\n            this.hideSecret();\n        }\n    });\n  });//# sourceURL=yith-library-mobile-client/views/secret-revealer.js");
-
-;eval("define(\"yith-library-mobile-client/views/secrets\", \n  [\"ember\",\"exports\"],\n  function(__dependency1__, __exports__) {\n    \"use strict\";\n    var Ember = __dependency1__[\"default\"];\n\n    __exports__[\"default\"] = Ember.View.extend({\n        classNames: [\"full-height\"],\n\n        didInsertElement: function () {\n            window.addEventListener(\"offline\", this);\n            window.addEventListener(\"online\", this);\n        },\n\n        handleEvent: function (event) {\n            switch (event.type) {\n            case \"offline\":\n                this.get(\"controller\").send(\"offline\");\n                break;\n            case \"online\":\n                this.get(\"controller\").send(\"online\");\n                break;\n            }\n        },\n\n        willDestroy: function () {\n            window.removeEventListener(\"offline\", this);\n            window.removeEventListener(\"online\", this);\n        }\n    });\n  });//# sourceURL=yith-library-mobile-client/views/secrets.js");
-
+define("yith-library-mobile-client/adapters/application", 
+  ["ember-data","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var DS = __dependency1__["default"];
+
+    __exports__["default"] = DS.IndexedDBAdapter.extend({
+        databaseName: "yithlibrary",
+        version: 1,
+        migrations: function () {
+            this.addModel("account", {keyPath: "id", autoIncrement: false});
+            this.addModel("secret", {keyPath: "id", autoIncrement: false});
+            this.addModel("tag");
+        }
+    });
+  });
+define("yith-library-mobile-client/app", 
+  ["ember","ember/resolver","ember/load-initializers","yith-library-mobile-client/config/environment","exports"],
+  function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    var Resolver = __dependency2__["default"];
+    var loadInitializers = __dependency3__["default"];
+    var config = __dependency4__["default"];
+
+    Ember.MODEL_FACTORY_INJECTIONS = true;
+
+    var App = Ember.Application.extend({
+      modulePrefix: config.modulePrefix,
+      podModulePrefix: config.podModulePrefix,
+      Resolver: Resolver,
+      customEvents: {
+        "animationend animationEnd webkitAnimationEnd mozAnimationEnd MSAnimationEnd oAnimationEnd": "animationEnd",
+        "transitionend transitionEnd webkitTransitionEnd mozTransitionEnd MSTransitionEnd oTransitionEnd": "transitionEnd"
+      }
+    });
+
+    loadInitializers(App, config.modulePrefix);
+
+    __exports__["default"] = App;
+  });
+define("yith-library-mobile-client/controllers/application", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.ObjectController.extend({
+
+        // The active Account object will be set as the model for this controller
+
+    });
+  });
+define("yith-library-mobile-client/controllers/first-time", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.ObjectController.extend({
+        needs: ["application"],
+        step: 0,
+
+        showInstructions: function () {
+            return this.get("step") === 0;
+        }.property("step"),
+
+        isConnectingToServer: function () {
+            return this.get("step") === 1;
+        }.property("step"),
+
+        isServerConnected: function () {
+            return this.get("step") > 1;
+        }.property("step"),
+
+        isGettingAccountInformation: function () {
+            return this.get("step") === 2;
+        }.property("step"),
+
+        isAccountInformationRetrieved: function () {
+            return this.get("step") > 2;
+        }.property("step"),
+
+        accountDisabled: function () {
+            return (this.get("step") < 2 ? "true": "false");
+        }.property("step"),
+
+        isGettingSecrets: function () {
+            return this.get("step") === 3;
+        }.property("step"),
+
+        areSecretsRetrieved: function () {
+            return this.get("step") > 3;
+        }.property("step"),
+
+        secretsDisabled: function () {
+            return (this.get("step") < 3 ? "true": "false");
+        }.property("step"),
+
+        isFinished: function () {
+            return this.get("step") === 4;
+        }.property("step"),
+
+        connectToServer: function () {
+            var controller = this,
+                syncManager = this.syncManager,
+                authManager = this.authManager,
+                clientId = this.authManager.get("clientId"),
+                serverBaseUrl = this.settings.getSetting("serverBaseUrl"),
+                accessToken = null;
+
+            this.incrementProperty("step");
+
+            this.authManager.authorize(serverBaseUrl)
+                .then(function () {
+                    accessToken = authManager.get("accessToken");
+                    controller.incrementProperty("step");
+                    return syncManager.fetchUserInfo(
+                        accessToken, serverBaseUrl, clientId
+                    );
+                })
+                .then(function (user) {
+                    controller.settings.setSetting("lastAccount", user.get("id"));
+                    controller.get("controllers.application").set("model", user);
+                    controller.incrementProperty("step");
+                    return syncManager.fetchSecrets(
+                        accessToken, serverBaseUrl, clientId
+                    );
+                })
+                .then(function () {
+                    controller.settings.setSetting("lastSync", new Date());
+                    controller.incrementProperty("step");
+                });
+        },
+
+        actions: {
+            connect: function () {
+                Ember.run.next(this, function () {
+                    this.connectToServer();
+                });
+            },
+
+            secrets: function () {
+                this.transitionToRoute("secrets.index");
+            }
+        }
+    });
+  });
+define("yith-library-mobile-client/controllers/secret", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.ObjectController.extend({
+
+        position: "current",
+
+    });
+  });
+define("yith-library-mobile-client/controllers/secrets", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.ArrayController.extend({
+        queryParams: ["tag"],
+        sortProperties: ["service", "account"],
+        sortAscending: true,
+        position: "current",
+        state: "",
+        tag: "",
+        query: "",
+        isSyncing: false,
+        isAuthorizing: false,
+        statusMessage: null,
+        isOnline: navigator.onLine,
+
+        secrets: function () {
+            var tag = this.get("tag"),
+                query = this.get("query"),
+                content = this.get("content").sortBy("service", "account");
+
+            return content.filter(function (item) {
+                return item.matches(tag, query);
+            });
+        }.property("content.isLoaded", "tag", "query"),
+
+        secretsCount: function () {
+            return this.get("secrets").length;
+        }.property("secrets"),
+
+        secretsNoun: function () {
+            var secretsCount = this.get("secretsCount");
+            return (secretsCount === 1) ? "secret": "secrets";
+        }.property("secretsCount"),
+
+        statusClass: function () {
+            var msg = this.get("statusMessage");
+            if (msg === null) {
+                return "hidden";
+            } else if (msg === "") {
+                return "";
+            } else {
+                return "onviewport";
+            }
+        }.property("statusMessage"),
+
+        showMessage: function (msg) {
+            this.set("statusMessage", msg);
+            Ember.run.later(this, function () {
+                this.set("statusMessage", "");
+                Ember.run.later(this, function () {
+                    this.set("statusMessage", null);
+                }, 500);
+            }, 2500);
+        },
+
+        syncFromServer: function () {
+            var controller = this,
+                accessToken = null,
+                clientId = null,
+                serverBaseUrl = null;
+
+            if (this.get("isSyncing") === true) {
+                return;
+            } else {
+                this.set("isSyncing", true);
+
+                accessToken = this.authManager.get("accessToken");
+                clientId = this.authManager.get("clientId");
+                serverBaseUrl = this.settings.getSetting("serverBaseUrl");
+
+                this.syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId)
+                    .then(function (results) {
+                        var msg = [], length;
+                        controller.settings.setSetting("lastSync", new Date());
+                        controller.set("isSyncing", false);
+                        length = results.secrets.length;
+                        if (length > 0) {
+                            msg.push("" + length);
+                            msg.push(length > 1 ? "secrets have": "secret has");
+                            msg.push("been succesfully updated");
+                        }
+                        controller.showMessage(msg.join(" "));
+                    });
+            }
+        },
+
+        authorizeInServer: function () {
+            var controller = this,
+                serverBaseUrl = null;
+
+            if (this.get("isAuthorizing") === true) {
+                return;
+            } else {
+                this.set("isAuthorizing", true);
+
+                serverBaseUrl = this.settings.getSetting("serverBaseUrl");
+                this.authManager.authorize(serverBaseUrl)
+                    .then(function () {
+                        controller.set("isAuthorizing", false);
+                        controller.showMessage("You have succesfully logged in");
+                    });
+            }
+        },
+
+        logout: function () {
+            var self = this;
+            this.authManager.deleteToken();
+            this.settings.deleteSetting("lastAccount");
+            this.syncManager.deleteAccount().then(function () {
+                self.transitionToRoute("firstTime");
+            });
+        },
+
+        actions: {
+
+            clearQuery: function () {
+                this.set("query", "");
+            },
+
+            offline: function () {
+                this.set("isOnline", false);
+            },
+
+            online: function () {
+                this.set("isOnline", true);
+            }
+
+        }
+    });
+  });
+define("yith-library-mobile-client/controllers/secrets/drawer", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.ArrayController.extend({
+        needs: ["application", "secrets"],
+        sortProperties: ["count:desc"],
+        sortedTags: Ember.computed.sort("content", "sortProperties"),
+        tagsToDisplay: 5,
+        tag: Ember.computed.alias("controllers.secrets.tag"),
+
+        accountDisplayName: function () {
+            return this.get("controllers.application.model.displayName");
+        }.property("controllers.application.model.displayName"),
+
+        selectedTagCount: function () {
+            var tag = this.get("sortedTags").findBy("name", this.get("tag"));
+            if (tag) {
+                return tag.get("count");
+            } else {
+                return 0;
+            }
+        }.property("sortedTags.[]", "tag"),
+
+        mostUsedTags: function () {
+            var tags = this.get("sortedTags");
+            var mostUsed = tags.slice(0, this.get("tagsToDisplay"));
+            var selectedTag = this.get("tag");
+            var foundSelectedTag = false;
+            var wrapped = mostUsed.map(function (element) {
+                var name = element.get("name");
+                if (name === selectedTag) {
+                    foundSelectedTag = true;
+                }
+                return {
+                    "name": name,
+                    "count": element.get("count"),
+                    "selectTag": name === selectedTag ? "" : name
+                };
+            });
+            if (!foundSelectedTag && selectedTag !== "") {
+                wrapped.pop();
+                wrapped.push({
+                    "name": selectedTag,
+                    "count": this.get("selectedTagCount"),
+                    "selectTag": ""
+                });
+            }
+            return wrapped;
+        }.property("selectedTagCount", "sortedTags.[]", "tag", "tagsToDisplay"),
+
+        hasMoreTags: function () {
+            return this.get("sortedTags").length > this.get("tagsToDisplay");
+        }.property("sortedTags.[]", "tagsToDisplay"),
+
+        syncButtonDisabled: function () {
+            return this.get("controllers.secrets.isSyncing") || !this.get("controllers.secrets.isOnline");
+        }.property("controllers.secrets.isSyncing", "controllers.secrets.isOnline"),
+
+        loginButtonDisabled: function () {
+            return !this.get("isOnline");
+        }.property("controllers.secrets.isOnline"),
+
+        actions: {
+            login: function () {
+                this.transitionToRoute("secrets");
+                Ember.run.next(this, function () {
+                    this.get("controllers.secrets").authorizeInServer();
+                });
+            },
+
+            sync: function () {
+                this.transitionToRoute("secrets");
+                Ember.run.next(this, function () {
+                    this.get("controllers.secrets").syncFromServer();
+                });
+            },
+
+            logout: function () {
+                this.transitionToRoute("secrets");
+                Ember.run.next(this, function () {
+                    this.get("controllers.secrets").logout();
+                });
+            }
+        }
+
+    });
+  });
+define("yith-library-mobile-client/controllers/secrets/tags", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.ArrayController.extend({
+        tagsSortProperties: ["name:asc"],
+        sortedTags: Ember.computed.sort("content", "tagsSortProperties"),
+        actions: {
+            selectTag: function (tagName) {
+                this.transitionToRoute("secrets", {queryParams: {tag: tagName}});
+            },
+
+            cancel: function () {
+                this.transitionToRoute("secrets");
+            }
+        }
+    });
+  });
+define("yith-library-mobile-client/helpers/current-tag", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.Handlebars.makeBoundHelper(function (tagName, selectedTag) {
+        return (tagName === selectedTag ? "*" : "");
+    });
+  });
+define("yith-library-mobile-client/helpers/current-version", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.Handlebars.makeBoundHelper(function () {
+        var versionStatus = [
+            "<section role=\"status\" class=\"onviewport\">",
+    //        '<p><small>v' + YithLibraryMobileClient.get('version') + '</small></p>',
+            "</section>"
+        ];
+        return new Ember.Handlebars.SafeString(versionStatus.join(""));
+    });
+  });
+define("yith-library-mobile-client/initializers/authmanager", 
+  ["yith-library-mobile-client/utils/authmanager","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var AuthManager = __dependency1__["default"];
+
+    __exports__["default"] = {
+        name: "authManager",
+
+        initialize: function (container, application) {
+            application.register("authmanager:main", AuthManager);
+
+            application.inject("controller", "authManager", "authmanager:main");
+        }
+    };
+  });
+define("yith-library-mobile-client/initializers/export-application-global", 
+  ["ember","yith-library-mobile-client/config/environment","exports"],
+  function(__dependency1__, __dependency2__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    var config = __dependency2__["default"];
+
+    function initialize(container, application) {
+      if (config.exportApplicationGlobal !== false) {
+        var value = config.exportApplicationGlobal;
+        var globalName;
+
+        if (typeof value === "string") {
+          globalName = value;
+        } else {
+          globalName = Ember.String.classify(config.modulePrefix);
+        }
+
+        if (!window[globalName]) {
+          window[globalName] = application;
+
+          application.reopen({
+            willDestroy: function(){
+              this._super.apply(this, arguments);
+              delete window[globalName];
+            }
+          });
+        }
+      }
+    };
+    __exports__.initialize = initialize;
+
+    __exports__["default"] = {
+      name: "export-application-global",
+
+      initialize: initialize
+    };
+  });
+define("yith-library-mobile-client/initializers/settings", 
+  ["yith-library-mobile-client/utils/settings","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Settings = __dependency1__["default"];
+
+    __exports__["default"] = {
+        name: "settings",
+
+        initialize: function (container, application) {
+            application.register("settings:main", Settings);
+
+            application.inject("route", "settings", "settings:main");
+            application.inject("controller", "settings", "settings:main");
+        }
+    };
+  });
+define("yith-library-mobile-client/initializers/syncmanager", 
+  ["yith-library-mobile-client/utils/syncmanager","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var SyncManager = __dependency1__["default"];
+
+    __exports__["default"] = {
+        name: "syncManager",
+
+        initialize: function (container, application) {
+            application.register("syncmanager:main", SyncManager);
+
+            application.inject("controller", "syncManager", "syncmanager:main");
+            application.inject("syncmanager", "store", "store:main");
+        }
+    };
+  });
+define("yith-library-mobile-client/main", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    /* global requirejs, require */
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = function bootApp(prefix, attributes) {
+      var App                = require(prefix + "/app")["default"];
+      var initializersRegExp = new RegExp(prefix + "/initializers");
+
+      Ember.keys(requirejs._eak_seen).filter(function(key) {
+        return initializersRegExp.test(key);
+      }).forEach(function(moduleName) {
+        var module = require(moduleName, null, null, true);
+        if (!module) { throw new Error(moduleName + " must export an initializer."); }
+        App.initializer(module["default"]);
+      });
+
+      return App.create(attributes || {});
+    }
+  });
+define("yith-library-mobile-client/models/account", 
+  ["ember-data","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var DS = __dependency1__["default"];
+
+    __exports__["default"] = DS.Model.extend({
+        email: DS.attr("string"),
+        firstName: DS.attr("string"),
+        lastName: DS.attr("string"),
+        screenName: DS.attr("string"),
+
+        fullName: function () {
+            var firstName = this.get("firstName"),
+                lastName = this.get("lastName"),
+                parts = [];
+
+            if (firstName) {
+                parts.push(firstName);
+            }
+            if (lastName) {
+                parts.push(lastName);
+            }
+            return parts.join(" ");
+        }.property("firstName", "lastName"),
+
+        displayName: function () {
+            var screenName = this.get("screenName"),
+                fullName = "";
+
+            if (screenName) {
+                return screenName;
+            } else {
+                fullName = this.get("fullName");
+                if (fullName) {
+                    return fullName;
+                } else {
+                    return this.get("email");
+                }
+            }
+        }.property("screenName", "fullName", "email")
+
+    });
+  });
+define("yith-library-mobile-client/models/secret", 
+  ["ember-data","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var DS = __dependency1__["default"];
+
+    __exports__["default"] = DS.Model.extend({
+        service: DS.attr("string"),
+        account: DS.attr("string"),
+        secret: DS.attr("string"),
+        notes: DS.attr("string"),
+        tags: DS.attr("string"),
+
+        matches: function (tag, query) {
+            var tagMatch = (tag === ""),
+                queryMatch = (query === ""),
+                tags = "";
+            if (!tagMatch) {
+                tags = this.get("tags");
+                if (tags) {
+                    tagMatch = tags.indexOf(tag) !== -1;
+                }
+            }
+            if (!queryMatch) {
+                query = query.toLowerCase();
+                queryMatch = (
+                    (this.get("service").toLowerCase().indexOf(query) !== -1) ||
+                    (this.get("account").toLowerCase().indexOf(query) !== -1)
+                );
+            }
+            return tagMatch && queryMatch;
+        }
+    });
+  });
+define("yith-library-mobile-client/models/tag", 
+  ["ember-data","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var DS = __dependency1__["default"];
+
+    __exports__["default"] = DS.Model.extend({
+        name: DS.attr("string"),
+        count: DS.attr("number")
+    });
+  });
+define("yith-library-mobile-client/router", 
+  ["ember","yith-library-mobile-client/config/environment","exports"],
+  function(__dependency1__, __dependency2__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    var config = __dependency2__["default"];
+
+    var Router = Ember.Router.extend({
+      location: config.locationType
+    });
+
+    Router.map(function() {
+        this.route("firstTime", {path: "/first-time"});
+        this.resource("secrets", {path: "/secrets"}, function () {
+            this.resource("secret", {path: "/:secret_id"});
+            this.route("tags", {path: "/tags"});
+            this.route("drawer", {path: "/drawer"});
+        });
+    });
+
+    __exports__["default"] = Router;
+  });
+define("yith-library-mobile-client/routes/application", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.Route.extend({
+        model: function () {
+            var lastAccount = this.settings.getSetting("lastAccount");
+            if (lastAccount) {
+                return this.store.find("account", lastAccount);
+            } else {
+                return null;
+            }
+        },
+
+        afterModel: function (model) {
+            if (model === null) {
+                this.transitionTo("firstTime");
+            }
+        }
+    });
+  });
+define("yith-library-mobile-client/routes/first-time", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.Route.extend({});
+  });
+define("yith-library-mobile-client/routes/index", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.Route.extend({
+
+        setupController: function () {
+            this.transitionTo("secrets");
+        }
+
+    });
+  });
+define("yith-library-mobile-client/routes/secret", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.Route.extend({
+
+        transitionToSecrets: null,
+
+        setupController: function (controller, model) {
+            this._super(controller, model);
+            var secretsController = this.controllerFor("secrets");
+            if (secretsController.get("position") !== "left") {
+                secretsController.set("position", "left");
+            }
+            controller.set("position", "current");
+        },
+
+        actions: {
+            willTransition: function (transition) {
+                var secretsController = this.controllerFor("secrets");
+                if (transition.targetName === "secrets.index") {
+                    if (secretsController.get("position") === "left") {
+                        secretsController.set("position", "current");
+                        this.controller.set("position", "right");
+                        this.set("transitionToSecrets", transition);
+                        transition.abort();
+                        return false;
+                    }
+                } else if (transition.targetName === "secret") {
+                    secretsController.set("position", "left");
+                    this.controller.set("position", "current");
+                }
+
+                return true;
+            },
+
+            finishTransition: function () {
+                var transition = this.get("transitionToSecrets");
+                if (transition) {
+                    this.set("transitionToSecrets", null);
+                    transition.retry();
+                }
+            }
+        }
+
+    });
+  });
+define("yith-library-mobile-client/routes/secrets-drawer", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.Route.extend({
+
+        model: function () {
+            return this.store.find("tag");
+        },
+
+        renderTemplate: function () {
+            this.render({outlet: "drawer"});
+        }
+
+    });
+  });
+define("yith-library-mobile-client/routes/secrets", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.Route.extend({
+
+        setupController: function (controller, model) {
+            this._super(controller, model);
+            controller.set("state", "");
+        },
+
+        model: function () {
+            return this.store.find("secret");
+        },
+
+        actions: {
+            willTransition: function (transition) {
+                if (transition.targetName === "secret") {
+                    this.controller.set("position", "left");
+                } else if (transition.targetName === "secrets.index") {
+                    this.controller.set("position", "current");
+                    this.controller.set("state", "");
+                }
+                return true;
+            }
+
+        }
+
+    });
+  });
+define("yith-library-mobile-client/routes/secrets/drawer", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.Route.extend({
+
+        transitionToSecrets: null,
+
+        setupController: function (controller, model) {
+            this._super(controller, model);
+            this.controllerFor("secrets").set("state", "drawer-opened");
+        },
+
+        model: function () {
+            return this.store.find("tag");
+        },
+
+        renderTemplate: function () {
+            this.render({outlet: "drawer"});
+        },
+
+        actions: {
+            willTransition: function (transition) {
+                var secretsController = this.controllerFor("secrets");
+                if (transition.targetName === "secrets.index") {
+                    // when the transition is retried (see finishTransition)
+                    // this if condition will be false
+                    if (secretsController.get("state") === "drawer-opened") {
+                        secretsController.set("state", "");
+                        this.set("transitionToSecrets", transition);
+
+                        // abort the transition until the CSS transition finishes
+                        transition.abort();
+                        return false;
+                    }
+                }
+                return true;
+            },
+
+            finishTransition: function () {
+                var transition = this.get("transitionToSecrets");
+                if (transition) {
+                    this.set("transitionToSecrets", null);
+                    transition.retry();
+                }
+            }
+        }
+
+    });
+  });
+define("yith-library-mobile-client/routes/secrets/tags", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.Route.extend({
+
+        model: function () {
+            return this.store.find("tag");
+        }
+
+    });
+  });
+define("yith-library-mobile-client/serializers/application", 
+  ["ember-data","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var DS = __dependency1__["default"];
+    __exports__["default"] = DS.IndexedDBSerializer.extend();
+  });
+define("yith-library-mobile-client/templates/application", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    __exports__["default"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
+    /**/) {
+    this.compilerInfo = [4,'>= 1.0.0'];
+    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+      var buffer = '', stack1;
+
+
+      stack1 = helpers._triageMustache.call(depth0, "outlet", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n");
+      return buffer;
+      
+    });
+  });
+define("yith-library-mobile-client/templates/first-time", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    __exports__["default"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
+    /**/) {
+    this.compilerInfo = [4,'>= 1.0.0'];
+    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+      var buffer = '', stack1, escapeExpression=this.escapeExpression, self=this;
+
+    function program1(depth0,data) {
+      
+      var buffer = '';
+      data.buffer.push("\n            <header>First time steps</header>\n            <ul>\n              <li>\n                <p>Connect to the server</p>\n                <p>to sign in or sign up</p>\n              </li>\n              <li>\n                <p>Retrieve your account information</p>\n                <p>so we know a little bit about you</p>\n              </li>\n              <li>\n                <p>Retrieve your secrets</p>\n                <p>and access them even when offline</p>\n              </li>\n            </ul>\n            <form>\n              <p>\n                <button type=\"button\" class=\"recommend\" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "connect", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">Connect to YithLibrary.com</button>\n              </p>\n            </form>\n          ");
+      return buffer;
+      }
+
+    function program3(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n            <header>\n              ");
+      stack1 = helpers['if'].call(depth0, "isFinished", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n            </header>\n            <ul>\n              <li>\n                ");
+      stack1 = helpers['if'].call(depth0, "isConnectingToServer", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(10, program10, data),fn:self.program(8, program8, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n              </li>\n              <li ");
+      data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+        'aria-disabled': ("accountDisabled")
+      },hashTypes:{'aria-disabled': "STRING"},hashContexts:{'aria-disabled': depth0},contexts:[],types:[],data:data})));
+      data.buffer.push(">\n                ");
+      stack1 = helpers['if'].call(depth0, "isGettingAccountInformation", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(17, program17, data),fn:self.program(15, program15, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n              </li>\n              <li ");
+      data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+        'aria-disabled': ("secretsDisabled")
+      },hashTypes:{'aria-disabled': "STRING"},hashContexts:{'aria-disabled': depth0},contexts:[],types:[],data:data})));
+      data.buffer.push(">\n                ");
+      stack1 = helpers['if'].call(depth0, "isGettingSecrets", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(24, program24, data),fn:self.program(22, program22, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n              </li>\n            </ul>\n          </section>\n          ");
+      stack1 = helpers['if'].call(depth0, "isFinished", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(29, program29, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n        ");
+      return buffer;
+      }
+    function program4(depth0,data) {
+      
+      
+      data.buffer.push("\n                Your secrets are ready!\n              ");
+      }
+
+    function program6(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n                Running step ");
+      stack1 = helpers._triageMustache.call(depth0, "step", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push(" of 3\n              ");
+      return buffer;
+      }
+
+    function program8(depth0,data) {
+      
+      
+      data.buffer.push("\n                  <aside class=\"pack-end\">\n                    <progress></progress>\n                  </aside>\n                  <p>Connecting to the server...</p>\n                ");
+      }
+
+    function program10(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n                  ");
+      stack1 = helpers['if'].call(depth0, "isServerConnected", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(13, program13, data),fn:self.program(11, program11, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n                ");
+      return buffer;
+      }
+    function program11(depth0,data) {
+      
+      
+      data.buffer.push("\n                    <p>Server connected!</p>\n                  ");
+      }
+
+    function program13(depth0,data) {
+      
+      
+      data.buffer.push("\n                    <p>Waiting to connect to server.</p>\n                  ");
+      }
+
+    function program15(depth0,data) {
+      
+      
+      data.buffer.push("\n                  <aside class=\"pack-end\">\n                    <progress></progress>\n                  </aside>\n                  <p>Getting account information...</p>\n                ");
+      }
+
+    function program17(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n                  ");
+      stack1 = helpers['if'].call(depth0, "isAccountInformationRetrieved", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(20, program20, data),fn:self.program(18, program18, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n                ");
+      return buffer;
+      }
+    function program18(depth0,data) {
+      
+      
+      data.buffer.push("\n                    <p>Account information retrieved!</p>\n                  ");
+      }
+
+    function program20(depth0,data) {
+      
+      
+      data.buffer.push("\n                    <p>Waiting to retrieve account information.</p>\n                  ");
+      }
+
+    function program22(depth0,data) {
+      
+      
+      data.buffer.push("\n                  <aside class=\"pack-end\">\n                    <progress></progress>\n                  </aside>\n                  <p>Getting secrets...</p>\n                ");
+      }
+
+    function program24(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n                  ");
+      stack1 = helpers['if'].call(depth0, "areSecretsRetrieved", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(27, program27, data),fn:self.program(25, program25, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n                ");
+      return buffer;
+      }
+    function program25(depth0,data) {
+      
+      
+      data.buffer.push("\n                    <p>Secrets retrieved!</p>\n                  ");
+      }
+
+    function program27(depth0,data) {
+      
+      
+      data.buffer.push("\n                    <p>Waiting to retrieve secrets.</p>\n                  ");
+      }
+
+    function program29(depth0,data) {
+      
+      var buffer = '';
+      data.buffer.push("\n            <form>\n              <p>\n                <button type=\"button\" class=\"recommend\" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "secrets", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">\n                  Go to my secrets\n                </button>\n              </p>\n            </form>\n          ");
+      return buffer;
+      }
+
+      data.buffer.push("    <section id=\"login\" role=\"region\">\n      <header class=\"fixed\">\n        <h1>Yith Library</h1>\n      </header>\n\n      <article class=\"content scrollable header\">\n        <section data-type=\"list\">\n          ");
+      stack1 = helpers['if'].call(depth0, "showInstructions", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n      </article>\n\n      ");
+      stack1 = helpers._triageMustache.call(depth0, "current-version", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n\n    </section>\n");
+      return buffer;
+      
+    });
+  });
+define("yith-library-mobile-client/templates/loading", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    __exports__["default"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
+    /**/) {
+    this.compilerInfo = [4,'>= 1.0.0'];
+    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+      
+
+
+      data.buffer.push("<section id=\"loading\" role=\"region\">\n  <header class=\"fixed\">\n    <h1>Loading data</h1>\n  </header>\n  <article class=\"content scrollable header\">\n    <header>\n      <h2>Please wait</h2>\n    </header>\n    <progress class=\"pack-activity\" max=\"100\" value=\"0\"></progress>\n  </article>\n</section>\n");
+      
+    });
+  });
+define("yith-library-mobile-client/templates/secret-revealer", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    __exports__["default"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
+    /**/) {
+    this.compilerInfo = [4,'>= 1.0.0'];
+    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+      var buffer = '', stack1, escapeExpression=this.escapeExpression, self=this;
+
+    function program1(depth0,data) {
+      
+      var buffer = '';
+      data.buffer.push("\n  <p>\n    <input type=\"text\" readonly ");
+      data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+        'value': ("view.decryptedSecret")
+      },hashTypes:{'value': "ID"},hashContexts:{'value': depth0},contexts:[],types:[],data:data})));
+      data.buffer.push(" />\n  </p>\n  <p>\n    <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\">\n      <circle cx=\"50%\" cy=\"50%\" r=\"50%\" fill=\"buttonface\" />\n      <path fill=\"white\" />\n    </svg>\n  </p>\n");
+      return buffer;
+      }
+
+    function program3(depth0,data) {
+      
+      
+      data.buffer.push("\n  <p>\n    <input type=\"password\" placeholder=\"Enter your master password here\" autofocus />\n    <button type=\"reset\">Clear</button>\n  </p>\n");
+      }
+
+      stack1 = helpers['if'].call(depth0, "view.decryptedSecret", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n<p>\n  <button ");
+      data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+        'class': ("view.buttonClass")
+      },hashTypes:{'class': "ID"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
+      data.buffer.push(">");
+      stack1 = helpers._triageMustache.call(depth0, "view.buttonText", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("</button>\n</p>\n");
+      return buffer;
+      
+    });
+  });
+define("yith-library-mobile-client/templates/secret", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    __exports__["default"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
+    /**/) {
+    this.compilerInfo = [4,'>= 1.0.0'];
+    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+      var buffer = '', stack1, helper, options, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
+
+    function program1(depth0,data) {
+      
+      
+      data.buffer.push("\n        <span class=\"icon icon-back\">back</span>\n      ");
+      }
+
+    function program3(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n        <header>\n          <h2>Notes</h2>\n        </header>\n        <p>");
+      stack1 = helpers._triageMustache.call(depth0, "notes", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("</p>\n      ");
+      return buffer;
+      }
+
+    function program5(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n        <header>\n          <h2>Tags</h2>\n        </header>\n        <p>");
+      stack1 = helpers._triageMustache.call(depth0, "tags", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("</p>\n      ");
+      return buffer;
+      }
+
+      data.buffer.push("<section data-position=\"right\" role=\"region\" ");
+      data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+        'class': ("position")
+      },hashTypes:{'class': "STRING"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
+      data.buffer.push(" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "finishTransition", {hash:{
+        'on': ("animationEnd")
+      },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(" >\n    <header class=\"fixed\">\n      ");
+      stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "secrets", options) : helperMissing.call(depth0, "link-to", "secrets", options));
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n      <h1>");
+      stack1 = helpers._triageMustache.call(depth0, "service", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("</h1>\n    </header>\n\n    <article class=\"content scrollable header\">\n      ");
+      data.buffer.push(escapeExpression(helpers.view.call(depth0, "secret-revealer", {hash:{
+        'encryptedSecret': ("secret")
+      },hashTypes:{'encryptedSecret': "ID"},hashContexts:{'encryptedSecret': depth0},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push("\n      <header>\n        <h2>Account</h2>\n      </header>\n      <p>");
+      stack1 = helpers._triageMustache.call(depth0, "account", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("</p>\n\n      ");
+      stack1 = helpers['if'].call(depth0, "notes", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n\n      ");
+      stack1 = helpers['if'].call(depth0, "tags", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n    </article>\n</section>");
+      return buffer;
+      
+    });
+  });
+define("yith-library-mobile-client/templates/secrets", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    __exports__["default"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
+    /**/) {
+    this.compilerInfo = [4,'>= 1.0.0'];
+    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+      var buffer = '', stack1, helper, options, self=this, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+
+    function program1(depth0,data) {
+      
+      
+      data.buffer.push("\n        <span class=\"icon icon-menu\">menu</span>\n      ");
+      }
+
+    function program3(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n            <span class=\"tag\">");
+      stack1 = helpers._triageMustache.call(depth0, "tag", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("</span>\n          ");
+      return buffer;
+      }
+
+    function program5(depth0,data) {
+      
+      var buffer = '', stack1, helper, options;
+      data.buffer.push("\n            <li>\n              ");
+      stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(6, program6, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "secret", "id", options) : helperMissing.call(depth0, "link-to", "secret", "id", options));
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n            </li>\n          ");
+      return buffer;
+      }
+    function program6(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n                <p>");
+      stack1 = helpers._triageMustache.call(depth0, "service", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("</p>\n                <p>");
+      stack1 = helpers._triageMustache.call(depth0, "account", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("</p>\n              ");
+      return buffer;
+      }
+
+      data.buffer.push("<section data-position=\"current\" ");
+      data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+        'class': ("position")
+      },hashTypes:{'class': "STRING"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
+      data.buffer.push(">\n\n  ");
+      data.buffer.push(escapeExpression((helper = helpers.outlet || (depth0 && depth0.outlet),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "drawer", options) : helperMissing.call(depth0, "outlet", "drawer", options))));
+      data.buffer.push("\n\n  <section id=\"secrets\" role=\"region\" ");
+      data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+        'class': ("state")
+      },hashTypes:{'class': "STRING"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
+      data.buffer.push(" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "finishTransition", {hash:{
+        'on': ("transitionEnd")
+      },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">\n\n    <header class=\"fixed\">\n      ");
+      stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "secrets.drawer", options) : helperMissing.call(depth0, "link-to", "secrets.drawer", options));
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n      <form action=\"#\">\n        ");
+      data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
+        'placeholder': ("Search..."),
+        'value': ("query")
+      },hashTypes:{'placeholder': "STRING",'value': "ID"},hashContexts:{'placeholder': depth0,'value': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "input", options))));
+      data.buffer.push("\n        <button type=\"reset\" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "clearQuery", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">Remove text</button>\n      </form>\n    </header>\n\n    <article class=\"content scrollable header\">\n      <div data-type=\"list\">\n        <header>\n          <small>");
+      stack1 = helpers._triageMustache.call(depth0, "secretsCount", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push(" ");
+      stack1 = helpers._triageMustache.call(depth0, "secretsNoun", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("</small>\n          ");
+      stack1 = helpers['if'].call(depth0, "tag", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n        </header>\n        <ul>\n          ");
+      stack1 = helpers.each.call(depth0, "secrets", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n        </ul>\n      </div>\n    </article>\n  </section>\n\n</section>\n\n<section role=\"status\" ");
+      data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+        'class': ("statusClass")
+      },hashTypes:{'class': "STRING"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
+      data.buffer.push(">\n  <p>");
+      stack1 = helpers._triageMustache.call(depth0, "statusMessage", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("</p>\n</section>\n\n");
+      stack1 = helpers._triageMustache.call(depth0, "outlet", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n");
+      return buffer;
+      
+    });
+  });
+define("yith-library-mobile-client/templates/secrets/drawer", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    __exports__["default"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
+    /**/) {
+    this.compilerInfo = [4,'>= 1.0.0'];
+    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+      var buffer = '', stack1, helper, options, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
+
+    function program1(depth0,data) {
+      
+      
+      data.buffer.push("Done");
+      }
+
+    function program3(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n          ");
+      stack1 = helpers['if'].call(depth0, "syncButtonDisabled", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n        ");
+      return buffer;
+      }
+    function program4(depth0,data) {
+      
+      var buffer = '';
+      data.buffer.push("\n            <a href=\"#\" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "closeDrawer", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">Sync</a>\n          ");
+      return buffer;
+      }
+
+    function program6(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n            ");
+      stack1 = helpers['if'].call(depth0, "isSyncing", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(9, program9, data),fn:self.program(7, program7, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n          ");
+      return buffer;
+      }
+    function program7(depth0,data) {
+      
+      var buffer = '';
+      data.buffer.push("\n              <a href=\"#\" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "closeDrawer", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">Syncing ...</a>\n            ");
+      return buffer;
+      }
+
+    function program9(depth0,data) {
+      
+      var buffer = '';
+      data.buffer.push("\n              <a href=\"#\" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "sync", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">Sync</a>\n            ");
+      return buffer;
+      }
+
+    function program11(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n          ");
+      stack1 = helpers['if'].call(depth0, "loginButtonDisableed", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(14, program14, data),fn:self.program(12, program12, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n        ");
+      return buffer;
+      }
+    function program12(depth0,data) {
+      
+      var buffer = '';
+      data.buffer.push("\n            <a href=\"#\" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "closeDrawer", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">Login</a>\n          ");
+      return buffer;
+      }
+
+    function program14(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n            ");
+      stack1 = helpers['if'].call(depth0, "isAuthorizing", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(17, program17, data),fn:self.program(15, program15, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n          ");
+      return buffer;
+      }
+    function program15(depth0,data) {
+      
+      var buffer = '';
+      data.buffer.push("\n              <a href=\"#\" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "closeDrawer", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">Logging in ...</a>\n            ");
+      return buffer;
+      }
+
+    function program17(depth0,data) {
+      
+      var buffer = '';
+      data.buffer.push("\n              <a href=\"#\" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "login", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">Log in</a>\n            ");
+      return buffer;
+      }
+
+    function program19(depth0,data) {
+      
+      var buffer = '', stack1, helper, options;
+      data.buffer.push("\n        <li>\n          ");
+      stack1 = (helper = helpers['query-params'] || (depth0 && depth0['query-params']),options={hash:{
+        'tag': ("currentTag.selectTag")
+      },hashTypes:{'tag': "ID"},hashContexts:{'tag': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "query-params", options));
+      stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(20, program20, data),contexts:[depth0,depth0],types:["STRING","sexpr"],data:data},helper ? helper.call(depth0, "secrets", stack1, options) : helperMissing.call(depth0, "link-to", "secrets", stack1, options));
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n        </li>\n      ");
+      return buffer;
+      }
+    function program20(depth0,data) {
+      
+      var buffer = '', stack1, helper, options;
+      data.buffer.push("\n            ");
+      data.buffer.push(escapeExpression((helper = helpers['current-tag'] || (depth0 && depth0['current-tag']),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["ID","ID"],data:data},helper ? helper.call(depth0, "currentTag.name", "tag", options) : helperMissing.call(depth0, "current-tag", "currentTag.name", "tag", options))));
+      data.buffer.push("\n            ");
+      stack1 = helpers._triageMustache.call(depth0, "currentTag.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push(" (");
+      stack1 = helpers._triageMustache.call(depth0, "currentTag.count", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push(")\n          ");
+      return buffer;
+      }
+
+    function program22(depth0,data) {
+      
+      var buffer = '', stack1, helper, options;
+      data.buffer.push("\n        <li>\n          ");
+      stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(23, program23, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "secrets.tags", options) : helperMissing.call(depth0, "link-to", "secrets.tags", options));
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n        </li>\n      ");
+      return buffer;
+      }
+    function program23(depth0,data) {
+      
+      
+      data.buffer.push("See more tags ...");
+      }
+
+      data.buffer.push("<section data-type=\"sidebar\">\n  <header>\n    <menu type=\"toolbar\">\n      ");
+      stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "secrets", options) : helperMissing.call(depth0, "link-to", "secrets", options));
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n    </menu>\n    <h1>");
+      stack1 = helpers._triageMustache.call(depth0, "accountDisplayName", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("</h1>\n  </header>\n\n  <nav>\n    <h2>Account</h2>\n    <ul>\n      <li>\n        ");
+      stack1 = helpers['if'].call(depth0, "authManager.hasValidAccessToken", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(11, program11, data),fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n      </li>\n      <li><a href=\"#\" ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "logout", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">Log out</a></li>\n    </ul>\n\n    <h2>Tags</h2>\n    <ul>\n      ");
+      stack1 = helpers.each.call(depth0, "currentTag", "in", "mostUsedTags", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(19, program19, data),contexts:[depth0,depth0,depth0],types:["ID","ID","ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n      ");
+      stack1 = helpers['if'].call(depth0, "hasMoreTags", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(22, program22, data),contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n    </ul>\n  </nav>\n  ");
+      stack1 = helpers._triageMustache.call(depth0, "current-version", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n</section>\n");
+      return buffer;
+      
+    });
+  });
+define("yith-library-mobile-client/templates/secrets/tags", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    __exports__["default"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
+    /**/) {
+    this.compilerInfo = [4,'>= 1.0.0'];
+    helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+      var buffer = '', stack1, escapeExpression=this.escapeExpression, self=this;
+
+    function program1(depth0,data) {
+      
+      var buffer = '', stack1;
+      data.buffer.push("\n      <button type='button' ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "selectTag", "tag.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data})));
+      data.buffer.push(">\n        ");
+      stack1 = helpers._triageMustache.call(depth0, "tag.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push(" (");
+      stack1 = helpers._triageMustache.call(depth0, "tag.count", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push(")\n      </button>\n    ");
+      return buffer;
+      }
+
+      data.buffer.push("<form data-type=\"action\" role=\"dialog\">\n  <header>Available tags</header>\n  <menu>\n    ");
+      stack1 = helpers.each.call(depth0, "tag", "in", "sortedTags", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0,depth0],types:["ID","ID","ID"],data:data});
+      if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+      data.buffer.push("\n    <button type='button' ");
+      data.buffer.push(escapeExpression(helpers.action.call(depth0, "cancel", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+      data.buffer.push(">Cancel</button>\n  </menu>\n</form>");
+      return buffer;
+      
+    });
+  });
+define("yith-library-mobile-client/tests/adapters/application.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - adapters');
+    test('adapters/application.js should pass jshint', function() { 
+      ok(true, 'adapters/application.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/app.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - .');
+    test('app.js should pass jshint', function() { 
+      ok(true, 'app.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/controllers/application.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - controllers');
+    test('controllers/application.js should pass jshint', function() { 
+      ok(true, 'controllers/application.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/controllers/first-time.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - controllers');
+    test('controllers/first-time.js should pass jshint', function() { 
+      ok(true, 'controllers/first-time.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/controllers/secret.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - controllers');
+    test('controllers/secret.js should pass jshint', function() { 
+      ok(true, 'controllers/secret.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/controllers/secrets.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - controllers');
+    test('controllers/secrets.js should pass jshint', function() { 
+      ok(true, 'controllers/secrets.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/controllers/secrets/drawer.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - controllers/secrets');
+    test('controllers/secrets/drawer.js should pass jshint', function() { 
+      ok(true, 'controllers/secrets/drawer.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/controllers/secrets/tags.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - controllers/secrets');
+    test('controllers/secrets/tags.js should pass jshint', function() { 
+      ok(true, 'controllers/secrets/tags.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/helpers/current-tag.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - helpers');
+    test('helpers/current-tag.js should pass jshint', function() { 
+      ok(true, 'helpers/current-tag.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/helpers/current-version.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - helpers');
+    test('helpers/current-version.js should pass jshint', function() { 
+      ok(true, 'helpers/current-version.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/helpers/resolver", 
+  ["ember/resolver","yith-library-mobile-client/config/environment","exports"],
+  function(__dependency1__, __dependency2__, __exports__) {
+    "use strict";
+    var Resolver = __dependency1__["default"];
+    var config = __dependency2__["default"];
+
+    var resolver = Resolver.create();
+
+    resolver.namespace = {
+      modulePrefix: config.modulePrefix,
+      podModulePrefix: config.podModulePrefix
+    };
+
+    __exports__["default"] = resolver;
+  });
+define("yith-library-mobile-client/tests/helpers/start-app", 
+  ["ember","yith-library-mobile-client/app","yith-library-mobile-client/router","yith-library-mobile-client/config/environment","exports"],
+  function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    var Application = __dependency2__["default"];
+    var Router = __dependency3__["default"];
+    var config = __dependency4__["default"];
+
+    __exports__["default"] = function startApp(attrs) {
+      var application;
+
+      var attributes = Ember.merge({}, config.APP);
+      attributes = Ember.merge(attributes, attrs); // use defaults, but you can override;
+
+      Ember.run(function() {
+        application = Application.create(attributes);
+        application.setupForTesting();
+        application.injectTestHelpers();
+      });
+
+      return application;
+    }
+  });
+define("yith-library-mobile-client/tests/initializers/authmanager.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - initializers');
+    test('initializers/authmanager.js should pass jshint', function() { 
+      ok(true, 'initializers/authmanager.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/initializers/settings.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - initializers');
+    test('initializers/settings.js should pass jshint', function() { 
+      ok(true, 'initializers/settings.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/initializers/syncmanager.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - initializers');
+    test('initializers/syncmanager.js should pass jshint', function() { 
+      ok(true, 'initializers/syncmanager.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/main.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - .');
+    test('main.js should pass jshint', function() { 
+      ok(true, 'main.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/models/account.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - models');
+    test('models/account.js should pass jshint', function() { 
+      ok(true, 'models/account.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/models/secret.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - models');
+    test('models/secret.js should pass jshint', function() { 
+      ok(true, 'models/secret.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/models/tag.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - models');
+    test('models/tag.js should pass jshint', function() { 
+      ok(true, 'models/tag.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/router.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - .');
+    test('router.js should pass jshint', function() { 
+      ok(true, 'router.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/routes/application.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - routes');
+    test('routes/application.js should pass jshint', function() { 
+      ok(true, 'routes/application.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/routes/first-time.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - routes');
+    test('routes/first-time.js should pass jshint', function() { 
+      ok(true, 'routes/first-time.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/routes/index.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - routes');
+    test('routes/index.js should pass jshint', function() { 
+      ok(true, 'routes/index.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/routes/secret.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - routes');
+    test('routes/secret.js should pass jshint', function() { 
+      ok(true, 'routes/secret.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/routes/secrets-drawer.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - routes');
+    test('routes/secrets-drawer.js should pass jshint', function() { 
+      ok(true, 'routes/secrets-drawer.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/routes/secrets.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - routes');
+    test('routes/secrets.js should pass jshint', function() { 
+      ok(true, 'routes/secrets.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/routes/secrets/drawer.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - routes/secrets');
+    test('routes/secrets/drawer.js should pass jshint', function() { 
+      ok(true, 'routes/secrets/drawer.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/routes/secrets/tags.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - routes/secrets');
+    test('routes/secrets/tags.js should pass jshint', function() { 
+      ok(true, 'routes/secrets/tags.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/serializers/application.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - serializers');
+    test('serializers/application.js should pass jshint', function() { 
+      ok(true, 'serializers/application.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/test-helper", 
+  ["yith-library-mobile-client/tests/helpers/resolver","ember-qunit"],
+  function(__dependency1__, __dependency2__) {
+    "use strict";
+    var resolver = __dependency1__["default"];
+    var setResolver = __dependency2__.setResolver;
+
+    setResolver(resolver);
+
+    document.write("<div id=\"ember-testing-container\"><div id=\"ember-testing\"></div></div>");
+
+    QUnit.config.urlConfig.push({ id: "nocontainer", label: "Hide container"});
+    var containerVisibility = QUnit.urlParams.nocontainer ? "hidden" : "visible";
+    document.getElementById("ember-testing-container").style.visibility = containerVisibility;
+  });
+define("yith-library-mobile-client/tests/test-loader", 
+  ["ember"],
+  function(__dependency1__) {
+    "use strict";
+    /* globals requirejs,require */
+    var Ember = __dependency1__["default"];
+
+    // TODO: load based on params
+    Ember.keys(requirejs.entries).forEach(function(entry) {
+      if ((/\-test/).test(entry)) {
+        require(entry, null, null, true);
+      }
+    });
+  });
+define("yith-library-mobile-client/tests/utils/authmanager.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - utils');
+    test('utils/authmanager.js should pass jshint', function() { 
+      ok(true, 'utils/authmanager.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/utils/prefix-event.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - utils');
+    test('utils/prefix-event.js should pass jshint', function() { 
+      ok(true, 'utils/prefix-event.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/utils/settings.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - utils');
+    test('utils/settings.js should pass jshint', function() { 
+      ok(true, 'utils/settings.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/utils/snake-case-to-camel-case.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - utils');
+    test('utils/snake-case-to-camel-case.js should pass jshint', function() { 
+      ok(true, 'utils/snake-case-to-camel-case.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/utils/syncmanager.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - utils');
+    test('utils/syncmanager.js should pass jshint', function() { 
+      ok(true, 'utils/syncmanager.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/views/application.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - views');
+    test('views/application.js should pass jshint', function() { 
+      ok(true, 'views/application.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/views/secret-revealer.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - views');
+    test('views/secret-revealer.js should pass jshint', function() { 
+      ok(true, 'views/secret-revealer.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/views/secrets.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - views');
+    test('views/secrets.js should pass jshint', function() { 
+      ok(true, 'views/secrets.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/yith-library-mobile-client/tests/helpers/resolver.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - yith-library-mobile-client/tests/helpers');
+    test('yith-library-mobile-client/tests/helpers/resolver.js should pass jshint', function() { 
+      ok(true, 'yith-library-mobile-client/tests/helpers/resolver.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/yith-library-mobile-client/tests/helpers/start-app.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - yith-library-mobile-client/tests/helpers');
+    test('yith-library-mobile-client/tests/helpers/start-app.js should pass jshint', function() { 
+      ok(true, 'yith-library-mobile-client/tests/helpers/start-app.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/yith-library-mobile-client/tests/test-helper.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - yith-library-mobile-client/tests');
+    test('yith-library-mobile-client/tests/test-helper.js should pass jshint', function() { 
+      ok(true, 'yith-library-mobile-client/tests/test-helper.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/tests/yith-library-mobile-client/tests/test-loader.jshint", 
+  [],
+  function() {
+    "use strict";
+    module('JSHint - yith-library-mobile-client/tests');
+    test('yith-library-mobile-client/tests/test-loader.js should pass jshint', function() { 
+      ok(true, 'yith-library-mobile-client/tests/test-loader.js should pass jshint.'); 
+    });
+  });
+define("yith-library-mobile-client/utils/authmanager", 
+  ["ember","yith-library-mobile-client/utils/snake-case-to-camel-case","yith-library-mobile-client/config/environment","exports"],
+  function(__dependency1__, __dependency2__, __dependency3__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    var snakeCaseToCamelCase = __dependency2__["default"];
+    var ENV = __dependency3__["default"];
+
+    __exports__["default"] = Ember.Object.extend({
+
+        clientId: ENV.defaults.clientId,
+        clientBaseUrl: ENV.defaults.clientBaseUrl,
+        scope: "read-passwords read-userinfo",
+        accessToken: null,
+        accessTokenExpiration: null,
+
+        init: function () {
+            this._super();
+            this.loadToken();
+        },
+
+        redirectUri: function () {
+            return this.get("clientBaseUrl") + "/assets/auth-callback.html";
+        }.property("clientBaseUrl"),
+
+        authUri: function () {
+            return [
+                this.get("authBaseUri"),
+                "?response_type=token",
+                "&redirect_uri=" + encodeURIComponent(this.get("redirectUri")),
+                "&client_id=" + encodeURIComponent(this.get("clientId")),
+                "&scope=" + encodeURIComponent(this.get("scope")),
+            ].join("");
+        }.property("authBaseUri", "providerId", "clientId", "scope"),
+
+        hasValidAccessToken: function () {
+            var accessToken = this.get("accessToken"),
+                expiration = this.get("accessTokenExpiration");
+            return accessToken !== null && this.now() < expiration;
+        }.property("accessToken", "accessTokenExpiration"),
+
+        authorize: function (serverBaseUrl) {
+            var self = this,
+                state = this.uuid(),
+                encodedState = encodeURIComponent(state),
+                authUri = this.get("authUri") + "&state=" + encodedState,
+                uri = serverBaseUrl + "/oauth2/endpoints/authorization" + authUri,
+                dialog = window.open(uri, "Authorize", "height=600, width=450"),
+                clientBaseUrl = this.get("clientBaseUrl");
+
+            if (window.focus) {
+                dialog.focus();
+            }
+
+            return new Ember.RSVP.Promise(function (resolve, reject) {
+                $(window).on("message", function (event) {
+                    var params;
+                    if (event.originalEvent.origin === clientBaseUrl) {
+                        dialog.close();
+                        params = self.parseHash(event.originalEvent.data);
+                        if (self.checkResponse(params, state)) {
+                            self.saveToken(params);
+                            resolve();
+                        } else {
+                            reject();
+                        }
+                    }
+                });
+            });
+        },
+
+        parseHash: function (hash) {
+            var params = {},
+                queryString = hash.substring(1),  // remove #
+                regex =  /([^#?&=]+)=([^&]*)/g,
+                match = null,
+                key = null;
+
+            while ((match = regex.exec(queryString)) !== null) {
+                key = snakeCaseToCamelCase(decodeURIComponent(match[1]));
+                params[key] = decodeURIComponent(match[2]);
+            }
+            return params;
+        },
+
+        checkResponse: function (params, state) {
+            return params.accessToken && params.state === state;
+        },
+
+        saveToken: function (token) {
+            var expiration = this.now() + parseInt(token.expiresIn, 10);
+            this.set("accessToken", token.accessToken);
+            this.set("accessTokenExpiration", expiration);
+            window.localStorage.setItem("accessToken", token.accessToken);
+            window.localStorage.setItem("accessTokenExpiration", expiration);
+        },
+
+        loadToken: function () {
+            var accessToken = window.localStorage.getItem("accessToken"),
+                expiration = window.localStorage.getItem("accessTokenExpiration");
+            this.set("accessToken", accessToken);
+            this.set("accessTokenExpiration", expiration);
+        },
+
+        deleteToken: function () {
+            window.localStorage.removeItem("accessToken");
+            window.localStorage.removeItem("accessTokenExpiration");
+        },
+
+        now: function () {
+            return Math.round(new Date().getTime() / 1000);
+        },
+
+        uuid: function () {
+            var template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+            return template.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0,
+                    v = (c === "x" ? r : (r & 3 | 8));
+                return v.toString(16);
+            });
+        }
+    });
+  });
+define("yith-library-mobile-client/utils/prefix-event", 
+  ["exports"],
+  function(__exports__) {
+    "use strict";
+    __exports__["default"] = function prefixEvent (event) {
+        var vendorPrefixes = ["webkit", "moz", "MS", "o", ""];
+        var prefixedEventNames = vendorPrefixes.map(function (prefix) {
+            return (prefix ? prefix + event : event.toLowerCase());
+        });
+        return prefixedEventNames.join(" ");
+    }
+  });
+define("yith-library-mobile-client/utils/settings", 
+  ["ember","yith-library-mobile-client/config/environment","exports"],
+  function(__dependency1__, __dependency2__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    var ENV = __dependency2__["default"];
+
+    __exports__["default"] = Ember.Object.extend({
+
+        defaults: {
+            "serverBaseUrl": ENV.defaults.serverBaseUrl
+        },
+
+        getSetting: function (name) {
+            var setting = window.localStorage.getItem(name);
+            if (setting === null) {
+                return this.defaults[name] || null;
+            } else {
+                return JSON.parse(setting);
+            }
+        },
+
+        setSetting: function (name, value) {
+            var serialized = JSON.stringify(value);
+            return window.localStorage.setItem(name, serialized);
+        },
+
+        deleteSetting: function (name) {
+            window.localStorage.removeItem(name);
+        }
+
+    });
+  });
+define("yith-library-mobile-client/utils/snake-case-to-camel-case", 
+  ["exports"],
+  function(__exports__) {
+    "use strict";
+    __exports__["default"] = function snakeCaseToCamelCase (symbol) {
+        return symbol.split("_").filter(function (word) {
+            return word !== "";
+        }).map(function (word, idx) {
+            if (idx === 0) {
+                return word;
+            } else {
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            }
+        }).join("");
+    }
+  });
+define("yith-library-mobile-client/utils/syncmanager", 
+  ["ember","yith-library-mobile-client/utils/snake-case-to-camel-case","exports"],
+  function(__dependency1__, __dependency2__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+    var snakeCaseToCamelCase = __dependency2__["default"];
+
+    __exports__["default"] = Ember.Object.extend({
+
+        fetchUserInfo: function (accessToken, serverBaseUrl, clientId) {
+            var self = this;
+
+            return new Ember.RSVP.Promise(function (resolve /*, reject */) {
+                $.ajax({
+                    url: serverBaseUrl + "/user?client_id=" + clientId,
+                    type: "GET",
+                    crossDomain: true,
+                    headers: {
+                        "Authorization": "Bearer " + accessToken
+                    }
+                }).done(function (data /*, textStatus, jqXHR*/) {
+                    resolve(data);
+                });
+            }).then(function (data) {
+                return self.updateAccountStore(data);
+            });
+        },
+
+        /* Convert all the keys of the record to be in camelCase
+           instead of snake_case */
+        convertRecord: function (record) {
+            var newRecord = {}, key = null, newKey = null;
+            for (key in record) {
+                if (record.hasOwnProperty(key)) {
+                    newKey = snakeCaseToCamelCase(key);
+                    newRecord[newKey] = record[key];
+                }
+            }
+            return newRecord;
+        },
+
+        updateAccountStore: function (rawData) {
+            var self = this;
+
+            return new Ember.RSVP.Promise(function (resolve /*, reject */) {
+                var data = self.convertRecord(rawData);
+                self.store.findById("account", data.id).then(
+                    function (existingRecord) {
+                        // update account
+                        existingRecord.set("email", data.email);
+                        existingRecord.set("firstName", data.firstName);
+                        existingRecord.set("lastName", data.lastName);
+                        existingRecord.set("screenName", data.screenName);
+                        resolve(existingRecord);
+                    }, function () {
+                        // create account
+                        // because we try to find it, it is already in the store
+                        // but the record is empty.
+                        var newRecord = self.store.recordForId("account", data.id);
+                        newRecord.loadedData();
+                        newRecord.setProperties({
+                            email: data.email,
+                            firstName: data.firstName,
+                            lastName: data.lastName,
+                            screenName: data.screenName
+                        });
+                        resolve(newRecord);
+                    }
+                );
+
+            }).then(function (record) {
+                return record.save();
+            });
+        },
+
+        fetchSecrets: function (accessToken, serverBaseUrl, clientId) {
+            var self = this;
+
+            return new Ember.RSVP.Promise(function (resolve /*, reject */) {
+                $.ajax({
+                    url: serverBaseUrl + "/passwords?client_id=" + clientId,
+                    type: "GET",
+                    crossDomain: true,
+                    headers: {
+                        "Authorization": "Bearer " + accessToken
+                    }
+                }).done(function (data /*, textStatus, jqXHR*/) {
+                    resolve(data);
+                });
+            }).then(function (data) {
+                return self.updateSecretsStore(data);
+            });
+        },
+
+        updateSecretsStore: function (data) {
+            var self = this,
+                promises = {
+                    secrets: this.store.find("secret"),
+                    tags: this.store.find("tag")
+                };
+            return Ember.RSVP.hash(promises).then(function (results) {
+                var secretsPromise = Ember.RSVP.all(self.updateSecrets(
+                    results.secrets,
+                    data.passwords
+                )), tagsPromise = Ember.RSVP.all(self.updateTags(
+                    results.tags,
+                    data.passwords
+                ));
+                return Ember.RSVP.hash({
+                    secrets: secretsPromise,
+                    tags: tagsPromise
+                });
+            });
+        },
+
+        updateSecrets: function (existingRecords, passwords) {
+            var self = this, result = [];
+            passwords.forEach(function (password) {
+                var existingRecord = existingRecords.findBy("id", password.id);
+                if (existingRecord !== undefined) {
+                    result.push(self.updateSecret(existingRecord, password));
+                } else {
+                    result.push(self.createSecret(password));
+                }
+            });
+            return result;
+        },
+
+        createSecret: function (data) {
+            return this.store.createRecord("secret", {
+                id: data.id,
+                service: data.service,
+                account: data.account,
+                secret: data.secret,
+                notes: data.notes,
+                tags: data.tags.join(" ")
+            }).save();
+        },
+
+        updateSecret: function (record, data) {
+            record.set("service", data.service);
+            record.set("account", data.account);
+            record.set("secret", data.secret);
+            record.set("notes", data.notes);
+            record.set("tags", data.tags.join(" "));
+            return record.save();
+        },
+
+        updateTags: function (existingRecords, passwords) {
+            var self = this, newTags = new Ember.Map(), result = [];
+            passwords.forEach(function (password) {
+                password.tags.forEach(function (tag) {
+                    if (newTags.has(tag)) {
+                        newTags.set(tag, newTags.get(tag) + 1);
+                    } else {
+                        newTags.set(tag, 1);
+                    }
+                });
+            });
+
+            newTags.forEach(function (name, count) {
+                var existingRecord = existingRecords.findBy("name", name);
+                if (existingRecord !== undefined) {
+                    result.push(self.updateTag(existingRecord, name, count));
+                } else {
+                    result.push(self.createTag(name, count));
+                }
+            });
+            return result;
+        },
+
+        createTag: function (name, count) {
+            return this.store.createRecord("tag", {
+                name: name,
+                count: count
+            }).save();
+        },
+
+        updateTag: function (record, name, count) {
+            record.set("name", name);
+            record.set("count", count);
+            return record.save();
+        },
+
+        deleteAccount: function () {
+            var promises = [];
+            this.store.all("secret").forEach(function (secret) {
+                promises.push(secret.destroyRecord());
+            }, this);
+            this.store.all("tag").forEach(function (tag) {
+                promises.push(tag.destroyRecord());
+            }, this);
+            this.store.all("account").forEach(function (account) {
+                promises.push(account.destroyRecord());
+            }, this);
+
+            return Ember.RSVP.all(promises);
+        }
+
+    });
+  });
+define("yith-library-mobile-client/views/application", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.View.extend({
+        classNames: ["full-height"]
+    });
+  });
+define("yith-library-mobile-client/views/secret-revealer", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.View.extend({
+        templateName: "secret-revealer",
+        tagName: "form",
+        classNames: ["secret-revealer"],
+        attributeBindings: ["autocomplete"],
+        autocomplete: "off",
+        buttonClass: "recommend",
+        buttonText: "Reveal secret",
+        decryptedSecret: null,
+        encryptedSecret: "",
+
+        click: function (event) {
+            var $target = $(event.target);
+
+            if ($target.is("button")) {
+                this.buttonClicked();
+            }
+
+            // Don't bubble up any more events
+            return false;
+        },
+
+        buttonClicked: function () {
+            var $masterPasswordInput = null,
+                masterPasswordValue = null,
+                secret = "";
+
+            if (this.get("decryptedSecret") !== null) {
+                this.hideSecret();
+            } else {
+
+                $masterPasswordInput = this.$("input[type=password]");
+                masterPasswordValue = $masterPasswordInput.val();
+                $masterPasswordInput.val("");
+                secret = this.get("encryptedSecret");
+                try {
+                    this.revealSecret(sjcl.decrypt(masterPasswordValue, secret));
+                    masterPasswordValue = null;
+                } catch (err) {
+                    this.badMasterPassword();
+                }
+            }
+        },
+
+        hideSecret: function () {
+            this.stopTimer();
+
+            this.set("buttonText", "Reveal secret");
+            this.set("buttonClass", "recommend");
+            this.set("decryptedSecret", null);
+        },
+
+        badMasterPassword: function () {
+            this.set("buttonText", "Wrong master password, try again");
+            this.set("buttonClass", "danger");
+            this.$("input[type=password]").focus();
+        },
+
+        revealSecret: function (secret) {
+            this.set("buttonText", "Hide secret");
+            this.set("buttonClass", "recommend");
+            this.set("decryptedSecret", secret);
+
+            Ember.run.scheduleOnce("afterRender", this, function () {
+                this.$("input[type=text]").focus().select();
+                this.startTimer();
+            });
+        },
+
+        startTimer: function () {
+            this.start = new Date();
+
+            this.totalTime = this.getTotalTime();
+
+            this.timer = window.requestAnimationFrame(this.tick.bind(this));
+        },
+
+        stopTimer: function () {
+            if (this.timer) {
+                window.cancelAnimationFrame(this.timer);
+            }
+        },
+
+        getTotalTime: function () {
+            return 60;
+        },
+
+        tick: function () {
+            var $timer = this.$("svg"),
+                width = $timer.width(),
+                width2 = width / 2,
+                radius = width * 0.45,
+                now = new Date(),
+                elapsed = (now - this.start) / 1000,
+                completion = elapsed / this.totalTime,
+                endAngle = 360 * completion,
+                endPoint = this.polarToCartesian(width2, width2, radius, endAngle),
+                arcSweep = endAngle <= 180 ? "1": "0",
+                d = [
+                    "M", width2, width2 - radius,
+                    "A", radius, radius, 0, arcSweep, 0, endPoint.x, endPoint.y,
+                    "L", width2, width2,
+                    "Z"
+                ].join(" ");
+
+            this.$("path").attr("d", d);
+
+            // If completion is 100% hide the secret
+            if (completion >= 1) {
+                this.hideSecret();
+            } else {
+                this.timer = window.requestAnimationFrame(this.tick.bind(this));
+            }
+        },
+
+        polarToCartesian: function (x, y, radius, degrees) {
+            var radians = (degrees - 90) * Math.PI / 180;
+            return {
+                x: x + (radius * Math.cos(radians)),
+                y: y + (radius * Math.sin(radians))
+            };
+        },
+
+        didInsertElement: function () {
+            this.$("input").focus();
+        },
+
+        willDestroy: function () {
+            this.hideSecret();
+        }
+    });
+  });
+define("yith-library-mobile-client/views/secrets", 
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
+    "use strict";
+    var Ember = __dependency1__["default"];
+
+    __exports__["default"] = Ember.View.extend({
+        classNames: ["full-height"],
+
+        didInsertElement: function () {
+            window.addEventListener("offline", this);
+            window.addEventListener("online", this);
+        },
+
+        handleEvent: function (event) {
+            switch (event.type) {
+            case "offline":
+                this.get("controller").send("offline");
+                break;
+            case "online":
+                this.get("controller").send("online");
+                break;
+            }
+        },
+
+        willDestroy: function () {
+            window.removeEventListener("offline", this);
+            window.removeEventListener("online", this);
+        }
+    });
+  });
 /* jshint ignore:start */
 
 define('yith-library-mobile-client/config/environment', ['ember'], function(Ember) {
@@ -193,16 +2490,13 @@ catch(err) {
 
 /* jshint ignore:end */
 
-
-
 });
 
 if (runningTests) {
   require("yith-library-mobile-client/tests/test-helper");
 } else {
-  require("yith-library-mobile-client/app")["default"].create({"version":"@@projectVersion","LOG_ACTIVE_GENERATION":true,"LOG_VIEW_LOOKUPS":true});
+  require("yith-library-mobile-client/app")["default"].create({"version":"@@projectVersion"});
 }
 
-
-
 /* jshint ignore:end */
+//# sourceMappingURL=yith-library-mobile-client.map
