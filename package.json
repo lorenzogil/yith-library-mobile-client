@@ -24,7 +24,7 @@
     "broccoli-merge-trees": "0.1.4",
     "broccoli-replace": "0.1.7",
     "broccoli-static-compiler": "0.1.4",
-    "ember-cli": "0.1.8",
+    "ember-cli": "0.1.9",
     "ember-cli-6to5": "0.2.1",
     "ember-cli-content-security-policy": "0.3.0",
     "ember-cli-dependency-checker": "0.0.7",
