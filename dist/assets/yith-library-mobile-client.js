@@ -1832,7 +1832,7 @@ define('yith-library-mobile-client/tests/utils/authmanager.jshint', function () 
 
   module('JSHint - utils');
   test('utils/authmanager.js should pass jshint', function() { 
-    ok(true, 'utils/authmanager.js should pass jshint.'); 
+    ok(false, 'utils/authmanager.js should pass jshint.\nutils/authmanager.js: line 52, col 13, \'$\' is not defined.\n\n1 error'); 
   });
 
 });
@@ -1872,7 +1872,7 @@ define('yith-library-mobile-client/tests/utils/syncmanager.jshint', function () 
 
   module('JSHint - utils');
   test('utils/syncmanager.js should pass jshint', function() { 
-    ok(true, 'utils/syncmanager.js should pass jshint.'); 
+    ok(false, 'utils/syncmanager.js should pass jshint.\nutils/syncmanager.js: line 10, col 13, \'$\' is not defined.\nutils/syncmanager.js: line 76, col 13, \'$\' is not defined.\n\n2 errors'); 
   });
 
 });
@@ -1892,7 +1892,7 @@ define('yith-library-mobile-client/tests/views/secret-revealer.jshint', function
 
   module('JSHint - views');
   test('views/secret-revealer.js should pass jshint', function() { 
-    ok(false, 'views/secret-revealer.js should pass jshint.\nviews/secret-revealer.js: line 39, col 35, \'sjcl\' is not defined.\n\n1 error'); 
+    ok(false, 'views/secret-revealer.js should pass jshint.\nviews/secret-revealer.js: line 15, col 23, \'$\' is not defined.\nviews/secret-revealer.js: line 39, col 35, \'sjcl\' is not defined.\n\n2 errors'); 
   });
 
 });
