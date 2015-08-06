@@ -12,7 +12,7 @@ export default Ember.View.extend({
     encryptedSecret: '',
 
     click: function (event) {
-        var $target = $(event.target);
+        var $target = Ember.$(event.target);
 
         if ($target.is('button')) {
             this.buttonClicked();

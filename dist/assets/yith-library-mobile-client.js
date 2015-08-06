@@ -1,3 +1,7 @@
+/* jshint ignore:start */
+
+/* jshint ignore:end */
+
 define('yith-library-mobile-client/adapters/application', ['exports', 'ember-data'], function (exports, DS) {
 
     'use strict';
@@ -1832,7 +1836,7 @@ define('yith-library-mobile-client/tests/utils/authmanager.jshint', function () 
 
   module('JSHint - utils');
   test('utils/authmanager.js should pass jshint', function() { 
-    ok(false, 'utils/authmanager.js should pass jshint.\nutils/authmanager.js: line 52, col 13, \'$\' is not defined.\n\n1 error'); 
+    ok(true, 'utils/authmanager.js should pass jshint.'); 
   });
 
 });
@@ -1872,7 +1876,7 @@ define('yith-library-mobile-client/tests/utils/syncmanager.jshint', function () 
 
   module('JSHint - utils');
   test('utils/syncmanager.js should pass jshint', function() { 
-    ok(false, 'utils/syncmanager.js should pass jshint.\nutils/syncmanager.js: line 10, col 13, \'$\' is not defined.\nutils/syncmanager.js: line 76, col 13, \'$\' is not defined.\n\n2 errors'); 
+    ok(true, 'utils/syncmanager.js should pass jshint.'); 
   });
 
 });
@@ -1892,7 +1896,7 @@ define('yith-library-mobile-client/tests/views/secret-revealer.jshint', function
 
   module('JSHint - views');
   test('views/secret-revealer.js should pass jshint', function() { 
-    ok(false, 'views/secret-revealer.js should pass jshint.\nviews/secret-revealer.js: line 15, col 23, \'$\' is not defined.\nviews/secret-revealer.js: line 39, col 35, \'sjcl\' is not defined.\n\n2 errors'); 
+    ok(true, 'views/secret-revealer.js should pass jshint.'); 
   });
 
 });
@@ -1951,7 +1955,7 @@ define('yith-library-mobile-client/utils/authmanager', ['exports', 'ember', 'yit
             }
 
             return new Ember['default'].RSVP.Promise(function (resolve, reject) {
-                $(window).on("message", function (event) {
+                Ember['default'].$(window).on("message", function (event) {
                     var params;
                     if (event.originalEvent.origin === clientBaseUrl) {
                         dialog.close();
@@ -2094,7 +2098,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             var self = this;
 
             return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
-                $.ajax({
+                Ember['default'].$.ajax({
                     url: serverBaseUrl + "/user?client_id=" + clientId,
                     type: "GET",
                     crossDomain: true,
@@ -2159,7 +2163,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             var self = this;
 
             return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
-                $.ajax({
+                Ember['default'].$.ajax({
                     url: serverBaseUrl + "/passwords?client_id=" + clientId,
                     type: "GET",
                     crossDomain: true,
@@ -2305,7 +2309,7 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
         encryptedSecret: "",
 
         click: function (event) {
-            var $target = $(event.target);
+            var $target = Ember['default'].$(event.target);
 
             if ($target.is("button")) {
                 this.buttonClicked();
@@ -2450,6 +2454,10 @@ define('yith-library-mobile-client/views/secrets', ['exports', 'ember'], functio
     });
 
 });
+/* jshint ignore:start */
+
+/* jshint ignore:end */
+
 /* jshint ignore:start */
 
 define('yith-library-mobile-client/config/environment', ['ember'], function(Ember) {

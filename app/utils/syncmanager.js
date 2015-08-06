@@ -7,7 +7,7 @@ export default Ember.Object.extend({
         var self = this;
 
         return new Ember.RSVP.Promise(function (resolve /*, reject */) {
-            $.ajax({
+            Ember.$.ajax({
                 url: serverBaseUrl + '/user?client_id=' + clientId,
                 type: 'GET',
                 crossDomain: true,
@@ -73,7 +73,7 @@ export default Ember.Object.extend({
         var self = this;
 
         return new Ember.RSVP.Promise(function (resolve /*, reject */) {
-            $.ajax({
+            Ember.$.ajax({
                 url: serverBaseUrl + '/passwords?client_id=' + clientId,
                 type: 'GET',
                 crossDomain: true,
