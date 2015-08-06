@@ -9,7 +9,7 @@ define('yith-library-mobile-client/adapters/application', ['exports', 'ember-dat
     exports['default'] = DS['default'].IndexedDBAdapter.extend({
         databaseName: "yithlibrary",
         version: 1,
-        migrations: function () {
+        migrations: function migrations() {
             this.addModel("account", { keyPath: "id", autoIncrement: false });
             this.addModel("secret", { keyPath: "id", autoIncrement: false });
             this.addModel("tag");
@@ -43,7 +43,6 @@ define('yith-library-mobile-client/controllers/application', ['exports', 'ember'
 	'use strict';
 
 	exports['default'] = Ember['default'].ObjectController.extend({});
-
 
 	// The active Account object will be set as the model for this controller
 
@@ -96,7 +95,7 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
             return this.get("step") === 4;
         }).property("step"),
 
-        connectToServer: function () {
+        connectToServer: function connectToServer() {
             var controller = this,
                 syncManager = this.syncManager,
                 authManager = this.authManager,
@@ -122,13 +121,13 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
         },
 
         actions: {
-            connect: function () {
+            connect: function connect() {
                 Ember['default'].run.next(this, function () {
                     this.connectToServer();
                 });
             },
 
-            secrets: function () {
+            secrets: function secrets() {
                 this.transitionToRoute("secrets.index");
             }
         }
@@ -191,7 +190,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
             }
         }).property("statusMessage"),
 
-        showMessage: function (msg) {
+        showMessage: function showMessage(msg) {
             this.set("statusMessage", msg);
             Ember['default'].run.later(this, function () {
                 this.set("statusMessage", "");
@@ -201,7 +200,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
             }, 2500);
         },
 
-        syncFromServer: function () {
+        syncFromServer: function syncFromServer() {
             var controller = this,
                 accessToken = null,
                 clientId = null,
@@ -232,7 +231,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
             }
         },
 
-        authorizeInServer: function () {
+        authorizeInServer: function authorizeInServer() {
             var controller = this,
                 serverBaseUrl = null;
 
@@ -249,7 +248,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
             }
         },
 
-        logout: function () {
+        logout: function logout() {
             var self = this;
             this.authManager.deleteToken();
             this.settings.deleteSetting("lastAccount");
@@ -260,15 +259,15 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
 
         actions: {
 
-            clearQuery: function () {
+            clearQuery: function clearQuery() {
                 this.set("query", "");
             },
 
-            offline: function () {
+            offline: function offline() {
                 this.set("isOnline", false);
             },
 
-            online: function () {
+            online: function online() {
                 this.set("isOnline", true);
             }
 
@@ -340,21 +339,21 @@ define('yith-library-mobile-client/controllers/secrets/drawer', ['exports', 'emb
         }).property("controllers.secrets.isOnline"),
 
         actions: {
-            login: function () {
+            login: function login() {
                 this.transitionToRoute("secrets");
                 Ember['default'].run.next(this, function () {
                     this.get("controllers.secrets").authorizeInServer();
                 });
             },
 
-            sync: function () {
+            sync: function sync() {
                 this.transitionToRoute("secrets");
                 Ember['default'].run.next(this, function () {
                     this.get("controllers.secrets").syncFromServer();
                 });
             },
 
-            logout: function () {
+            logout: function logout() {
                 this.transitionToRoute("secrets");
                 Ember['default'].run.next(this, function () {
                     this.get("controllers.secrets").logout();
@@ -373,11 +372,11 @@ define('yith-library-mobile-client/controllers/secrets/tags', ['exports', 'ember
         tagsSortProperties: ["name:asc"],
         sortedTags: Ember['default'].computed.sort("content", "tagsSortProperties"),
         actions: {
-            selectTag: function (tagName) {
+            selectTag: function selectTag(tagName) {
                 this.transitionToRoute("secrets", { queryParams: { tag: tagName } });
             },
 
-            cancel: function () {
+            cancel: function cancel() {
                 this.transitionToRoute("secrets");
             }
         }
@@ -413,7 +412,7 @@ define('yith-library-mobile-client/initializers/app-version', ['exports', 'yith-
 
   exports['default'] = {
     name: "App Version",
-    initialize: function (container, application) {
+    initialize: function initialize(container, application) {
       var appName = classify(application.toString());
       Ember['default'].libraries.register(appName, config['default'].APP.version);
     }
@@ -427,7 +426,7 @@ define('yith-library-mobile-client/initializers/authmanager', ['exports', 'yith-
     exports['default'] = {
         name: "authManager",
 
-        initialize: function (container, application) {
+        initialize: function initialize(container, application) {
             application.register("authmanager:main", AuthManager['default']);
 
             application.inject("controller", "authManager", "authmanager:main");
@@ -456,14 +455,16 @@ define('yith-library-mobile-client/initializers/export-application-global', ['ex
         window[globalName] = application;
 
         application.reopen({
-          willDestroy: function () {
+          willDestroy: function willDestroy() {
             this._super.apply(this, arguments);
             delete window[globalName];
           }
         });
       }
     }
-  };
+  }
+
+  ;
 
   exports['default'] = {
     name: "export-application-global",
@@ -479,7 +480,7 @@ define('yith-library-mobile-client/initializers/settings', ['exports', 'yith-lib
     exports['default'] = {
         name: "settings",
 
-        initialize: function (container, application) {
+        initialize: function initialize(container, application) {
             application.register("settings:main", Settings['default']);
 
             application.inject("route", "settings", "settings:main");
@@ -495,7 +496,7 @@ define('yith-library-mobile-client/initializers/syncmanager', ['exports', 'yith-
     exports['default'] = {
         name: "syncManager",
 
-        initialize: function (container, application) {
+        initialize: function initialize(container, application) {
             application.register("syncmanager:main", SyncManager['default']);
 
             application.inject("controller", "syncManager", "syncmanager:main");
@@ -584,7 +585,7 @@ define('yith-library-mobile-client/models/secret', ['exports', 'ember-data'], fu
         notes: DS['default'].attr("string"),
         tags: DS['default'].attr("string"),
 
-        matches: function (tag, query) {
+        matches: function matches(tag, query) {
             var tagMatch = tag === "",
                 queryMatch = query === "",
                 tags = "";
@@ -638,7 +639,7 @@ define('yith-library-mobile-client/routes/application', ['exports', 'ember'], fu
     'use strict';
 
     exports['default'] = Ember['default'].Route.extend({
-        model: function () {
+        model: function model() {
             var lastAccount = this.settings.getSetting("lastAccount");
             if (lastAccount) {
                 return this.store.find("account", lastAccount);
@@ -647,7 +648,7 @@ define('yith-library-mobile-client/routes/application', ['exports', 'ember'], fu
             }
         },
 
-        afterModel: function (model) {
+        afterModel: function afterModel(model) {
             if (model === null) {
                 this.transitionTo("firstTime");
             }
@@ -668,7 +669,7 @@ define('yith-library-mobile-client/routes/index', ['exports', 'ember'], function
 
     exports['default'] = Ember['default'].Route.extend({
 
-        setupController: function () {
+        setupController: function setupController() {
             this.transitionTo("secrets");
         }
 
@@ -683,7 +684,7 @@ define('yith-library-mobile-client/routes/secret', ['exports', 'ember'], functio
 
         transitionToSecrets: null,
 
-        setupController: function (controller, model) {
+        setupController: function setupController(controller, model) {
             this._super(controller, model);
             var secretsController = this.controllerFor("secrets");
             if (secretsController.get("position") !== "left") {
@@ -693,7 +694,7 @@ define('yith-library-mobile-client/routes/secret', ['exports', 'ember'], functio
         },
 
         actions: {
-            willTransition: function (transition) {
+            willTransition: function willTransition(transition) {
                 var secretsController = this.controllerFor("secrets");
                 if (transition.targetName === "secrets.index") {
                     if (secretsController.get("position") === "left") {
@@ -711,7 +712,7 @@ define('yith-library-mobile-client/routes/secret', ['exports', 'ember'], functio
                 return true;
             },
 
-            finishTransition: function () {
+            finishTransition: function finishTransition() {
                 var transition = this.get("transitionToSecrets");
                 if (transition) {
                     this.set("transitionToSecrets", null);
@@ -729,11 +730,11 @@ define('yith-library-mobile-client/routes/secrets-drawer', ['exports', 'ember'],
 
     exports['default'] = Ember['default'].Route.extend({
 
-        model: function () {
+        model: function model() {
             return this.store.find("tag");
         },
 
-        renderTemplate: function () {
+        renderTemplate: function renderTemplate() {
             this.render({ outlet: "drawer" });
         }
 
@@ -746,17 +747,17 @@ define('yith-library-mobile-client/routes/secrets', ['exports', 'ember'], functi
 
     exports['default'] = Ember['default'].Route.extend({
 
-        setupController: function (controller, model) {
+        setupController: function setupController(controller, model) {
             this._super(controller, model);
             controller.set("state", "");
         },
 
-        model: function () {
+        model: function model() {
             return this.store.find("secret");
         },
 
         actions: {
-            willTransition: function (transition) {
+            willTransition: function willTransition(transition) {
                 if (transition.targetName === "secret") {
                     this.controller.set("position", "left");
                 } else if (transition.targetName === "secrets.index") {
@@ -779,21 +780,21 @@ define('yith-library-mobile-client/routes/secrets/drawer', ['exports', 'ember'],
 
         transitionToSecrets: null,
 
-        setupController: function (controller, model) {
+        setupController: function setupController(controller, model) {
             this._super(controller, model);
             this.controllerFor("secrets").set("state", "drawer-opened");
         },
 
-        model: function () {
+        model: function model() {
             return this.store.find("tag");
         },
 
-        renderTemplate: function () {
+        renderTemplate: function renderTemplate() {
             this.render({ outlet: "drawer" });
         },
 
         actions: {
-            willTransition: function (transition) {
+            willTransition: function willTransition(transition) {
                 var secretsController = this.controllerFor("secrets");
                 if (transition.targetName === "secrets.index") {
                     // when the transition is retried (see finishTransition)
@@ -810,7 +811,7 @@ define('yith-library-mobile-client/routes/secrets/drawer', ['exports', 'ember'],
                 return true;
             },
 
-            finishTransition: function () {
+            finishTransition: function finishTransition() {
                 var transition = this.get("transitionToSecrets");
                 if (transition) {
                     this.set("transitionToSecrets", null);
@@ -828,7 +829,7 @@ define('yith-library-mobile-client/routes/secrets/tags', ['exports', 'ember'], f
 
     exports['default'] = Ember['default'].Route.extend({
 
-        model: function () {
+        model: function model() {
             return this.store.find("tag");
         }
 
@@ -842,626 +843,2772 @@ define('yith-library-mobile-client/serializers/application', ['exports', 'ember-
 	exports['default'] = DS['default'].IndexedDBSerializer.extend();
 
 });
-define('yith-library-mobile-client/templates/application', ['exports', 'ember'], function (exports, Ember) {
+define('yith-library-mobile-client/templates/application', ['exports'], function (exports) {
 
   'use strict';
 
-  exports['default'] = Ember['default'].Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
-  /**/) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-  helpers = this.merge(helpers, Ember['default'].Handlebars.helpers); data = data || {};
-    var buffer = '', stack1;
-
-
-    stack1 = helpers._triageMustache.call(depth0, "outlet", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n");
-    return buffer;
-    
-  });
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      isHTMLBars: true,
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createTextNode("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, content = hooks.content;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        if (this.cachedFragment) { dom.repairClonedNode(fragment,[0]); }
+        var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+        content(env, morph0, context, "outlet");
+        return fragment;
+      }
+    };
+  }()));
 
 });
-define('yith-library-mobile-client/templates/first-time', ['exports', 'ember'], function (exports, Ember) {
+define('yith-library-mobile-client/templates/first-time', ['exports'], function (exports) {
 
   'use strict';
 
-  exports['default'] = Ember['default'].Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
-  /**/) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-  helpers = this.merge(helpers, Ember['default'].Handlebars.helpers); data = data || {};
-    var buffer = '', stack1, escapeExpression=this.escapeExpression, self=this;
-
-  function program1(depth0,data) {
-    
-    var buffer = '';
-    data.buffer.push("\n            <header>First time steps</header>\n            <ul>\n              <li>\n                <p>Connect to the server</p>\n                <p>to sign in or sign up</p>\n              </li>\n              <li>\n                <p>Retrieve your account information</p>\n                <p>so we know a little bit about you</p>\n              </li>\n              <li>\n                <p>Retrieve your secrets</p>\n                <p>and access them even when offline</p>\n              </li>\n            </ul>\n            <form>\n              <p>\n                <button type=\"button\" class=\"recommend\" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "connect", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">Connect to YithLibrary.com</button>\n              </p>\n            </form>\n          ");
-    return buffer;
-    }
-
-  function program3(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n            <header>\n              ");
-    stack1 = helpers['if'].call(depth0, "isFinished", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n            </header>\n            <ul>\n              <li>\n                ");
-    stack1 = helpers['if'].call(depth0, "isConnectingToServer", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(10, program10, data),fn:self.program(8, program8, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n              </li>\n              <li ");
-    data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
-      'aria-disabled': ("accountDisabled")
-    },hashTypes:{'aria-disabled': "STRING"},hashContexts:{'aria-disabled': depth0},contexts:[],types:[],data:data})));
-    data.buffer.push(">\n                ");
-    stack1 = helpers['if'].call(depth0, "isGettingAccountInformation", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(17, program17, data),fn:self.program(15, program15, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n              </li>\n              <li ");
-    data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
-      'aria-disabled': ("secretsDisabled")
-    },hashTypes:{'aria-disabled': "STRING"},hashContexts:{'aria-disabled': depth0},contexts:[],types:[],data:data})));
-    data.buffer.push(">\n                ");
-    stack1 = helpers['if'].call(depth0, "isGettingSecrets", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(24, program24, data),fn:self.program(22, program22, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n              </li>\n            </ul>\n          </section>\n          ");
-    stack1 = helpers['if'].call(depth0, "isFinished", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(29, program29, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n        ");
-    return buffer;
-    }
-  function program4(depth0,data) {
-    
-    
-    data.buffer.push("\n                Your secrets are ready!\n              ");
-    }
-
-  function program6(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n                Running step ");
-    stack1 = helpers._triageMustache.call(depth0, "step", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push(" of 3\n              ");
-    return buffer;
-    }
-
-  function program8(depth0,data) {
-    
-    
-    data.buffer.push("\n                  <aside class=\"pack-end\">\n                    <progress></progress>\n                  </aside>\n                  <p>Connecting to the server...</p>\n                ");
-    }
-
-  function program10(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n                  ");
-    stack1 = helpers['if'].call(depth0, "isServerConnected", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(13, program13, data),fn:self.program(11, program11, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n                ");
-    return buffer;
-    }
-  function program11(depth0,data) {
-    
-    
-    data.buffer.push("\n                    <p>Server connected!</p>\n                  ");
-    }
-
-  function program13(depth0,data) {
-    
-    
-    data.buffer.push("\n                    <p>Waiting to connect to server.</p>\n                  ");
-    }
-
-  function program15(depth0,data) {
-    
-    
-    data.buffer.push("\n                  <aside class=\"pack-end\">\n                    <progress></progress>\n                  </aside>\n                  <p>Getting account information...</p>\n                ");
-    }
-
-  function program17(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n                  ");
-    stack1 = helpers['if'].call(depth0, "isAccountInformationRetrieved", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(20, program20, data),fn:self.program(18, program18, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n                ");
-    return buffer;
-    }
-  function program18(depth0,data) {
-    
-    
-    data.buffer.push("\n                    <p>Account information retrieved!</p>\n                  ");
-    }
-
-  function program20(depth0,data) {
-    
-    
-    data.buffer.push("\n                    <p>Waiting to retrieve account information.</p>\n                  ");
-    }
-
-  function program22(depth0,data) {
-    
-    
-    data.buffer.push("\n                  <aside class=\"pack-end\">\n                    <progress></progress>\n                  </aside>\n                  <p>Getting secrets...</p>\n                ");
-    }
-
-  function program24(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n                  ");
-    stack1 = helpers['if'].call(depth0, "areSecretsRetrieved", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(27, program27, data),fn:self.program(25, program25, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n                ");
-    return buffer;
-    }
-  function program25(depth0,data) {
-    
-    
-    data.buffer.push("\n                    <p>Secrets retrieved!</p>\n                  ");
-    }
-
-  function program27(depth0,data) {
-    
-    
-    data.buffer.push("\n                    <p>Waiting to retrieve secrets.</p>\n                  ");
-    }
-
-  function program29(depth0,data) {
-    
-    var buffer = '';
-    data.buffer.push("\n            <form>\n              <p>\n                <button type=\"button\" class=\"recommend\" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "secrets", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">\n                  Go to my secrets\n                </button>\n              </p>\n            </form>\n          ");
-    return buffer;
-    }
-
-    data.buffer.push("    <section id=\"login\" role=\"region\">\n      <header class=\"fixed\">\n        <h1>Yith Library</h1>\n      </header>\n\n      <article class=\"content scrollable header\">\n        <section data-type=\"list\">\n          ");
-    stack1 = helpers['if'].call(depth0, "showInstructions", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n      </article>\n\n      ");
-    stack1 = helpers._triageMustache.call(depth0, "current-version", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n\n    </section>\n");
-    return buffer;
-    
-  });
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("header");
+          var el2 = dom.createTextNode("First time steps");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("ul");
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          var el3 = dom.createTextNode("\n            ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("p");
+          var el4 = dom.createTextNode("Connect to the server");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n            ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("p");
+          var el4 = dom.createTextNode("to sign in or sign up");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n          ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          var el3 = dom.createTextNode("\n            ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("p");
+          var el4 = dom.createTextNode("Retrieve your account information");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n            ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("p");
+          var el4 = dom.createTextNode("so we know a little bit about you");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n          ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          var el3 = dom.createTextNode("\n            ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("p");
+          var el4 = dom.createTextNode("Retrieve your secrets");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n            ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("p");
+          var el4 = dom.createTextNode("and access them even when offline");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n          ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("form");
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("p");
+          var el3 = dom.createTextNode("\n            ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("button");
+          dom.setAttribute(el3,"type","button");
+          dom.setAttribute(el3,"class","recommend");
+          var el4 = dom.createTextNode("Connect to YithLibrary.com");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n          ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, element = hooks.element;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var element4 = dom.childAt(fragment, [5, 1, 1]);
+          element(env, element4, context, "action", ["connect"], {});
+          return fragment;
+        }
+      };
+    }());
+    var child1 = (function() {
+      var child0 = (function() {
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createTextNode("            Your secrets are ready!\n");
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            return fragment;
+          }
+        };
+      }());
+      var child1 = (function() {
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("            Running step ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode(" of 3\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, content = hooks.content;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            content(env, morph0, context, "step");
+            return fragment;
+          }
+        };
+      }());
+      var child2 = (function() {
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("              ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("aside");
+            dom.setAttribute(el1,"class","pack-end");
+            var el2 = dom.createElement("progress");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n              ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("p");
+            var el2 = dom.createTextNode("Connecting to the server...");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            return fragment;
+          }
+        };
+      }());
+      var child3 = (function() {
+        var child0 = (function() {
+          return {
+            isHTMLBars: true,
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("p");
+              var el2 = dom.createTextNode("Server connected!");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              return fragment;
+            }
+          };
+        }());
+        var child1 = (function() {
+          return {
+            isHTMLBars: true,
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("p");
+              var el2 = dom.createTextNode("Waiting to connect to server.");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              return fragment;
+            }
+          };
+        }());
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, get = hooks.get, block = hooks.block;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
+            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            block(env, morph0, context, "if", [get(env, context, "isServerConnected")], {}, child0, child1);
+            return fragment;
+          }
+        };
+      }());
+      var child4 = (function() {
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("              ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("aside");
+            dom.setAttribute(el1,"class","pack-end");
+            var el2 = dom.createElement("progress");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n              ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("p");
+            var el2 = dom.createTextNode("Getting account information...");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            return fragment;
+          }
+        };
+      }());
+      var child5 = (function() {
+        var child0 = (function() {
+          return {
+            isHTMLBars: true,
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("p");
+              var el2 = dom.createTextNode("Account information retrieved!");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              return fragment;
+            }
+          };
+        }());
+        var child1 = (function() {
+          return {
+            isHTMLBars: true,
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("p");
+              var el2 = dom.createTextNode("Waiting to retrieve account information.");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              return fragment;
+            }
+          };
+        }());
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, get = hooks.get, block = hooks.block;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
+            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            block(env, morph0, context, "if", [get(env, context, "isAccountInformationRetrieved")], {}, child0, child1);
+            return fragment;
+          }
+        };
+      }());
+      var child6 = (function() {
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("              ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("aside");
+            dom.setAttribute(el1,"class","pack-end");
+            var el2 = dom.createElement("progress");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n              ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("p");
+            var el2 = dom.createTextNode("Getting secrets...");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            return fragment;
+          }
+        };
+      }());
+      var child7 = (function() {
+        var child0 = (function() {
+          return {
+            isHTMLBars: true,
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("p");
+              var el2 = dom.createTextNode("Secrets retrieved!");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              return fragment;
+            }
+          };
+        }());
+        var child1 = (function() {
+          return {
+            isHTMLBars: true,
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("p");
+              var el2 = dom.createTextNode("Waiting to retrieve secrets.");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              return fragment;
+            }
+          };
+        }());
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, get = hooks.get, block = hooks.block;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
+            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            block(env, morph0, context, "if", [get(env, context, "areSecretsRetrieved")], {}, child0, child1);
+            return fragment;
+          }
+        };
+      }());
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("header");
+          var el2 = dom.createTextNode("\n");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("ul");
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          var el3 = dom.createTextNode("\n");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("          ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          var el3 = dom.createTextNode("\n");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("          ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          var el3 = dom.createTextNode("\n");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("          ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, get = hooks.get, block = hooks.block, element = hooks.element;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var element1 = dom.childAt(fragment, [3]);
+          var element2 = dom.childAt(element1, [3]);
+          var element3 = dom.childAt(element1, [5]);
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,1);
+          var morph1 = dom.createMorphAt(dom.childAt(element1, [1]),0,1);
+          var morph2 = dom.createMorphAt(element2,0,1);
+          var morph3 = dom.createMorphAt(element3,0,1);
+          block(env, morph0, context, "if", [get(env, context, "isFinished")], {}, child0, child1);
+          block(env, morph1, context, "if", [get(env, context, "isConnectingToServer")], {}, child2, child3);
+          element(env, element2, context, "bind-attr", [], {"aria-disabled": "accountDisabled"});
+          block(env, morph2, context, "if", [get(env, context, "isGettingAccountInformation")], {}, child4, child5);
+          element(env, element3, context, "bind-attr", [], {"aria-disabled": "secretsDisabled"});
+          block(env, morph3, context, "if", [get(env, context, "isGettingSecrets")], {}, child6, child7);
+          return fragment;
+        }
+      };
+    }());
+    var child2 = (function() {
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("form");
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("p");
+          var el3 = dom.createTextNode("\n            ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("button");
+          dom.setAttribute(el3,"type","button");
+          dom.setAttribute(el3,"class","recommend");
+          var el4 = dom.createTextNode("\n              Go to my secrets\n            ");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n          ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, element = hooks.element;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var element0 = dom.childAt(fragment, [1, 1, 1]);
+          element(env, element0, context, "action", ["secrets"], {});
+          return fragment;
+        }
+      };
+    }());
+    return {
+      isHTMLBars: true,
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("section");
+        dom.setAttribute(el1,"id","login");
+        dom.setAttribute(el1,"role","region");
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("header");
+        dom.setAttribute(el2,"class","fixed");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("h1");
+        var el4 = dom.createTextNode("Yith Library");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("article");
+        dom.setAttribute(el2,"class","content scrollable header");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("section");
+        dom.setAttribute(el3,"data-type","list");
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, get = hooks.get, block = hooks.block, content = hooks.content;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        var element5 = dom.childAt(fragment, [0]);
+        var element6 = dom.childAt(element5, [3, 1]);
+        if (this.cachedFragment) { dom.repairClonedNode(element6,[1]); }
+        var morph0 = dom.createMorphAt(element6,0,1);
+        var morph1 = dom.createMorphAt(element6,1,2);
+        var morph2 = dom.createMorphAt(element5,4,5);
+        block(env, morph0, context, "if", [get(env, context, "showInstructions")], {}, child0, child1);
+        block(env, morph1, context, "if", [get(env, context, "isFinished")], {}, child2, null);
+        content(env, morph2, context, "current-version");
+        return fragment;
+      }
+    };
+  }()));
 
 });
-define('yith-library-mobile-client/templates/loading', ['exports', 'ember'], function (exports, Ember) {
+define('yith-library-mobile-client/templates/loading', ['exports'], function (exports) {
 
   'use strict';
 
-  exports['default'] = Ember['default'].Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
-  /**/) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-  helpers = this.merge(helpers, Ember['default'].Handlebars.helpers); data = data || {};
-    
-
-
-    data.buffer.push("<section id=\"loading\" role=\"region\">\n  <header class=\"fixed\">\n    <h1>Loading data</h1>\n  </header>\n  <article class=\"content scrollable header\">\n    <header>\n      <h2>Please wait</h2>\n    </header>\n    <progress class=\"pack-activity\" max=\"100\" value=\"0\"></progress>\n  </article>\n</section>\n");
-    
-  });
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      isHTMLBars: true,
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("section");
+        dom.setAttribute(el1,"id","loading");
+        dom.setAttribute(el1,"role","region");
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("header");
+        dom.setAttribute(el2,"class","fixed");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("h1");
+        var el4 = dom.createTextNode("Loading data");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("article");
+        dom.setAttribute(el2,"class","content scrollable header");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("header");
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("h2");
+        var el5 = dom.createTextNode("Please wait");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("progress");
+        dom.setAttribute(el3,"class","pack-activity");
+        dom.setAttribute(el3,"max","100");
+        dom.setAttribute(el3,"value","0");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        return fragment;
+      }
+    };
+  }()));
 
 });
-define('yith-library-mobile-client/templates/secret-revealer', ['exports', 'ember'], function (exports, Ember) {
+define('yith-library-mobile-client/templates/secret-revealer', ['exports'], function (exports) {
 
   'use strict';
 
-  exports['default'] = Ember['default'].Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
-  /**/) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-  helpers = this.merge(helpers, Ember['default'].Handlebars.helpers); data = data || {};
-    var buffer = '', stack1, escapeExpression=this.escapeExpression, self=this;
-
-  function program1(depth0,data) {
-    
-    var buffer = '';
-    data.buffer.push("\n  <p>\n    <input type=\"text\" readonly ");
-    data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
-      'value': ("view.decryptedSecret")
-    },hashTypes:{'value': "ID"},hashContexts:{'value': depth0},contexts:[],types:[],data:data})));
-    data.buffer.push(" />\n  </p>\n  <p>\n    <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\">\n      <circle cx=\"50%\" cy=\"50%\" r=\"50%\" fill=\"buttonface\" />\n      <path fill=\"white\" />\n    </svg>\n  </p>\n");
-    return buffer;
-    }
-
-  function program3(depth0,data) {
-    
-    
-    data.buffer.push("\n  <p>\n    <input type=\"password\" placeholder=\"Enter your master password here\" autofocus />\n    <button type=\"reset\">Clear</button>\n  </p>\n");
-    }
-
-    stack1 = helpers['if'].call(depth0, "view.decryptedSecret", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n<p>\n  <button ");
-    data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
-      'class': ("view.buttonClass")
-    },hashTypes:{'class': "ID"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
-    data.buffer.push(">");
-    stack1 = helpers._triageMustache.call(depth0, "view.buttonText", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("</button>\n</p>\n");
-    return buffer;
-    
-  });
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("  ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("p");
+          var el2 = dom.createTextNode("\n    ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("input");
+          dom.setAttribute(el2,"type","text");
+          dom.setAttribute(el2,"readonly","");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n  ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n  ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("p");
+          var el2 = dom.createTextNode("\n    ");
+          dom.appendChild(el1, el2);
+          dom.setNamespace("http://www.w3.org/2000/svg");
+          var el2 = dom.createElement("svg");
+          dom.setAttribute(el2,"xmlns","http://www.w3.org/2000/svg");
+          dom.setAttribute(el2,"width","40");
+          dom.setAttribute(el2,"height","40");
+          var el3 = dom.createTextNode("\n      ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("circle");
+          dom.setAttribute(el3,"cx","50%");
+          dom.setAttribute(el3,"cy","50%");
+          dom.setAttribute(el3,"r","50%");
+          dom.setAttribute(el3,"fill","buttonface");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n      ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("path");
+          dom.setAttribute(el3,"fill","white");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n    ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n  ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, get = hooks.get, element = hooks.element;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var element0 = dom.childAt(fragment, [1, 1]);
+          element(env, element0, context, "bind-attr", [], {"value": get(env, context, "view.decryptedSecret")});
+          return fragment;
+        }
+      };
+    }());
+    var child1 = (function() {
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("  ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("p");
+          var el2 = dom.createTextNode("\n    ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("input");
+          dom.setAttribute(el2,"type","password");
+          dom.setAttribute(el2,"placeholder","Enter your master password here");
+          dom.setAttribute(el2,"autofocus","");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n    ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("button");
+          dom.setAttribute(el2,"type","reset");
+          var el3 = dom.createTextNode("Clear");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n  ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          return fragment;
+        }
+      };
+    }());
+    return {
+      isHTMLBars: true,
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createTextNode("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("p");
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("button");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, get = hooks.get, block = hooks.block, element = hooks.element, content = hooks.content;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        if (this.cachedFragment) { dom.repairClonedNode(fragment,[0]); }
+        var element1 = dom.childAt(fragment, [1, 1]);
+        var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+        var morph1 = dom.createMorphAt(element1,-1,-1);
+        block(env, morph0, context, "if", [get(env, context, "view.decryptedSecret")], {}, child0, child1);
+        element(env, element1, context, "bind-attr", [], {"class": get(env, context, "view.buttonClass")});
+        content(env, morph1, context, "view.buttonText");
+        return fragment;
+      }
+    };
+  }()));
 
 });
-define('yith-library-mobile-client/templates/secret', ['exports', 'ember'], function (exports, Ember) {
+define('yith-library-mobile-client/templates/secret', ['exports'], function (exports) {
 
   'use strict';
 
-  exports['default'] = Ember['default'].Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
-  /**/) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-  helpers = this.merge(helpers, Ember['default'].Handlebars.helpers); data = data || {};
-    var buffer = '', stack1, helper, options, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
-
-  function program1(depth0,data) {
-    
-    
-    data.buffer.push("\n        <span class=\"icon icon-back\">back</span>\n      ");
-    }
-
-  function program3(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n        <header>\n          <h2>Notes</h2>\n        </header>\n        <p>");
-    stack1 = helpers._triageMustache.call(depth0, "notes", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("</p>\n      ");
-    return buffer;
-    }
-
-  function program5(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n        <header>\n          <h2>Tags</h2>\n        </header>\n        <p>");
-    stack1 = helpers._triageMustache.call(depth0, "tags", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("</p>\n      ");
-    return buffer;
-    }
-
-    data.buffer.push("<section data-position=\"right\" role=\"region\" ");
-    data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
-      'class': ("position")
-    },hashTypes:{'class': "STRING"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
-    data.buffer.push(" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "finishTransition", {hash:{
-      'on': ("animationEnd")
-    },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(" >\n    <header class=\"fixed\">\n      ");
-    stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "secrets", options) : helperMissing.call(depth0, "link-to", "secrets", options));
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n      <h1>");
-    stack1 = helpers._triageMustache.call(depth0, "service", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("</h1>\n    </header>\n\n    <article class=\"content scrollable header\">\n      ");
-    data.buffer.push(escapeExpression(helpers.view.call(depth0, "secret-revealer", {hash:{
-      'encryptedSecret': ("secret")
-    },hashTypes:{'encryptedSecret': "ID"},hashContexts:{'encryptedSecret': depth0},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push("\n      <header>\n        <h2>Account</h2>\n      </header>\n      <p>");
-    stack1 = helpers._triageMustache.call(depth0, "account", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("</p>\n\n      ");
-    stack1 = helpers['if'].call(depth0, "notes", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n\n      ");
-    stack1 = helpers['if'].call(depth0, "tags", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n    </article>\n</section>");
-    return buffer;
-    
-  });
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("span");
+          dom.setAttribute(el1,"class","icon icon-back");
+          var el2 = dom.createTextNode("back");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          return fragment;
+        }
+      };
+    }());
+    var child1 = (function() {
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("header");
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("h2");
+          var el3 = dom.createTextNode("Notes");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("p");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, content = hooks.content;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [3]),-1,-1);
+          content(env, morph0, context, "notes");
+          return fragment;
+        }
+      };
+    }());
+    var child2 = (function() {
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("header");
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("h2");
+          var el3 = dom.createTextNode("Tags");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("p");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, content = hooks.content;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [3]),-1,-1);
+          content(env, morph0, context, "tags");
+          return fragment;
+        }
+      };
+    }());
+    return {
+      isHTMLBars: true,
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createElement("section");
+        dom.setAttribute(el0,"data-position","right");
+        dom.setAttribute(el0,"role","region");
+        var el1 = dom.createTextNode("\n    ");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("header");
+        dom.setAttribute(el1,"class","fixed");
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("      ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("h1");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("article");
+        dom.setAttribute(el1,"class","content scrollable header");
+        var el2 = dom.createTextNode("\n      ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n      ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("header");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("h2");
+        var el4 = dom.createTextNode("Account");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n      ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n      ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("p");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("    ");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, element = hooks.element, block = hooks.block, content = hooks.content, get = hooks.get, inline = hooks.inline;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        var element0 = fragment;
+        var element1 = dom.childAt(element0, [1]);
+        var element2 = dom.childAt(element0, [3]);
+        var morph0 = dom.createMorphAt(element1,0,1);
+        var morph1 = dom.createMorphAt(dom.childAt(element1, [2]),-1,-1);
+        var morph2 = dom.createMorphAt(element2,0,1);
+        var morph3 = dom.createMorphAt(dom.childAt(element2, [4]),-1,-1);
+        var morph4 = dom.createMorphAt(element2,5,6);
+        var morph5 = dom.createMorphAt(element2,6,7);
+        element(env, element0, context, "bind-attr", [], {"class": "position"});
+        element(env, element0, context, "action", ["finishTransition"], {"on": "animationEnd"});
+        block(env, morph0, context, "link-to", ["secrets"], {}, child0, null);
+        content(env, morph1, context, "service");
+        inline(env, morph2, context, "view", ["secret-revealer"], {"encryptedSecret": get(env, context, "secret")});
+        content(env, morph3, context, "account");
+        block(env, morph4, context, "if", [get(env, context, "notes")], {}, child1, null);
+        block(env, morph5, context, "if", [get(env, context, "tags")], {}, child2, null);
+        return fragment;
+      }
+    };
+  }()));
 
 });
-define('yith-library-mobile-client/templates/secrets', ['exports', 'ember'], function (exports, Ember) {
+define('yith-library-mobile-client/templates/secrets', ['exports'], function (exports) {
 
   'use strict';
 
-  exports['default'] = Ember['default'].Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
-  /**/) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-  helpers = this.merge(helpers, Ember['default'].Handlebars.helpers); data = data || {};
-    var buffer = '', stack1, helper, options, self=this, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
-
-  function program1(depth0,data) {
-    
-    
-    data.buffer.push("\n        <span class=\"icon icon-menu\">menu</span>\n      ");
-    }
-
-  function program3(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n            <span class=\"tag\">");
-    stack1 = helpers._triageMustache.call(depth0, "tag", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("</span>\n          ");
-    return buffer;
-    }
-
-  function program5(depth0,data) {
-    
-    var buffer = '', stack1, helper, options;
-    data.buffer.push("\n            <li>\n              ");
-    stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(6, program6, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "secret", "id", options) : helperMissing.call(depth0, "link-to", "secret", "id", options));
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n            </li>\n          ");
-    return buffer;
-    }
-  function program6(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n                <p>");
-    stack1 = helpers._triageMustache.call(depth0, "service", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("</p>\n                <p>");
-    stack1 = helpers._triageMustache.call(depth0, "account", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("</p>\n              ");
-    return buffer;
-    }
-
-    data.buffer.push("<section data-position=\"current\" ");
-    data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
-      'class': ("position")
-    },hashTypes:{'class': "STRING"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
-    data.buffer.push(">\n\n  ");
-    data.buffer.push(escapeExpression((helper = helpers.outlet || (depth0 && depth0.outlet),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "drawer", options) : helperMissing.call(depth0, "outlet", "drawer", options))));
-    data.buffer.push("\n\n  <section id=\"secrets\" role=\"region\" ");
-    data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
-      'class': ("state")
-    },hashTypes:{'class': "STRING"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
-    data.buffer.push(" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "finishTransition", {hash:{
-      'on': ("transitionEnd")
-    },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">\n\n    <header class=\"fixed\">\n      ");
-    stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "secrets.drawer", options) : helperMissing.call(depth0, "link-to", "secrets.drawer", options));
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n      <form action=\"#\">\n        ");
-    data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
-      'placeholder': ("Search..."),
-      'value': ("query")
-    },hashTypes:{'placeholder': "STRING",'value': "ID"},hashContexts:{'placeholder': depth0,'value': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "input", options))));
-    data.buffer.push("\n        <button type=\"reset\" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "clearQuery", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">Remove text</button>\n      </form>\n    </header>\n\n    <article class=\"content scrollable header\">\n      <div data-type=\"list\">\n        <header>\n          <small>");
-    stack1 = helpers._triageMustache.call(depth0, "secretsCount", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push(" ");
-    stack1 = helpers._triageMustache.call(depth0, "secretsNoun", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("</small>\n          ");
-    stack1 = helpers['if'].call(depth0, "tag", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n        </header>\n        <ul>\n          ");
-    stack1 = helpers.each.call(depth0, "secrets", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n        </ul>\n      </div>\n    </article>\n  </section>\n\n</section>\n\n<section role=\"status\" ");
-    data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
-      'class': ("statusClass")
-    },hashTypes:{'class': "STRING"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
-    data.buffer.push(">\n  <p>");
-    stack1 = helpers._triageMustache.call(depth0, "statusMessage", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("</p>\n</section>\n\n");
-    stack1 = helpers._triageMustache.call(depth0, "outlet", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n");
-    return buffer;
-    
-  });
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("span");
+          dom.setAttribute(el1,"class","icon icon-menu");
+          var el2 = dom.createTextNode("menu");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          return fragment;
+        }
+      };
+    }());
+    var child1 = (function() {
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("            ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("span");
+          dom.setAttribute(el1,"class","tag");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, content = hooks.content;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),-1,-1);
+          content(env, morph0, context, "tag");
+          return fragment;
+        }
+      };
+    }());
+    var child2 = (function() {
+      var child0 = (function() {
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("                ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("p");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n                ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("p");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, content = hooks.content;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),-1,-1);
+            var morph1 = dom.createMorphAt(dom.childAt(fragment, [3]),-1,-1);
+            content(env, morph0, context, "service");
+            content(env, morph1, context, "account");
+            return fragment;
+          }
+        };
+      }());
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("            ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("li");
+          var el2 = dom.createTextNode("\n");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("            ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, get = hooks.get, block = hooks.block;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,1);
+          block(env, morph0, context, "link-to", ["secret", get(env, context, "id")], {}, child0, null);
+          return fragment;
+        }
+      };
+    }());
+    return {
+      isHTMLBars: true,
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("section");
+        dom.setAttribute(el1,"data-position","current");
+        var el2 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("section");
+        dom.setAttribute(el2,"id","secrets");
+        dom.setAttribute(el2,"role","region");
+        var el3 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("header");
+        dom.setAttribute(el3,"class","fixed");
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("form");
+        dom.setAttribute(el4,"action","#");
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("button");
+        dom.setAttribute(el5,"type","reset");
+        var el6 = dom.createTextNode("Remove text");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n      ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("article");
+        dom.setAttribute(el3,"class","content scrollable header");
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("div");
+        dom.setAttribute(el4,"data-type","list");
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("header");
+        var el6 = dom.createTextNode("\n          ");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createElement("small");
+        var el7 = dom.createTextNode(" ");
+        dom.appendChild(el6, el7);
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("\n");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("        ");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("ul");
+        var el6 = dom.createTextNode("\n");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("        ");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n      ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("section");
+        dom.setAttribute(el1,"role","status");
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("p");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, element = hooks.element, get = hooks.get, inline = hooks.inline, block = hooks.block, content = hooks.content;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        var element0 = dom.childAt(fragment, [0]);
+        var element1 = dom.childAt(element0, [2]);
+        var element2 = dom.childAt(element1, [1]);
+        var element3 = dom.childAt(element2, [2]);
+        var element4 = dom.childAt(element3, [2]);
+        var element5 = dom.childAt(element1, [3, 1]);
+        var element6 = dom.childAt(element5, [1]);
+        var element7 = dom.childAt(element6, [1]);
+        var element8 = dom.childAt(fragment, [2]);
+        var morph0 = dom.createMorphAt(element0,0,1);
+        var morph1 = dom.createMorphAt(element2,0,1);
+        var morph2 = dom.createMorphAt(element3,0,1);
+        var morph3 = dom.createMorphAt(element7,-1,0);
+        var morph4 = dom.createMorphAt(element7,0,-1);
+        var morph5 = dom.createMorphAt(element6,2,3);
+        var morph6 = dom.createMorphAt(dom.childAt(element5, [3]),0,1);
+        var morph7 = dom.createMorphAt(dom.childAt(element8, [1]),-1,-1);
+        var morph8 = dom.createMorphAt(fragment,3,4,contextualElement);
+        element(env, element0, context, "bind-attr", [], {"class": "position"});
+        inline(env, morph0, context, "outlet", [get(env, context, "drawer")], {});
+        element(env, element1, context, "bind-attr", [], {"class": "state"});
+        element(env, element1, context, "action", ["finishTransition"], {"on": "transitionEnd"});
+        block(env, morph1, context, "link-to", ["secrets.drawer"], {}, child0, null);
+        inline(env, morph2, context, "input", [], {"placeholder": "Search...", "value": get(env, context, "query")});
+        element(env, element4, context, "action", ["clearQuery"], {});
+        content(env, morph3, context, "secretsCount");
+        content(env, morph4, context, "secretsNoun");
+        block(env, morph5, context, "if", [get(env, context, "tag")], {}, child1, null);
+        block(env, morph6, context, "each", [get(env, context, "secrets")], {}, child2, null);
+        element(env, element8, context, "bind-attr", [], {"class": "statusClass"});
+        content(env, morph7, context, "statusMessage");
+        content(env, morph8, context, "outlet");
+        return fragment;
+      }
+    };
+  }()));
 
 });
-define('yith-library-mobile-client/templates/secrets/drawer', ['exports', 'ember'], function (exports, Ember) {
+define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], function (exports) {
 
   'use strict';
 
-  exports['default'] = Ember['default'].Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
-  /**/) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-  helpers = this.merge(helpers, Ember['default'].Handlebars.helpers); data = data || {};
-    var buffer = '', stack1, helper, options, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
-
-  function program1(depth0,data) {
-    
-    
-    data.buffer.push("Done");
-    }
-
-  function program3(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n          ");
-    stack1 = helpers['if'].call(depth0, "syncButtonDisabled", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n        ");
-    return buffer;
-    }
-  function program4(depth0,data) {
-    
-    var buffer = '';
-    data.buffer.push("\n            <a href=\"#\" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "closeDrawer", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">Sync</a>\n          ");
-    return buffer;
-    }
-
-  function program6(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n            ");
-    stack1 = helpers['if'].call(depth0, "isSyncing", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(9, program9, data),fn:self.program(7, program7, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n          ");
-    return buffer;
-    }
-  function program7(depth0,data) {
-    
-    var buffer = '';
-    data.buffer.push("\n              <a href=\"#\" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "closeDrawer", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">Syncing ...</a>\n            ");
-    return buffer;
-    }
-
-  function program9(depth0,data) {
-    
-    var buffer = '';
-    data.buffer.push("\n              <a href=\"#\" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "sync", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">Sync</a>\n            ");
-    return buffer;
-    }
-
-  function program11(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n          ");
-    stack1 = helpers['if'].call(depth0, "loginButtonDisableed", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(14, program14, data),fn:self.program(12, program12, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n        ");
-    return buffer;
-    }
-  function program12(depth0,data) {
-    
-    var buffer = '';
-    data.buffer.push("\n            <a href=\"#\" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "closeDrawer", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">Login</a>\n          ");
-    return buffer;
-    }
-
-  function program14(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n            ");
-    stack1 = helpers['if'].call(depth0, "isAuthorizing", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(17, program17, data),fn:self.program(15, program15, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n          ");
-    return buffer;
-    }
-  function program15(depth0,data) {
-    
-    var buffer = '';
-    data.buffer.push("\n              <a href=\"#\" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "closeDrawer", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">Logging in ...</a>\n            ");
-    return buffer;
-    }
-
-  function program17(depth0,data) {
-    
-    var buffer = '';
-    data.buffer.push("\n              <a href=\"#\" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "login", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">Log in</a>\n            ");
-    return buffer;
-    }
-
-  function program19(depth0,data) {
-    
-    var buffer = '', stack1, helper, options;
-    data.buffer.push("\n        <li>\n          ");
-    stack1 = (helper = helpers['query-params'] || (depth0 && depth0['query-params']),options={hash:{
-      'tag': ("currentTag.selectTag")
-    },hashTypes:{'tag': "ID"},hashContexts:{'tag': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "query-params", options));
-    stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(20, program20, data),contexts:[depth0,depth0],types:["STRING","sexpr"],data:data},helper ? helper.call(depth0, "secrets", stack1, options) : helperMissing.call(depth0, "link-to", "secrets", stack1, options));
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n        </li>\n      ");
-    return buffer;
-    }
-  function program20(depth0,data) {
-    
-    var buffer = '', stack1, helper, options;
-    data.buffer.push("\n            ");
-    data.buffer.push(escapeExpression((helper = helpers['current-tag'] || (depth0 && depth0['current-tag']),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["ID","ID"],data:data},helper ? helper.call(depth0, "currentTag.name", "tag", options) : helperMissing.call(depth0, "current-tag", "currentTag.name", "tag", options))));
-    data.buffer.push("\n            ");
-    stack1 = helpers._triageMustache.call(depth0, "currentTag.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push(" (");
-    stack1 = helpers._triageMustache.call(depth0, "currentTag.count", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push(")\n          ");
-    return buffer;
-    }
-
-  function program22(depth0,data) {
-    
-    var buffer = '', stack1, helper, options;
-    data.buffer.push("\n        <li>\n          ");
-    stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(23, program23, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "secrets.tags", options) : helperMissing.call(depth0, "link-to", "secrets.tags", options));
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n        </li>\n      ");
-    return buffer;
-    }
-  function program23(depth0,data) {
-    
-    
-    data.buffer.push("See more tags ...");
-    }
-
-    data.buffer.push("<section data-type=\"sidebar\">\n  <header>\n    <menu type=\"toolbar\">\n      ");
-    stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "secrets", options) : helperMissing.call(depth0, "link-to", "secrets", options));
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n    </menu>\n    <h1>");
-    stack1 = helpers._triageMustache.call(depth0, "accountDisplayName", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("</h1>\n  </header>\n\n  <nav>\n    <h2>Account</h2>\n    <ul>\n      <li>\n        ");
-    stack1 = helpers['if'].call(depth0, "authManager.hasValidAccessToken", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(11, program11, data),fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n      </li>\n      <li><a href=\"#\" ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "logout", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">Log out</a></li>\n    </ul>\n\n    <h2>Tags</h2>\n    <ul>\n      ");
-    stack1 = helpers.each.call(depth0, "currentTag", "in", "mostUsedTags", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(19, program19, data),contexts:[depth0,depth0,depth0],types:["ID","ID","ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n      ");
-    stack1 = helpers['if'].call(depth0, "hasMoreTags", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(22, program22, data),contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n    </ul>\n  </nav>\n  ");
-    stack1 = helpers._triageMustache.call(depth0, "current-version", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n</section>\n");
-    return buffer;
-    
-  });
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createTextNode("Done");
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          return fragment;
+        }
+      };
+    }());
+    var child1 = (function() {
+      var child0 = (function() {
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("            ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("a");
+            dom.setAttribute(el1,"href","#");
+            var el2 = dom.createTextNode("Sync");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, element = hooks.element;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            var element5 = dom.childAt(fragment, [1]);
+            element(env, element5, context, "action", ["closeDrawer"], {});
+            return fragment;
+          }
+        };
+      }());
+      var child1 = (function() {
+        var child0 = (function() {
+          return {
+            isHTMLBars: true,
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("              ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("a");
+              dom.setAttribute(el1,"href","#");
+              var el2 = dom.createTextNode("Syncing ...");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              var hooks = env.hooks, element = hooks.element;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              var element4 = dom.childAt(fragment, [1]);
+              element(env, element4, context, "action", ["closeDrawer"], {});
+              return fragment;
+            }
+          };
+        }());
+        var child1 = (function() {
+          return {
+            isHTMLBars: true,
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("              ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("a");
+              dom.setAttribute(el1,"href","#");
+              var el2 = dom.createTextNode("Sync");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              var hooks = env.hooks, element = hooks.element;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              var element3 = dom.childAt(fragment, [1]);
+              element(env, element3, context, "action", ["sync"], {});
+              return fragment;
+            }
+          };
+        }());
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, get = hooks.get, block = hooks.block;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
+            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            block(env, morph0, context, "if", [get(env, context, "isSyncing")], {}, child0, child1);
+            return fragment;
+          }
+        };
+      }());
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, get = hooks.get, block = hooks.block;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
+          var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+          block(env, morph0, context, "if", [get(env, context, "syncButtonDisabled")], {}, child0, child1);
+          return fragment;
+        }
+      };
+    }());
+    var child2 = (function() {
+      var child0 = (function() {
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("            ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("a");
+            dom.setAttribute(el1,"href","#");
+            var el2 = dom.createTextNode("Login");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, element = hooks.element;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            var element2 = dom.childAt(fragment, [1]);
+            element(env, element2, context, "action", ["closeDrawer"], {});
+            return fragment;
+          }
+        };
+      }());
+      var child1 = (function() {
+        var child0 = (function() {
+          return {
+            isHTMLBars: true,
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("              ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("a");
+              dom.setAttribute(el1,"href","#");
+              var el2 = dom.createTextNode("Logging in ...");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              var hooks = env.hooks, element = hooks.element;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              var element1 = dom.childAt(fragment, [1]);
+              element(env, element1, context, "action", ["closeDrawer"], {});
+              return fragment;
+            }
+          };
+        }());
+        var child1 = (function() {
+          return {
+            isHTMLBars: true,
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("              ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("a");
+              dom.setAttribute(el1,"href","#");
+              var el2 = dom.createTextNode("Log in");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              var hooks = env.hooks, element = hooks.element;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              var element0 = dom.childAt(fragment, [1]);
+              element(env, element0, context, "action", ["login"], {});
+              return fragment;
+            }
+          };
+        }());
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, get = hooks.get, block = hooks.block;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
+            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            block(env, morph0, context, "if", [get(env, context, "isAuthorizing")], {}, child0, child1);
+            return fragment;
+          }
+        };
+      }());
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, get = hooks.get, block = hooks.block;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
+          var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+          block(env, morph0, context, "if", [get(env, context, "loginButtonDisableed")], {}, child0, child1);
+          return fragment;
+        }
+      };
+    }());
+    var child3 = (function() {
+      var child0 = (function() {
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("            ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n            ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode(" (");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode(")\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, get = hooks.get, inline = hooks.inline, content = hooks.content;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            var morph1 = dom.createMorphAt(fragment,1,2,contextualElement);
+            var morph2 = dom.createMorphAt(fragment,2,3,contextualElement);
+            inline(env, morph0, context, "current-tag", [get(env, context, "currentTag.name"), get(env, context, "tag")], {});
+            content(env, morph1, context, "currentTag.name");
+            content(env, morph2, context, "currentTag.count");
+            return fragment;
+          }
+        };
+      }());
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("li");
+          var el2 = dom.createTextNode("\n");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, get = hooks.get, subexpr = hooks.subexpr, block = hooks.block;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,1);
+          block(env, morph0, context, "link-to", ["secrets", subexpr(env, context, "query-params", [], {"tag": get(env, context, "currentTag.selectTag")})], {}, child0, null);
+          return fragment;
+        }
+      };
+    }());
+    var child4 = (function() {
+      var child0 = (function() {
+        return {
+          isHTMLBars: true,
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createTextNode("See more tags ...");
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            return fragment;
+          }
+        };
+      }());
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("li");
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, block = hooks.block;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,1);
+          block(env, morph0, context, "link-to", ["secrets.tags"], {}, child0, null);
+          return fragment;
+        }
+      };
+    }());
+    return {
+      isHTMLBars: true,
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("section");
+        dom.setAttribute(el1,"data-type","sidebar");
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("header");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("menu");
+        dom.setAttribute(el3,"type","toolbar");
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("h1");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("nav");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("h2");
+        var el4 = dom.createTextNode("Account");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("ul");
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("li");
+        var el5 = dom.createTextNode("\n");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("      ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("li");
+        var el5 = dom.createElement("a");
+        dom.setAttribute(el5,"href","#");
+        var el6 = dom.createTextNode("Log out");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("h2");
+        var el4 = dom.createTextNode("Tags");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("ul");
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, block = hooks.block, content = hooks.content, get = hooks.get, element = hooks.element;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        var element6 = dom.childAt(fragment, [0]);
+        var element7 = dom.childAt(element6, [1]);
+        var element8 = dom.childAt(element6, [3]);
+        var element9 = dom.childAt(element8, [3]);
+        var element10 = dom.childAt(element9, [3, 0]);
+        var element11 = dom.childAt(element8, [7]);
+        if (this.cachedFragment) { dom.repairClonedNode(element11,[1]); }
+        var morph0 = dom.createMorphAt(dom.childAt(element7, [1]),0,1);
+        var morph1 = dom.createMorphAt(dom.childAt(element7, [3]),-1,-1);
+        var morph2 = dom.createMorphAt(dom.childAt(element9, [1]),0,1);
+        var morph3 = dom.createMorphAt(element11,0,1);
+        var morph4 = dom.createMorphAt(element11,1,2);
+        var morph5 = dom.createMorphAt(element6,4,5);
+        block(env, morph0, context, "link-to", ["secrets"], {}, child0, null);
+        content(env, morph1, context, "accountDisplayName");
+        block(env, morph2, context, "if", [get(env, context, "authManager.hasValidAccessToken")], {}, child1, child2);
+        element(env, element10, context, "action", ["logout"], {});
+        block(env, morph3, context, "each", [get(env, context, "mostUsedTags")], {"keyword": "currentTag"}, child3, null);
+        block(env, morph4, context, "if", [get(env, context, "hasMoreTags")], {}, child4, null);
+        content(env, morph5, context, "current-version");
+        return fragment;
+      }
+    };
+  }()));
 
 });
-define('yith-library-mobile-client/templates/secrets/tags', ['exports', 'ember'], function (exports, Ember) {
+define('yith-library-mobile-client/templates/secrets/tags', ['exports'], function (exports) {
 
   'use strict';
 
-  exports['default'] = Ember['default'].Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data
-  /**/) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-  helpers = this.merge(helpers, Ember['default'].Handlebars.helpers); data = data || {};
-    var buffer = '', stack1, escapeExpression=this.escapeExpression, self=this;
-
-  function program1(depth0,data) {
-    
-    var buffer = '', stack1;
-    data.buffer.push("\n      <button type='button' ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "selectTag", "tag.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data})));
-    data.buffer.push(">\n        ");
-    stack1 = helpers._triageMustache.call(depth0, "tag.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push(" (");
-    stack1 = helpers._triageMustache.call(depth0, "tag.count", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push(")\n      </button>\n    ");
-    return buffer;
-    }
-
-    data.buffer.push("<form data-type=\"action\" role=\"dialog\">\n  <header>Available tags</header>\n  <menu>\n    ");
-    stack1 = helpers.each.call(depth0, "tag", "in", "sortedTags", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0,depth0],types:["ID","ID","ID"],data:data});
-    if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-    data.buffer.push("\n    <button type='button' ");
-    data.buffer.push(escapeExpression(helpers.action.call(depth0, "cancel", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-    data.buffer.push(">Cancel</button>\n  </menu>\n</form>");
-    return buffer;
-    
-  });
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        isHTMLBars: true,
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("      ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("button");
+          dom.setAttribute(el1,"type","button");
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode(" (");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode(")\n      ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, get = hooks.get, element = hooks.element, content = hooks.content;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var element0 = dom.childAt(fragment, [1]);
+          var morph0 = dom.createMorphAt(element0,0,1);
+          var morph1 = dom.createMorphAt(element0,1,2);
+          element(env, element0, context, "action", ["selectTag", get(env, context, "tag.name")], {});
+          content(env, morph0, context, "tag.name");
+          content(env, morph1, context, "tag.count");
+          return fragment;
+        }
+      };
+    }());
+    return {
+      isHTMLBars: true,
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createElement("form");
+        dom.setAttribute(el0,"data-type","action");
+        dom.setAttribute(el0,"role","dialog");
+        var el1 = dom.createTextNode("\n  ");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("header");
+        var el2 = dom.createTextNode("Available tags");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n  ");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("menu");
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("button");
+        dom.setAttribute(el2,"type","button");
+        var el3 = dom.createTextNode("Cancel");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, get = hooks.get, block = hooks.block, element = hooks.element;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        var element1 = dom.childAt(fragment, [3]);
+        var element2 = dom.childAt(element1, [2]);
+        var morph0 = dom.createMorphAt(element1,0,1);
+        block(env, morph0, context, "each", [get(env, context, "sortedTags")], {"keyword": "tag"}, child0, null);
+        element(env, element2, context, "action", ["cancel"], {});
+        return fragment;
+      }
+    };
+  }()));
 
 });
 define('yith-library-mobile-client/tests/adapters/application.jshint', function () {
@@ -1922,7 +4069,7 @@ define('yith-library-mobile-client/utils/authmanager', ['exports', 'ember', 'yit
         accessToken: null,
         accessTokenExpiration: null,
 
-        init: function () {
+        init: function init() {
             this._super();
             this.loadToken();
         },
@@ -1941,7 +4088,7 @@ define('yith-library-mobile-client/utils/authmanager', ['exports', 'ember', 'yit
             return accessToken !== null && this.now() < expiration;
         }).property("accessToken", "accessTokenExpiration"),
 
-        authorize: function (serverBaseUrl) {
+        authorize: function authorize(serverBaseUrl) {
             var self = this,
                 state = this.uuid(),
                 encodedState = encodeURIComponent(state),
@@ -1971,7 +4118,7 @@ define('yith-library-mobile-client/utils/authmanager', ['exports', 'ember', 'yit
             });
         },
 
-        parseHash: function (hash) {
+        parseHash: function parseHash(hash) {
             var params = {},
                 queryString = hash.substring(1),
                 // remove #
@@ -1986,11 +4133,11 @@ define('yith-library-mobile-client/utils/authmanager', ['exports', 'ember', 'yit
             return params;
         },
 
-        checkResponse: function (params, state) {
+        checkResponse: function checkResponse(params, state) {
             return params.accessToken && params.state === state;
         },
 
-        saveToken: function (token) {
+        saveToken: function saveToken(token) {
             var expiration = this.now() + parseInt(token.expiresIn, 10);
             this.set("accessToken", token.accessToken);
             this.set("accessTokenExpiration", expiration);
@@ -1998,23 +4145,23 @@ define('yith-library-mobile-client/utils/authmanager', ['exports', 'ember', 'yit
             window.localStorage.setItem("accessTokenExpiration", expiration);
         },
 
-        loadToken: function () {
+        loadToken: function loadToken() {
             var accessToken = window.localStorage.getItem("accessToken"),
                 expiration = window.localStorage.getItem("accessTokenExpiration");
             this.set("accessToken", accessToken);
             this.set("accessTokenExpiration", expiration);
         },
 
-        deleteToken: function () {
+        deleteToken: function deleteToken() {
             window.localStorage.removeItem("accessToken");
             window.localStorage.removeItem("accessTokenExpiration");
         },
 
-        now: function () {
+        now: function now() {
             return Math.round(new Date().getTime() / 1000);
         },
 
-        uuid: function () {
+        uuid: function uuid() {
             var template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
             return template.replace(/[xy]/g, function (c) {
                 var r = Math.random() * 16 | 0,
@@ -2030,6 +4177,7 @@ define('yith-library-mobile-client/utils/prefix-event', ['exports'], function (e
     'use strict';
 
     exports['default'] = prefixEvent;
+
     function prefixEvent(event) {
         var vendorPrefixes = ["webkit", "moz", "MS", "o", ""];
         var prefixedEventNames = vendorPrefixes.map(function (prefix) {
@@ -2049,7 +4197,7 @@ define('yith-library-mobile-client/utils/settings', ['exports', 'ember', 'yith-l
             serverBaseUrl: ENV['default'].defaults.serverBaseUrl
         },
 
-        getSetting: function (name) {
+        getSetting: function getSetting(name) {
             var setting = window.localStorage.getItem(name);
             if (setting === null) {
                 return this.defaults[name] || null;
@@ -2058,12 +4206,12 @@ define('yith-library-mobile-client/utils/settings', ['exports', 'ember', 'yith-l
             }
         },
 
-        setSetting: function (name, value) {
+        setSetting: function setSetting(name, value) {
             var serialized = JSON.stringify(value);
             return window.localStorage.setItem(name, serialized);
         },
 
-        deleteSetting: function (name) {
+        deleteSetting: function deleteSetting(name) {
             window.localStorage.removeItem(name);
         }
 
@@ -2075,6 +4223,7 @@ define('yith-library-mobile-client/utils/snake-case-to-camel-case', ['exports'],
     'use strict';
 
     exports['default'] = snakeCaseToCamelCase;
+
     function snakeCaseToCamelCase(symbol) {
         return symbol.split("_").filter(function (word) {
             return word !== "";
@@ -2094,7 +4243,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
 
     exports['default'] = Ember['default'].Object.extend({
 
-        fetchUserInfo: function (accessToken, serverBaseUrl, clientId) {
+        fetchUserInfo: function fetchUserInfo(accessToken, serverBaseUrl, clientId) {
             var self = this;
 
             return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
@@ -2115,7 +4264,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
 
         /* Convert all the keys of the record to be in camelCase
            instead of snake_case */
-        convertRecord: function (record) {
+        convertRecord: function convertRecord(record) {
             var newRecord = {},
                 key = null,
                 newKey = null;
@@ -2128,7 +4277,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             return newRecord;
         },
 
-        updateAccountStore: function (rawData) {
+        updateAccountStore: function updateAccountStore(rawData) {
             var self = this;
 
             return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
@@ -2159,7 +4308,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             });
         },
 
-        fetchSecrets: function (accessToken, serverBaseUrl, clientId) {
+        fetchSecrets: function fetchSecrets(accessToken, serverBaseUrl, clientId) {
             var self = this;
 
             return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
@@ -2178,7 +4327,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             });
         },
 
-        updateSecretsStore: function (data) {
+        updateSecretsStore: function updateSecretsStore(data) {
             var self = this,
                 promises = {
                 secrets: this.store.find("secret"),
@@ -2194,7 +4343,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             });
         },
 
-        updateSecrets: function (existingRecords, passwords) {
+        updateSecrets: function updateSecrets(existingRecords, passwords) {
             var self = this,
                 result = [];
             passwords.forEach(function (password) {
@@ -2208,7 +4357,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             return result;
         },
 
-        createSecret: function (data) {
+        createSecret: function createSecret(data) {
             return this.store.createRecord("secret", {
                 id: data.id,
                 service: data.service,
@@ -2219,7 +4368,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             }).save();
         },
 
-        updateSecret: function (record, data) {
+        updateSecret: function updateSecret(record, data) {
             record.set("service", data.service);
             record.set("account", data.account);
             record.set("secret", data.secret);
@@ -2228,7 +4377,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             return record.save();
         },
 
-        updateTags: function (existingRecords, passwords) {
+        updateTags: function updateTags(existingRecords, passwords) {
             var self = this,
                 newTags = new Ember['default'].Map(),
                 result = [];
@@ -2253,20 +4402,20 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             return result;
         },
 
-        createTag: function (name, count) {
+        createTag: function createTag(name, count) {
             return this.store.createRecord("tag", {
                 name: name,
                 count: count
             }).save();
         },
 
-        updateTag: function (record, name, count) {
+        updateTag: function updateTag(record, name, count) {
             record.set("name", name);
             record.set("count", count);
             return record.save();
         },
 
-        deleteAccount: function () {
+        deleteAccount: function deleteAccount() {
             var promises = [];
             this.store.all("secret").forEach(function (secret) {
                 promises.push(secret.destroyRecord());
@@ -2308,7 +4457,7 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
         decryptedSecret: null,
         encryptedSecret: "",
 
-        click: function (event) {
+        click: function click(event) {
             var $target = Ember['default'].$(event.target);
 
             if ($target.is("button")) {
@@ -2319,7 +4468,7 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
             return false;
         },
 
-        buttonClicked: function () {
+        buttonClicked: function buttonClicked() {
             var $masterPasswordInput = null,
                 masterPasswordValue = null,
                 secret = "";
@@ -2327,6 +4476,7 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
             if (this.get("decryptedSecret") !== null) {
                 this.hideSecret();
             } else {
+
                 $masterPasswordInput = this.$("input[type=password]");
                 masterPasswordValue = $masterPasswordInput.val();
                 $masterPasswordInput.val("");
@@ -2340,7 +4490,7 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
             }
         },
 
-        hideSecret: function () {
+        hideSecret: function hideSecret() {
             this.stopTimer();
 
             this.set("buttonText", "Reveal secret");
@@ -2348,13 +4498,13 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
             this.set("decryptedSecret", null);
         },
 
-        badMasterPassword: function () {
+        badMasterPassword: function badMasterPassword() {
             this.set("buttonText", "Wrong master password, try again");
             this.set("buttonClass", "danger");
             this.$("input[type=password]").focus();
         },
 
-        revealSecret: function (secret) {
+        revealSecret: function revealSecret(secret) {
             this.set("buttonText", "Hide secret");
             this.set("buttonClass", "recommend");
             this.set("decryptedSecret", secret);
@@ -2365,7 +4515,7 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
             });
         },
 
-        startTimer: function () {
+        startTimer: function startTimer() {
             this.start = new Date();
 
             this.totalTime = this.getTotalTime();
@@ -2373,17 +4523,17 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
             this.timer = window.requestAnimationFrame(this.tick.bind(this));
         },
 
-        stopTimer: function () {
+        stopTimer: function stopTimer() {
             if (this.timer) {
                 window.cancelAnimationFrame(this.timer);
             }
         },
 
-        getTotalTime: function () {
+        getTotalTime: function getTotalTime() {
             return 60;
         },
 
-        tick: function () {
+        tick: function tick() {
             var $timer = this.$("svg"),
                 width = $timer.width(),
                 width2 = width / 2,
@@ -2406,7 +4556,7 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
             }
         },
 
-        polarToCartesian: function (x, y, radius, degrees) {
+        polarToCartesian: function polarToCartesian(x, y, radius, degrees) {
             var radians = (degrees - 90) * Math.PI / 180;
             return {
                 x: x + radius * Math.cos(radians),
@@ -2414,11 +4564,11 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
             };
         },
 
-        didInsertElement: function () {
+        didInsertElement: function didInsertElement() {
             this.$("input").focus();
         },
 
-        willDestroy: function () {
+        willDestroy: function willDestroy() {
             this.hideSecret();
         }
     });
@@ -2431,12 +4581,12 @@ define('yith-library-mobile-client/views/secrets', ['exports', 'ember'], functio
     exports['default'] = Ember['default'].View.extend({
         classNames: ["full-height"],
 
-        didInsertElement: function () {
+        didInsertElement: function didInsertElement() {
             window.addEventListener("offline", this);
             window.addEventListener("online", this);
         },
 
-        handleEvent: function (event) {
+        handleEvent: function handleEvent(event) {
             switch (event.type) {
                 case "offline":
                     this.get("controller").send("offline");
@@ -2447,7 +4597,7 @@ define('yith-library-mobile-client/views/secrets', ['exports', 'ember'], functio
             }
         },
 
-        willDestroy: function () {
+        willDestroy: function willDestroy() {
             window.removeEventListener("offline", this);
             window.removeEventListener("online", this);
         }

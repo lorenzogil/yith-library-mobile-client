@@ -1,96 +1,90 @@
-    <section id="login" role="region">
-      <header class="fixed">
-        <h1>Yith Library</h1>
-      </header>
+<section id="login" role="region">
+  <header class="fixed">
+    <h1>Yith Library</h1>
+  </header>
 
-      <article class="content scrollable header">
-        <section data-type="list">
-          {{#if showInstructions}}
-            <header>First time steps</header>
-            <ul>
-              <li>
-                <p>Connect to the server</p>
-                <p>to sign in or sign up</p>
-              </li>
-              <li>
-                <p>Retrieve your account information</p>
-                <p>so we know a little bit about you</p>
-              </li>
-              <li>
-                <p>Retrieve your secrets</p>
-                <p>and access them even when offline</p>
-              </li>
-            </ul>
-            <form>
-              <p>
-                <button type="button" class="recommend" {{action 'connect'}}>Connect to YithLibrary.com</button>
-              </p>
-            </form>
+  <article class="content scrollable header">
+    <section data-type="list">
+      {{#if showInstructions}}
+        <header>First time steps</header>
+        <ul>
+          <li>
+            <p>Connect to the server</p>
+            <p>to sign in or sign up</p>
+          </li>
+          <li>
+            <p>Retrieve your account information</p>
+            <p>so we know a little bit about you</p>
+          </li>
+          <li>
+            <p>Retrieve your secrets</p>
+            <p>and access them even when offline</p>
+          </li>
+        </ul>
+        <form>
+          <p>
+            <button type="button" class="recommend" {{action 'connect'}}>Connect to YithLibrary.com</button>
+          </p>
+        </form>
+      {{else}}
+        <header>
+          {{# if isFinished}}
+            Your secrets are ready!
           {{else}}
-            <header>
-              {{# if isFinished}}
-                Your secrets are ready!
-              {{else}}
-                Running step {{step}} of 3
-              {{/if}}
-            </header>
-            <ul>
-              <li>
-                {{#if isConnectingToServer}}
-                  <aside class="pack-end">
-                    <progress></progress>
-                  </aside>
-                  <p>Connecting to the server...</p>
-                {{else}}
-                  {{#if isServerConnected}}
-                    <p>Server connected!</p>
-                  {{ else }}
-                    <p>Waiting to connect to server.</p>
-                  {{/if}}
-                {{/if}}
-              </li>
-              <li {{bind-attr aria-disabled="accountDisabled"}}>
-                {{#if isGettingAccountInformation}}
-                  <aside class="pack-end">
-                    <progress></progress>
-                  </aside>
-                  <p>Getting account information...</p>
-                {{else}}
-                  {{#if isAccountInformationRetrieved}}
-                    <p>Account information retrieved!</p>
-                  {{else}}
-                    <p>Waiting to retrieve account information.</p>
-                  {{/if}}
-                {{/if}}
-              </li>
-              <li {{bind-attr aria-disabled="secretsDisabled"}}>
-                {{#if isGettingSecrets}}
-                  <aside class="pack-end">
-                    <progress></progress>
-                  </aside>
-                  <p>Getting secrets...</p>
-                {{else}}
-                  {{#if areSecretsRetrieved}}
-                    <p>Secrets retrieved!</p>
-                  {{else}}
-                    <p>Waiting to retrieve secrets.</p>
-                  {{/if}}
-                {{/if}}
-              </li>
-            </ul>
-          </section>
-          {{#if isFinished}}
-            <form>
-              <p>
-                <button type="button" class="recommend" {{action 'secrets'}}>
-                  Go to my secrets
-                </button>
-              </p>
-            </form>
+            Running step {{step}} of 3
           {{/if}}
-        {{/if}}
-      </article>
-
-      {{current-version}}
-
+        </header>
+        <ul>
+          <li>
+            {{#if isConnectingToServer}}
+              <aside class="pack-end"><progress></progress></aside>
+              <p>Connecting to the server...</p>
+            {{else}}
+              {{#if isServerConnected}}
+                <p>Server connected!</p>
+              {{ else }}
+                <p>Waiting to connect to server.</p>
+              {{/if}}
+            {{/if}}
+          </li>
+          <li {{bind-attr aria-disabled="accountDisabled"}}>
+            {{#if isGettingAccountInformation}}
+              <aside class="pack-end"><progress></progress></aside>
+              <p>Getting account information...</p>
+            {{else}}
+              {{#if isAccountInformationRetrieved}}
+                <p>Account information retrieved!</p>
+              {{else}}
+                <p>Waiting to retrieve account information.</p>
+              {{/if}}
+            {{/if}}
+          </li>
+          <li {{bind-attr aria-disabled="secretsDisabled"}}>
+            {{#if isGettingSecrets}}
+              <aside class="pack-end"><progress></progress></aside>
+              <p>Getting secrets...</p>
+            {{else}}
+              {{#if areSecretsRetrieved}}
+                <p>Secrets retrieved!</p>
+              {{else}}
+                <p>Waiting to retrieve secrets.</p>
+              {{/if}}
+            {{/if}}
+          </li>
+        </ul>
+      {{/if}}
+      {{#if isFinished}}
+        <form>
+          <p>
+            <button type="button" class="recommend" {{action 'secrets'}}>
+              Go to my secrets
+            </button>
+          </p>
+        </form>
+      {{/if}}
     </section>
+  </article>
+
+  {{current-version}}
+
+</section>
