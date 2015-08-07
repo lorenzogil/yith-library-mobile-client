@@ -409,12 +409,16 @@ define('yith-library-mobile-client/initializers/app-version', ['exports', 'yith-
   'use strict';
 
   var classify = Ember['default'].String.classify;
+  var registered = false;
 
   exports['default'] = {
     name: "App Version",
     initialize: function initialize(container, application) {
-      var appName = classify(application.toString());
-      Ember['default'].libraries.register(appName, config['default'].APP.version);
+      if (!registered) {
+        var appName = classify(application.toString());
+        Ember['default'].libraries.register(appName, config['default'].APP.version);
+        registered = true;
+      }
     }
   };
 
