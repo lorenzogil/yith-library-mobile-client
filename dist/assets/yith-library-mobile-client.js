@@ -854,12 +854,13 @@ define('yith-library-mobile-client/templates/application', ['exports'], function
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
+      revision: "Ember@1.11.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
       build: function build(dom) {
         var el0 = dom.createDocumentFragment();
-        var el1 = dom.createTextNode("");
+        var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
@@ -885,8 +886,8 @@ define('yith-library-mobile-client/templates/application', ['exports'], function
         } else {
           fragment = this.build(dom);
         }
-        if (this.cachedFragment) { dom.repairClonedNode(fragment,[0]); }
-        var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+        dom.insertBoundary(fragment, 0);
         content(env, morph0, context, "outlet");
         return fragment;
       }
@@ -902,6 +903,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     var child0 = (function() {
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1027,11 +1029,14 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child0 = (function() {
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
           build: function build(dom) {
-            var el0 = dom.createTextNode("            Your secrets are ready!\n");
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("            Your secrets are ready!\n");
+            dom.appendChild(el0, el1);
             return el0;
           },
           render: function render(context, env, contextualElement) {
@@ -1060,12 +1065,15 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child1 = (function() {
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
           build: function build(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("            Running step ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode(" of 3\n");
             dom.appendChild(el0, el1);
@@ -1091,7 +1099,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             } else {
               fragment = this.build(dom);
             }
-            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
             content(env, morph0, context, "step");
             return fragment;
           }
@@ -1100,6 +1108,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child2 = (function() {
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1149,6 +1158,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             isHTMLBars: true,
+            revision: "Ember@1.11.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1190,6 +1200,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             isHTMLBars: true,
+            revision: "Ember@1.11.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1230,14 +1241,13 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
           build: function build(dom) {
             var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("");
+            var el1 = dom.createComment("");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -1261,8 +1271,9 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             } else {
               fragment = this.build(dom);
             }
-            if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
-            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+            dom.insertBoundary(fragment, null);
+            dom.insertBoundary(fragment, 0);
             block(env, morph0, context, "if", [get(env, context, "isServerConnected")], {}, child0, child1);
             return fragment;
           }
@@ -1271,6 +1282,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child4 = (function() {
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1320,6 +1332,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             isHTMLBars: true,
+            revision: "Ember@1.11.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1361,6 +1374,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             isHTMLBars: true,
+            revision: "Ember@1.11.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1401,14 +1415,13 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
           build: function build(dom) {
             var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("");
+            var el1 = dom.createComment("");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -1432,8 +1445,9 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             } else {
               fragment = this.build(dom);
             }
-            if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
-            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+            dom.insertBoundary(fragment, null);
+            dom.insertBoundary(fragment, 0);
             block(env, morph0, context, "if", [get(env, context, "isAccountInformationRetrieved")], {}, child0, child1);
             return fragment;
           }
@@ -1442,6 +1456,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child6 = (function() {
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1491,6 +1506,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             isHTMLBars: true,
+            revision: "Ember@1.11.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1532,6 +1548,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             isHTMLBars: true,
+            revision: "Ember@1.11.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1572,14 +1589,13 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
           build: function build(dom) {
             var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("");
+            var el1 = dom.createComment("");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -1603,8 +1619,9 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             } else {
               fragment = this.build(dom);
             }
-            if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
-            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+            dom.insertBoundary(fragment, null);
+            dom.insertBoundary(fragment, 0);
             block(env, morph0, context, "if", [get(env, context, "areSecretsRetrieved")], {}, child0, child1);
             return fragment;
           }
@@ -1612,6 +1629,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       }());
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1621,6 +1639,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("header");
           var el2 = dom.createTextNode("\n");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode("        ");
           dom.appendChild(el1, el2);
@@ -1633,13 +1653,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
           var el2 = dom.createElement("li");
           var el3 = dom.createTextNode("\n");
           dom.appendChild(el2, el3);
-          var el3 = dom.createTextNode("          ");
-          dom.appendChild(el2, el3);
-          dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("\n          ");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createElement("li");
-          var el3 = dom.createTextNode("\n");
+          var el3 = dom.createComment("");
           dom.appendChild(el2, el3);
           var el3 = dom.createTextNode("          ");
           dom.appendChild(el2, el3);
@@ -1648,6 +1662,18 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("li");
           var el3 = dom.createTextNode("\n");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createComment("");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("          ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          var el3 = dom.createTextNode("\n");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createComment("");
           dom.appendChild(el2, el3);
           var el3 = dom.createTextNode("          ");
           dom.appendChild(el2, el3);
@@ -1682,10 +1708,10 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
           var element1 = dom.childAt(fragment, [3]);
           var element2 = dom.childAt(element1, [3]);
           var element3 = dom.childAt(element1, [5]);
-          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,1);
-          var morph1 = dom.createMorphAt(dom.childAt(element1, [1]),0,1);
-          var morph2 = dom.createMorphAt(element2,0,1);
-          var morph3 = dom.createMorphAt(element3,0,1);
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
+          var morph1 = dom.createMorphAt(dom.childAt(element1, [1]),1,1);
+          var morph2 = dom.createMorphAt(element2,1,1);
+          var morph3 = dom.createMorphAt(element3,1,1);
           block(env, morph0, context, "if", [get(env, context, "isFinished")], {}, child0, child1);
           block(env, morph1, context, "if", [get(env, context, "isConnectingToServer")], {}, child2, child3);
           element(env, element2, context, "bind-attr", [], {"aria-disabled": "accountDisabled"});
@@ -1699,6 +1725,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     var child2 = (function() {
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1756,6 +1783,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     }());
     return {
       isHTMLBars: true,
+      revision: "Ember@1.11.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1787,7 +1815,9 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         dom.setAttribute(el3,"data-type","list");
         var el4 = dom.createTextNode("\n");
         dom.appendChild(el3, el4);
-        var el4 = dom.createTextNode("");
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("    ");
         dom.appendChild(el3, el4);
@@ -1796,6 +1826,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n\n");
         dom.appendChild(el1, el2);
@@ -1826,10 +1858,9 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }
         var element5 = dom.childAt(fragment, [0]);
         var element6 = dom.childAt(element5, [3, 1]);
-        if (this.cachedFragment) { dom.repairClonedNode(element6,[1]); }
-        var morph0 = dom.createMorphAt(element6,0,1);
-        var morph1 = dom.createMorphAt(element6,1,2);
-        var morph2 = dom.createMorphAt(element5,4,5);
+        var morph0 = dom.createMorphAt(element6,1,1);
+        var morph1 = dom.createMorphAt(element6,2,2);
+        var morph2 = dom.createMorphAt(element5,5,5);
         block(env, morph0, context, "if", [get(env, context, "showInstructions")], {}, child0, child1);
         block(env, morph1, context, "if", [get(env, context, "isFinished")], {}, child2, null);
         content(env, morph2, context, "current-version");
@@ -1846,6 +1877,7 @@ define('yith-library-mobile-client/templates/loading', ['exports'], function (ex
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
+      revision: "Ember@1.11.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1933,6 +1965,7 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
     var child0 = (function() {
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2012,6 +2045,7 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
     var child1 = (function() {
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2066,17 +2100,20 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
     }());
     return {
       isHTMLBars: true,
+      revision: "Ember@1.11.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
       build: function build(dom) {
         var el0 = dom.createDocumentFragment();
-        var el1 = dom.createTextNode("");
+        var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
         var el1 = dom.createElement("p");
         var el2 = dom.createTextNode("\n  ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("button");
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
@@ -2105,10 +2142,10 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
         } else {
           fragment = this.build(dom);
         }
-        if (this.cachedFragment) { dom.repairClonedNode(fragment,[0]); }
         var element1 = dom.childAt(fragment, [1, 1]);
-        var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
-        var morph1 = dom.createMorphAt(element1,-1,-1);
+        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+        var morph1 = dom.createMorphAt(element1,0,0);
+        dom.insertBoundary(fragment, 0);
         block(env, morph0, context, "if", [get(env, context, "view.decryptedSecret")], {}, child0, child1);
         element(env, element1, context, "bind-attr", [], {"class": get(env, context, "view.buttonClass")});
         content(env, morph1, context, "view.buttonText");
@@ -2126,6 +2163,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child0 = (function() {
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2168,6 +2206,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child1 = (function() {
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2188,6 +2227,8 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
           var el1 = dom.createTextNode("\n        ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
           dom.appendChild(el0, el1);
@@ -2213,7 +2254,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
           } else {
             fragment = this.build(dom);
           }
-          var morph0 = dom.createMorphAt(dom.childAt(fragment, [3]),-1,-1);
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [3]),0,0);
           content(env, morph0, context, "notes");
           return fragment;
         }
@@ -2222,6 +2263,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child2 = (function() {
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2242,6 +2284,8 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
           var el1 = dom.createTextNode("\n        ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
           dom.appendChild(el0, el1);
@@ -2267,7 +2311,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
           } else {
             fragment = this.build(dom);
           }
-          var morph0 = dom.createMorphAt(dom.childAt(fragment, [3]),-1,-1);
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [3]),0,0);
           content(env, morph0, context, "tags");
           return fragment;
         }
@@ -2275,56 +2319,71 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     }());
     return {
       isHTMLBars: true,
+      revision: "Ember@1.11.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
       build: function build(dom) {
-        var el0 = dom.createElement("section");
-        dom.setAttribute(el0,"data-position","right");
-        dom.setAttribute(el0,"role","region");
-        var el1 = dom.createTextNode("\n    ");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createElement("header");
-        dom.setAttribute(el1,"class","fixed");
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("      ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("h1");
-        dom.appendChild(el1, el2);
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("section");
+        dom.setAttribute(el1,"data-position","right");
+        dom.setAttribute(el1,"role","region");
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n\n    ");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createElement("article");
-        dom.setAttribute(el1,"class","content scrollable header");
-        var el2 = dom.createTextNode("\n      ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n      ");
-        dom.appendChild(el1, el2);
         var el2 = dom.createElement("header");
-        var el3 = dom.createTextNode("\n        ");
+        dom.setAttribute(el2,"class","fixed");
+        var el3 = dom.createTextNode("\n");
         dom.appendChild(el2, el3);
-        var el3 = dom.createElement("h2");
-        var el4 = dom.createTextNode("Account");
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("      ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("h1");
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("article");
+        dom.setAttribute(el2,"class","content scrollable header");
+        var el3 = dom.createTextNode("\n      ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n      ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("header");
+        var el4 = dom.createTextNode("\n        ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("h2");
+        var el5 = dom.createTextNode("Account");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n      ");
         dom.appendChild(el3, el4);
         dom.appendChild(el2, el3);
         var el3 = dom.createTextNode("\n      ");
         dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n      ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("p");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n\n");
+        var el3 = dom.createElement("p");
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n\n");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("    ");
+        dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("    ");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
         return el0;
       },
@@ -2348,15 +2407,15 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
         } else {
           fragment = this.build(dom);
         }
-        var element0 = fragment;
+        var element0 = dom.childAt(fragment, [0]);
         var element1 = dom.childAt(element0, [1]);
         var element2 = dom.childAt(element0, [3]);
-        var morph0 = dom.createMorphAt(element1,0,1);
-        var morph1 = dom.createMorphAt(dom.childAt(element1, [2]),-1,-1);
-        var morph2 = dom.createMorphAt(element2,0,1);
-        var morph3 = dom.createMorphAt(dom.childAt(element2, [4]),-1,-1);
-        var morph4 = dom.createMorphAt(element2,5,6);
-        var morph5 = dom.createMorphAt(element2,6,7);
+        var morph0 = dom.createMorphAt(element1,1,1);
+        var morph1 = dom.createMorphAt(dom.childAt(element1, [3]),0,0);
+        var morph2 = dom.createMorphAt(element2,1,1);
+        var morph3 = dom.createMorphAt(dom.childAt(element2, [5]),0,0);
+        var morph4 = dom.createMorphAt(element2,7,7);
+        var morph5 = dom.createMorphAt(element2,9,9);
         element(env, element0, context, "bind-attr", [], {"class": "position"});
         element(env, element0, context, "action", ["finishTransition"], {"on": "animationEnd"});
         block(env, morph0, context, "link-to", ["secrets"], {}, child0, null);
@@ -2379,6 +2438,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     var child0 = (function() {
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2421,6 +2481,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     var child1 = (function() {
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2430,6 +2491,8 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("span");
           dom.setAttribute(el1,"class","tag");
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
           dom.appendChild(el0, el1);
@@ -2455,7 +2518,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           } else {
             fragment = this.build(dom);
           }
-          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),-1,-1);
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
           content(env, morph0, context, "tag");
           return fragment;
         }
@@ -2465,6 +2528,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
       var child0 = (function() {
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2473,10 +2537,14 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
             var el1 = dom.createTextNode("                ");
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("p");
+            var el2 = dom.createComment("");
+            dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode("\n                ");
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("p");
+            var el2 = dom.createComment("");
+            dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode("\n");
             dom.appendChild(el0, el1);
@@ -2502,8 +2570,8 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
             } else {
               fragment = this.build(dom);
             }
-            var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),-1,-1);
-            var morph1 = dom.createMorphAt(dom.childAt(fragment, [3]),-1,-1);
+            var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
+            var morph1 = dom.createMorphAt(dom.childAt(fragment, [3]),0,0);
             content(env, morph0, context, "service");
             content(env, morph1, context, "account");
             return fragment;
@@ -2512,6 +2580,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
       }());
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2521,6 +2590,8 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("li");
           var el2 = dom.createTextNode("\n");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode("            ");
           dom.appendChild(el1, el2);
@@ -2549,7 +2620,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           } else {
             fragment = this.build(dom);
           }
-          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,1);
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
           block(env, morph0, context, "link-to", ["secret", get(env, context, "id")], {}, child0, null);
           return fragment;
         }
@@ -2557,6 +2628,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     }());
     return {
       isHTMLBars: true,
+      revision: "Ember@1.11.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2565,6 +2637,8 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
         var el1 = dom.createElement("section");
         dom.setAttribute(el1,"data-position","current");
         var el2 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n\n  ");
         dom.appendChild(el1, el2);
@@ -2577,11 +2651,15 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
         dom.setAttribute(el3,"class","fixed");
         var el4 = dom.createTextNode("\n");
         dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("      ");
         dom.appendChild(el3, el4);
         var el4 = dom.createElement("form");
         dom.setAttribute(el4,"action","#");
         var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("\n        ");
         dom.appendChild(el4, el5);
@@ -2610,10 +2688,16 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
         var el6 = dom.createTextNode("\n          ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("small");
+        var el7 = dom.createComment("");
+        dom.appendChild(el6, el7);
         var el7 = dom.createTextNode(" ");
+        dom.appendChild(el6, el7);
+        var el7 = dom.createComment("");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createComment("");
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("        ");
         dom.appendChild(el5, el6);
@@ -2622,6 +2706,8 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("ul");
         var el6 = dom.createTextNode("\n");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createComment("");
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("        ");
         dom.appendChild(el5, el6);
@@ -2645,11 +2731,15 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
         var el2 = dom.createTextNode("\n  ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("p");
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
@@ -2676,23 +2766,23 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           fragment = this.build(dom);
         }
         var element0 = dom.childAt(fragment, [0]);
-        var element1 = dom.childAt(element0, [2]);
+        var element1 = dom.childAt(element0, [3]);
         var element2 = dom.childAt(element1, [1]);
-        var element3 = dom.childAt(element2, [2]);
-        var element4 = dom.childAt(element3, [2]);
+        var element3 = dom.childAt(element2, [3]);
+        var element4 = dom.childAt(element3, [3]);
         var element5 = dom.childAt(element1, [3, 1]);
         var element6 = dom.childAt(element5, [1]);
         var element7 = dom.childAt(element6, [1]);
         var element8 = dom.childAt(fragment, [2]);
-        var morph0 = dom.createMorphAt(element0,0,1);
-        var morph1 = dom.createMorphAt(element2,0,1);
-        var morph2 = dom.createMorphAt(element3,0,1);
-        var morph3 = dom.createMorphAt(element7,-1,0);
-        var morph4 = dom.createMorphAt(element7,0,-1);
-        var morph5 = dom.createMorphAt(element6,2,3);
-        var morph6 = dom.createMorphAt(dom.childAt(element5, [3]),0,1);
-        var morph7 = dom.createMorphAt(dom.childAt(element8, [1]),-1,-1);
-        var morph8 = dom.createMorphAt(fragment,3,4,contextualElement);
+        var morph0 = dom.createMorphAt(element0,1,1);
+        var morph1 = dom.createMorphAt(element2,1,1);
+        var morph2 = dom.createMorphAt(element3,1,1);
+        var morph3 = dom.createMorphAt(element7,0,0);
+        var morph4 = dom.createMorphAt(element7,2,2);
+        var morph5 = dom.createMorphAt(element6,3,3);
+        var morph6 = dom.createMorphAt(dom.childAt(element5, [3]),1,1);
+        var morph7 = dom.createMorphAt(dom.childAt(element8, [1]),0,0);
+        var morph8 = dom.createMorphAt(fragment,4,4,contextualElement);
         element(env, element0, context, "bind-attr", [], {"class": "position"});
         inline(env, morph0, context, "outlet", [get(env, context, "drawer")], {});
         element(env, element1, context, "bind-attr", [], {"class": "state"});
@@ -2721,11 +2811,14 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
     var child0 = (function() {
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
         build: function build(dom) {
-          var el0 = dom.createTextNode("Done");
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("Done");
+          dom.appendChild(el0, el1);
           return el0;
         },
         render: function render(context, env, contextualElement) {
@@ -2755,6 +2848,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2801,6 +2895,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child0 = (function() {
           return {
             isHTMLBars: true,
+            revision: "Ember@1.11.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2846,6 +2941,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child1 = (function() {
           return {
             isHTMLBars: true,
+            revision: "Ember@1.11.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2890,14 +2986,13 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         }());
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
           build: function build(dom) {
             var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("");
+            var el1 = dom.createComment("");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -2921,8 +3016,9 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
             } else {
               fragment = this.build(dom);
             }
-            if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
-            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+            dom.insertBoundary(fragment, null);
+            dom.insertBoundary(fragment, 0);
             block(env, morph0, context, "if", [get(env, context, "isSyncing")], {}, child0, child1);
             return fragment;
           }
@@ -2930,14 +3026,13 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
         build: function build(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("");
+          var el1 = dom.createComment("");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -2961,8 +3056,9 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
           } else {
             fragment = this.build(dom);
           }
-          if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
-          var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+          var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, null);
+          dom.insertBoundary(fragment, 0);
           block(env, morph0, context, "if", [get(env, context, "syncButtonDisabled")], {}, child0, child1);
           return fragment;
         }
@@ -2972,6 +3068,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3018,6 +3115,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child0 = (function() {
           return {
             isHTMLBars: true,
+            revision: "Ember@1.11.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -3063,6 +3161,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child1 = (function() {
           return {
             isHTMLBars: true,
+            revision: "Ember@1.11.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -3107,14 +3206,13 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         }());
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
           build: function build(dom) {
             var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("");
+            var el1 = dom.createComment("");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -3138,8 +3236,9 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
             } else {
               fragment = this.build(dom);
             }
-            if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
-            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+            var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+            dom.insertBoundary(fragment, null);
+            dom.insertBoundary(fragment, 0);
             block(env, morph0, context, "if", [get(env, context, "isAuthorizing")], {}, child0, child1);
             return fragment;
           }
@@ -3147,14 +3246,13 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
         build: function build(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("");
+          var el1 = dom.createComment("");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -3178,8 +3276,9 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
           } else {
             fragment = this.build(dom);
           }
-          if (this.cachedFragment) { dom.repairClonedNode(fragment,[0,1]); }
-          var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
+          var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, null);
+          dom.insertBoundary(fragment, 0);
           block(env, morph0, context, "if", [get(env, context, "loginButtonDisableed")], {}, child0, child1);
           return fragment;
         }
@@ -3189,6 +3288,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3196,9 +3296,15 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createTextNode("            ");
             dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
             var el1 = dom.createTextNode("\n            ");
             dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
             var el1 = dom.createTextNode(" (");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode(")\n");
             dom.appendChild(el0, el1);
@@ -3224,9 +3330,9 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
             } else {
               fragment = this.build(dom);
             }
-            var morph0 = dom.createMorphAt(fragment,0,1,contextualElement);
-            var morph1 = dom.createMorphAt(fragment,1,2,contextualElement);
-            var morph2 = dom.createMorphAt(fragment,2,3,contextualElement);
+            var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
+            var morph1 = dom.createMorphAt(fragment,3,3,contextualElement);
+            var morph2 = dom.createMorphAt(fragment,5,5,contextualElement);
             inline(env, morph0, context, "current-tag", [get(env, context, "currentTag.name"), get(env, context, "tag")], {});
             content(env, morph1, context, "currentTag.name");
             content(env, morph2, context, "currentTag.count");
@@ -3236,6 +3342,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3245,6 +3352,8 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("li");
           var el2 = dom.createTextNode("\n");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode("        ");
           dom.appendChild(el1, el2);
@@ -3273,7 +3382,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
           } else {
             fragment = this.build(dom);
           }
-          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,1);
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
           block(env, morph0, context, "link-to", ["secrets", subexpr(env, context, "query-params", [], {"tag": get(env, context, "currentTag.selectTag")})], {}, child0, null);
           return fragment;
         }
@@ -3283,11 +3392,14 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
+          revision: "Ember@1.11.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
           build: function build(dom) {
-            var el0 = dom.createTextNode("See more tags ...");
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("See more tags ...");
+            dom.appendChild(el0, el1);
             return el0;
           },
           render: function render(context, env, contextualElement) {
@@ -3315,6 +3427,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3324,6 +3437,8 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("li");
           var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode("\n        ");
           dom.appendChild(el1, el2);
@@ -3352,7 +3467,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
           } else {
             fragment = this.build(dom);
           }
-          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,1);
+          var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
           block(env, morph0, context, "link-to", ["secrets.tags"], {}, child0, null);
           return fragment;
         }
@@ -3360,6 +3475,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
     }());
     return {
       isHTMLBars: true,
+      revision: "Ember@1.11.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -3376,12 +3492,16 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         dom.setAttribute(el3,"type","toolbar");
         var el4 = dom.createTextNode("\n      ");
         dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("\n    ");
         dom.appendChild(el3, el4);
         dom.appendChild(el2, el3);
         var el3 = dom.createTextNode("\n    ");
         dom.appendChild(el2, el3);
         var el3 = dom.createElement("h1");
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
         dom.appendChild(el2, el3);
         var el3 = dom.createTextNode("\n  ");
         dom.appendChild(el2, el3);
@@ -3402,6 +3522,8 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         dom.appendChild(el3, el4);
         var el4 = dom.createElement("li");
         var el5 = dom.createTextNode("\n");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("      ");
         dom.appendChild(el4, el5);
@@ -3429,7 +3551,9 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var el3 = dom.createElement("ul");
         var el4 = dom.createTextNode("\n");
         dom.appendChild(el3, el4);
-        var el4 = dom.createTextNode("");
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("    ");
         dom.appendChild(el3, el4);
@@ -3438,6 +3562,8 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
@@ -3472,13 +3598,12 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var element9 = dom.childAt(element8, [3]);
         var element10 = dom.childAt(element9, [3, 0]);
         var element11 = dom.childAt(element8, [7]);
-        if (this.cachedFragment) { dom.repairClonedNode(element11,[1]); }
-        var morph0 = dom.createMorphAt(dom.childAt(element7, [1]),0,1);
-        var morph1 = dom.createMorphAt(dom.childAt(element7, [3]),-1,-1);
-        var morph2 = dom.createMorphAt(dom.childAt(element9, [1]),0,1);
-        var morph3 = dom.createMorphAt(element11,0,1);
-        var morph4 = dom.createMorphAt(element11,1,2);
-        var morph5 = dom.createMorphAt(element6,4,5);
+        var morph0 = dom.createMorphAt(dom.childAt(element7, [1]),1,1);
+        var morph1 = dom.createMorphAt(dom.childAt(element7, [3]),0,0);
+        var morph2 = dom.createMorphAt(dom.childAt(element9, [1]),1,1);
+        var morph3 = dom.createMorphAt(element11,1,1);
+        var morph4 = dom.createMorphAt(element11,2,2);
+        var morph5 = dom.createMorphAt(element6,5,5);
         block(env, morph0, context, "link-to", ["secrets"], {}, child0, null);
         content(env, morph1, context, "accountDisplayName");
         block(env, morph2, context, "if", [get(env, context, "authManager.hasValidAccessToken")], {}, child1, child2);
@@ -3500,6 +3625,7 @@ define('yith-library-mobile-client/templates/secrets/tags', ['exports'], functio
     var child0 = (function() {
       return {
         isHTMLBars: true,
+        revision: "Ember@1.11.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3511,7 +3637,11 @@ define('yith-library-mobile-client/templates/secrets/tags', ['exports'], functio
           dom.setAttribute(el1,"type","button");
           var el2 = dom.createTextNode("\n        ");
           dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
           var el2 = dom.createTextNode(" (");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode(")\n      ");
           dom.appendChild(el1, el2);
@@ -3541,8 +3671,8 @@ define('yith-library-mobile-client/templates/secrets/tags', ['exports'], functio
             fragment = this.build(dom);
           }
           var element0 = dom.childAt(fragment, [1]);
-          var morph0 = dom.createMorphAt(element0,0,1);
-          var morph1 = dom.createMorphAt(element0,1,2);
+          var morph0 = dom.createMorphAt(element0,1,1);
+          var morph1 = dom.createMorphAt(element0,3,3);
           element(env, element0, context, "action", ["selectTag", get(env, context, "tag.name")], {});
           content(env, morph0, context, "tag.name");
           content(env, morph1, context, "tag.count");
@@ -3552,35 +3682,40 @@ define('yith-library-mobile-client/templates/secrets/tags', ['exports'], functio
     }());
     return {
       isHTMLBars: true,
+      revision: "Ember@1.11.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
       build: function build(dom) {
-        var el0 = dom.createElement("form");
-        dom.setAttribute(el0,"data-type","action");
-        dom.setAttribute(el0,"role","dialog");
-        var el1 = dom.createTextNode("\n  ");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createElement("header");
-        var el2 = dom.createTextNode("Available tags");
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("form");
+        dom.setAttribute(el1,"data-type","action");
+        dom.setAttribute(el1,"role","dialog");
+        var el2 = dom.createTextNode("\n  ");
         dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n  ");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createElement("menu");
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("    ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("button");
-        dom.setAttribute(el2,"type","button");
-        var el3 = dom.createTextNode("Cancel");
+        var el2 = dom.createElement("header");
+        var el3 = dom.createTextNode("Available tags");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n  ");
         dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
+        var el2 = dom.createElement("menu");
+        var el3 = dom.createTextNode("\n");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("button");
+        dom.setAttribute(el3,"type","button");
+        var el4 = dom.createTextNode("Cancel");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
         return el0;
       },
@@ -3604,9 +3739,9 @@ define('yith-library-mobile-client/templates/secrets/tags', ['exports'], functio
         } else {
           fragment = this.build(dom);
         }
-        var element1 = dom.childAt(fragment, [3]);
-        var element2 = dom.childAt(element1, [2]);
-        var morph0 = dom.createMorphAt(element1,0,1);
+        var element1 = dom.childAt(fragment, [0, 3]);
+        var element2 = dom.childAt(element1, [3]);
+        var morph0 = dom.createMorphAt(element1,1,1);
         block(env, morph0, context, "each", [get(env, context, "sortedTags")], {"keyword": "tag"}, child0, null);
         element(env, element2, context, "action", ["cancel"], {});
         return fragment;
