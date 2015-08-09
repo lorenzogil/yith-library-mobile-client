@@ -10559,7 +10559,7 @@ return jQuery;
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   1.11.0
+ * @version   1.11.1
  */
 
 (function() {
@@ -16583,7 +16583,7 @@ enifed('ember-htmlbars/compat/helper', ['exports', 'ember-metal/merge', 'ember-h
   function HandlebarsCompatibleHelper(fn) {
     this.helperFunction = function helperFunc(params, hash, options, env) {
       var param, blockResult, fnResult;
-      var context = this;
+      var context = env.data.view;
       var handlebarsOptions = {
         hash: { },
         types: new Array(params.length),
@@ -16599,6 +16599,12 @@ enifed('ember-htmlbars/compat/helper', ['exports', 'ember-metal/merge', 'ember-h
         handlebarsOptions.fn = function() {
           blockResult = options.template.render(context, env, options.morph.contextualElement);
         };
+
+        if (options.inverse) {
+          handlebarsOptions.inverse = function() {
+            blockResult = options.inverse.render(context, env, options.morph.contextualElement);
+          };
+        }
       }
 
       for (var prop in hash) {
@@ -18372,8 +18378,8 @@ enifed('ember-htmlbars/system/render-view', ['exports', 'ember-metal/core', 'emb
   function renderHTMLBarsTemplate(view, buffer, template) {
     Ember['default'].assert(
       'The template being rendered by `' + view + '` was compiled with `' + template.revision +
-      '` which does not match `Ember@1.11.0` (this revision).',
-      template.revision === 'Ember@1.11.0'
+      '` which does not match `Ember@1.11.1` (this revision).',
+      template.revision === 'Ember@1.11.1'
     );
 
     var contextualElement = buffer.innerContextualElement();
@@ -18413,7 +18419,7 @@ enifed('ember-htmlbars/templates/component', ['exports', 'ember-template-compile
   exports['default'] = template['default']((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -18460,7 +18466,7 @@ enifed('ember-htmlbars/templates/empty', ['exports', 'ember-template-compiler/sy
   exports['default'] = template['default']((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -18500,7 +18506,7 @@ enifed('ember-htmlbars/templates/link-to-escaped', ['exports', 'ember-template-c
   exports['default'] = template['default']((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -18547,7 +18553,7 @@ enifed('ember-htmlbars/templates/link-to-unescaped', ['exports', 'ember-template
   exports['default'] = template['default']((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -18595,7 +18601,7 @@ enifed('ember-htmlbars/templates/select', ['exports', 'ember-template-compiler/s
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18638,7 +18644,7 @@ enifed('ember-htmlbars/templates/select', ['exports', 'ember-template-compiler/s
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -18678,7 +18684,7 @@ enifed('ember-htmlbars/templates/select', ['exports', 'ember-template-compiler/s
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18720,7 +18726,7 @@ enifed('ember-htmlbars/templates/select', ['exports', 'ember-template-compiler/s
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -18760,7 +18766,7 @@ enifed('ember-htmlbars/templates/select', ['exports', 'ember-template-compiler/s
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18800,7 +18806,7 @@ enifed('ember-htmlbars/templates/select', ['exports', 'ember-template-compiler/s
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -19114,7 +19120,7 @@ enifed('ember-metal-views/renderer', ['exports', 'dom-helper', 'ember-metal/envi
 
       this.beforeRemove(removeQueue[idx]);
 
-      childViews = view._childViews;
+      childViews = this.childViews(view);
       if (childViews) {
         for (i=0,l=childViews.length; i<l; i++) {
           queue.push(childViews[i]);
@@ -19127,7 +19133,7 @@ enifed('ember-metal-views/renderer', ['exports', 'dom-helper', 'ember-metal/envi
 
       this.beforeRemove(destroyQueue[idx]);
 
-      childViews = view._childViews;
+      childViews = this.childViews(view);
       if (childViews) {
         for (i=0,l=childViews.length; i<l; i++) {
           destroyQueue.push(childViews[i]);
@@ -21947,7 +21953,7 @@ enifed('ember-metal/core', ['exports'], function (exports) {
 
     @class Ember
     @static
-    @version 1.11.0
+    @version 1.11.1
   */
 
   if ('undefined' === typeof Ember) {
@@ -21975,10 +21981,10 @@ enifed('ember-metal/core', ['exports'], function (exports) {
   /**
     @property VERSION
     @type String
-    @default '1.11.0'
+    @default '1.11.1'
     @static
   */
-  Ember.VERSION = '1.11.0';
+  Ember.VERSION = '1.11.1';
 
   /**
     Standard environmental variables. You can define these in a global `EmberENV`
@@ -27434,7 +27440,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     return object && object.isStream;
   }
 
-  /**
+  /*
    A method of subscribing to a stream which is safe for use with a non-stream
    object. If a non-stream object is passed, the function does nothing.
 
@@ -27452,7 +27458,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     }
   }
 
-  /**
+  /*
    A method of unsubscribing from a stream which is safe for use with a non-stream
    object. If a non-stream object is passed, the function does nothing.
 
@@ -27469,7 +27475,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     }
   }
 
-  /**
+  /*
    Retrieve the value of a stream, or in the case a non-stream object is passed,
    return the object itself.
 
@@ -27487,7 +27493,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     }
   }
 
-  /**
+  /*
    Map an array, replacing any streams with their values.
 
    @public
@@ -27508,7 +27514,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     return ret;
   }
 
-  /**
+  /*
    Map a hash, replacing any stream property values with the current value of that
    stream.
 
@@ -27529,7 +27535,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     return ret;
   }
 
-  /**
+  /*
    Check whether an array contains any stream values
 
    @public
@@ -27553,7 +27559,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     return containsStream;
   }
 
-  /**
+  /*
    Check whether a hash has any stream property values
 
    @public
@@ -27576,7 +27582,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     return containsStream;
   }
 
-  /**
+  /*
    Join an array, with any streams replaced by their current values
 
    @public
@@ -27609,7 +27615,7 @@ enifed('ember-metal/streams/utils', ['exports', './stream'], function (exports, 
     }
   }
 
-  /**
+  /*
    Generate a new stream by providing a source stream and a function that can
    be used to transform the stream's value. In the case of a non-stream object,
    returns the result of the function.
@@ -29341,7 +29347,7 @@ enifed('ember-routing-htmlbars/helpers/query-params', ['exports', 'ember-metal/c
   }
 
 });
-enifed('ember-routing-htmlbars/helpers/render', ['exports', 'ember-metal/core', 'ember-metal/error', 'ember-runtime/system/string', 'ember-routing/system/generate_controller', 'ember-metal/streams/utils', 'ember-htmlbars/system/merge-view-bindings', 'ember-htmlbars/system/append-templated-view', 'ember-metal/platform/create'], function (exports, Ember, EmberError, string, generate_controller, utils, mergeViewBindings, appendTemplatedView, create) {
+enifed('ember-routing-htmlbars/helpers/render', ['exports', 'ember-metal/core', 'ember-metal/property_get', 'ember-metal/error', 'ember-runtime/system/string', 'ember-routing/system/generate_controller', 'ember-metal/streams/utils', 'ember-htmlbars/system/merge-view-bindings', 'ember-htmlbars/system/append-templated-view', 'ember-metal/platform/create'], function (exports, Ember, property_get, EmberError, string, generate_controller, utils, mergeViewBindings, appendTemplatedView, create) {
 
   'use strict';
 
@@ -29402,6 +29408,9 @@ enifed('ember-routing-htmlbars/helpers/render', ['exports', 'ember-metal/core', 
     view = container.lookup('view:' + name);
     if (!view) {
       view = container.lookup('view:default');
+    }
+    var viewHasTemplateSpecified = !!property_get.get(view, 'template');
+    if (!viewHasTemplateSpecified) {
       template = template || container.lookup(templateName);
     }
 
@@ -31286,6 +31295,7 @@ enifed('ember-routing/location/history_location', ['exports', 'ember-metal/prope
     init: function() {
       property_set.set(this, 'location', property_get.get(this, 'location') || window.location);
       property_set.set(this, 'baseURL', jQuery['default']('base').attr('href') || '');
+
     },
 
     /**
@@ -31295,7 +31305,13 @@ enifed('ember-routing/location/history_location', ['exports', 'ember-metal/prope
       @method initState
     */
     initState: function() {
-      property_set.set(this, 'history', property_get.get(this, 'history') || window.history);
+      var history = property_get.get(this, 'history') || window.history;
+      property_set.set(this, 'history', history);
+
+      if (history && 'state' in history) {
+        this.supportsHistory = true;
+      }
+
       this.replaceState(this.formatURL(this.getURL()));
     },
 
@@ -31340,7 +31356,7 @@ enifed('ember-routing/location/history_location', ['exports', 'ember-metal/prope
       @param path {String}
     */
     setURL: function(path) {
-      var state = this._historyState;
+      var state = this.getState();
       path = this.formatURL(path);
 
       if (!state || state.path !== path) {
@@ -31357,12 +31373,30 @@ enifed('ember-routing/location/history_location', ['exports', 'ember-metal/prope
       @param path {String}
     */
     replaceURL: function(path) {
-      var state = this._historyState;
+      var state = this.getState();
       path = this.formatURL(path);
 
       if (!state || state.path !== path) {
         this.replaceState(path);
       }
+    },
+
+    /**
+      Get the current `history.state`. Checks for if a polyfill is
+      required and if so fetches this._historyState. The state returned
+      from getState may be null if an iframe has changed a window's
+      history.
+
+      @private
+      @method getState
+      @return state {Object}
+    */
+    getState: function() {
+      if (this.supportsHistory) {
+        return property_get.get(this, 'history').state;
+      }
+
+      return this._historyState;
     },
 
     /**
@@ -31375,7 +31409,7 @@ enifed('ember-routing/location/history_location', ['exports', 'ember-metal/prope
     pushState: function(path) {
       var state = { path: path };
 
-      property_get.get(this, 'history').pushState(null, null, path);
+      property_get.get(this, 'history').pushState(state, null, path);
 
       this._historyState = state;
 
@@ -31392,7 +31426,7 @@ enifed('ember-routing/location/history_location', ['exports', 'ember-metal/prope
     */
     replaceState: function(path) {
       var state = { path: path };
-      property_get.get(this, 'history').replaceState(null, null, path);
+      property_get.get(this, 'history').replaceState(state, null, path);
 
       this._historyState = state;
 
@@ -37205,7 +37239,7 @@ enifed('ember-runtime/controllers/array_controller', ['exports', 'ember-metal/co
         Ember['default'].assert(
           'ArrayController expects `model` to implement the Ember.Array mixin. ' +
           'This can often be fixed by wrapping your model with `Ember.A()`.',
-          EmberArray['default'].detect(value)
+          EmberArray['default'].detect(value) || !value
         );
 
         return value;
@@ -45267,7 +45301,7 @@ enifed('ember-template-compiler/system/compile_options', ['exports', 'ember-meta
     var disableComponentGeneration = true;
     
     return {
-      revision: 'Ember@1.11.0',
+      revision: 'Ember@1.11.1',
 
       disableComponentGeneration: disableComponentGeneration,
 
@@ -46822,6 +46856,8 @@ enifed('ember-views/mixins/attribute_bindings_support', ['exports', 'ember-metal
       @property attributeBindings
     */
     attributeBindings: EMPTY_ARRAY,
+
+    _attrNodes: EMPTY_ARRAY,
 
     _unspecifiedAttributeBindings: null,
 
@@ -49440,7 +49476,10 @@ enifed('ember-views/system/renderer', ['exports', 'ember-metal/core', 'ember-met
   };
 
   EmberRenderer.prototype.childViews = function childViews(view) {
-    return view._childViews;
+    if (view._attrNodes && view._childViews) {
+      return view._attrNodes.concat(view._childViews);
+    }
+    return view._attrNodes || view._childViews;
   };
 
   Renderer['default'].prototype.willCreateElement = function (view) {
@@ -51013,7 +51052,7 @@ enifed('ember-views/views/select', ['exports', 'ember-metal/enumerable_utils', '
 
   var selectOptionDefaultTemplate = {
     isHTMLBars: true,
-    revision: 'Ember@1.11.0',
+    revision: 'Ember@1.11.1',
     render: function(context, env, contextualElement) {
       var lazyValue = context.getStream('view.label');
 
@@ -51964,10 +52003,10 @@ enifed('ember-views/views/states/in_buffer', ['exports', 'ember-views/views/stat
 
     appendAttr: function(view, attrNode) {
       var buffer = view.buffer;
-      var _childViews = view._childViews;
+      var _attrNodes = view._attrNodes;
 
-      if (!_childViews.length) { _childViews = view._childViews = _childViews.slice(); }
-      _childViews.push(attrNode);
+      if (!_attrNodes.length) { _attrNodes = view._attrNodes = _attrNodes.slice(); }
+      _attrNodes.push(attrNode);
 
       if (!attrNode._morph) {
         Ember.assert("bound attributes that do not have a morph must have a buffer", !!buffer);
@@ -52022,10 +52061,10 @@ enifed('ember-views/views/states/in_dom', ['exports', 'ember-metal/core', 'ember
     },
 
     appendAttr: function(view, attrNode) {
-      var _childViews = view._childViews;
+      var _attrNodes = view._attrNodes;
 
-      if (!_childViews.length) { _childViews = view._childViews = _childViews.slice(); }
-      _childViews.push(attrNode);
+      if (!_attrNodes.length) { _attrNodes = view._attrNodes = _attrNodes.slice(); }
+      _attrNodes.push(attrNode);
 
       attrNode._parentView = view;
       view.renderer.appendAttrTo(attrNode, view.element, attrNode.attrName);
@@ -60458,15 +60497,32 @@ define("ember/load-initializers",
 
     return {
       'default': function(app, prefix) {
-        var initializersRegExp = new RegExp('^' + prefix + '/initializers');
+        var regex = new RegExp('^' + prefix + '\/((?:instance-)?initializers)\/');
 
-        Ember.keys(requirejs._eak_seen).filter(function(key) {
-          return initializersRegExp.test(key);
-        }).forEach(function(moduleName) {
-          var module = require(moduleName, null, null, true);
-          if (!module) { throw new Error(moduleName + ' must export an initializer.'); }
-          app.initializer(module['default']);
-        });
+        Ember.keys(requirejs._eak_seen).map(function (moduleName) {
+            return {
+              moduleName: moduleName,
+              matches: regex.exec(moduleName)
+            };
+          })
+          .filter(function(dep) {
+            return dep.matches && dep.matches.length === 2;
+          })
+          .forEach(function(dep) {
+            var moduleName = dep.moduleName;
+
+            var module = require(moduleName, null, null, true);
+            if (!module) { throw new Error(moduleName + ' must export an initializer.'); }
+
+            var initializerType = Ember.String.camelize(dep.matches[1].substring(0, dep.matches[1].length - 1));
+            var initializer = module['default'];
+            if (!initializer.name) {
+              var initializerName = moduleName.match(/[^\/]+\/?$/)[0];
+              initializer.name = initializerName;
+            }
+
+            app[initializerType](initializer);
+          });
       }
     }
   }

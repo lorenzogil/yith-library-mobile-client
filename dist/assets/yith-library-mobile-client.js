@@ -7,12 +7,12 @@ define('yith-library-mobile-client/adapters/application', ['exports', 'ember-dat
     'use strict';
 
     exports['default'] = DS['default'].IndexedDBAdapter.extend({
-        databaseName: "yithlibrary",
+        databaseName: 'yithlibrary',
         version: 1,
         migrations: function migrations() {
-            this.addModel("account", { keyPath: "id", autoIncrement: false });
-            this.addModel("secret", { keyPath: "id", autoIncrement: false });
-            this.addModel("tag");
+            this.addModel('account', { keyPath: 'id', autoIncrement: false });
+            this.addModel('secret', { keyPath: 'id', autoIncrement: false });
+            this.addModel('tag');
         }
     });
 
@@ -21,15 +21,17 @@ define('yith-library-mobile-client/app', ['exports', 'ember', 'ember/resolver', 
 
   'use strict';
 
+  var App;
+
   Ember['default'].MODEL_FACTORY_INJECTIONS = true;
 
-  var App = Ember['default'].Application.extend({
+  App = Ember['default'].Application.extend({
     modulePrefix: config['default'].modulePrefix,
     podModulePrefix: config['default'].podModulePrefix,
     Resolver: Resolver['default'],
     customEvents: {
-      "animationend animationEnd webkitAnimationEnd mozAnimationEnd MSAnimationEnd oAnimationEnd": "animationEnd",
-      "transitionend transitionEnd webkitTransitionEnd mozTransitionEnd MSTransitionEnd oTransitionEnd": "transitionEnd"
+      'animationend animationEnd webkitAnimationEnd mozAnimationEnd MSAnimationEnd oAnimationEnd': 'animationEnd',
+      'transitionend transitionEnd webkitTransitionEnd mozTransitionEnd MSTransitionEnd oTransitionEnd': 'transitionEnd'
     }
   });
 
@@ -40,11 +42,13 @@ define('yith-library-mobile-client/app', ['exports', 'ember', 'ember/resolver', 
 });
 define('yith-library-mobile-client/controllers/application', ['exports', 'ember'], function (exports, Ember) {
 
-	'use strict';
+    'use strict';
 
-	exports['default'] = Ember['default'].ObjectController.extend({});
+    exports['default'] = Ember['default'].ObjectController.extend({
 
-	// The active Account object will be set as the model for this controller
+        // The active Account object will be set as the model for this controller
+
+    });
 
 });
 define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember'], function (exports, Ember) {
@@ -52,71 +56,71 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
     'use strict';
 
     exports['default'] = Ember['default'].ObjectController.extend({
-        needs: ["application"],
+        needs: ['application'],
         step: 0,
 
         showInstructions: (function () {
-            return this.get("step") === 0;
-        }).property("step"),
+            return this.get('step') === 0;
+        }).property('step'),
 
         isConnectingToServer: (function () {
-            return this.get("step") === 1;
-        }).property("step"),
+            return this.get('step') === 1;
+        }).property('step'),
 
         isServerConnected: (function () {
-            return this.get("step") > 1;
-        }).property("step"),
+            return this.get('step') > 1;
+        }).property('step'),
 
         isGettingAccountInformation: (function () {
-            return this.get("step") === 2;
-        }).property("step"),
+            return this.get('step') === 2;
+        }).property('step'),
 
         isAccountInformationRetrieved: (function () {
-            return this.get("step") > 2;
-        }).property("step"),
+            return this.get('step') > 2;
+        }).property('step'),
 
         accountDisabled: (function () {
-            return this.get("step") < 2 ? "true" : "false";
-        }).property("step"),
+            return this.get('step') < 2 ? 'true' : 'false';
+        }).property('step'),
 
         isGettingSecrets: (function () {
-            return this.get("step") === 3;
-        }).property("step"),
+            return this.get('step') === 3;
+        }).property('step'),
 
         areSecretsRetrieved: (function () {
-            return this.get("step") > 3;
-        }).property("step"),
+            return this.get('step') > 3;
+        }).property('step'),
 
         secretsDisabled: (function () {
-            return this.get("step") < 3 ? "true" : "false";
-        }).property("step"),
+            return this.get('step') < 3 ? 'true' : 'false';
+        }).property('step'),
 
         isFinished: (function () {
-            return this.get("step") === 4;
-        }).property("step"),
+            return this.get('step') === 4;
+        }).property('step'),
 
         connectToServer: function connectToServer() {
             var controller = this,
                 syncManager = this.syncManager,
                 authManager = this.authManager,
-                clientId = this.authManager.get("clientId"),
-                serverBaseUrl = this.settings.getSetting("serverBaseUrl"),
+                clientId = this.authManager.get('clientId'),
+                serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
                 accessToken = null;
 
-            this.incrementProperty("step");
+            this.incrementProperty('step');
 
             this.authManager.authorize(serverBaseUrl).then(function () {
-                accessToken = authManager.get("accessToken");
-                controller.incrementProperty("step");
+                accessToken = authManager.get('accessToken');
+                controller.incrementProperty('step');
                 return syncManager.fetchUserInfo(accessToken, serverBaseUrl, clientId);
             }).then(function (user) {
-                controller.settings.setSetting("lastAccount", user.get("id"));
-                controller.get("controllers.application").set("model", user);
-                controller.incrementProperty("step");
+                controller.settings.setSetting('lastAccount', user.get('id'));
+                controller.get('controllers.application').set('model', user);
+                controller.incrementProperty('step');
                 return syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId);
             }).then(function () {
-                controller.settings.setSetting("lastSync", new Date());
-                controller.incrementProperty("step");
+                controller.settings.setSetting('lastSync', new Date());
+                controller.incrementProperty('step');
             });
         },
 
@@ -128,7 +132,7 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
             },
 
             secrets: function secrets() {
-                this.transitionToRoute("secrets.index");
+                this.transitionToRoute('secrets.index');
             }
         }
     });
@@ -140,7 +144,9 @@ define('yith-library-mobile-client/controllers/secret', ['exports', 'ember'], fu
 
     exports['default'] = Ember['default'].ObjectController.extend({
 
-        position: "current" });
+        position: 'current'
+
+    });
 
 });
 define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], function (exports, Ember) {
@@ -148,54 +154,54 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
     'use strict';
 
     exports['default'] = Ember['default'].ArrayController.extend({
-        queryParams: ["tag"],
-        sortProperties: ["service", "account"],
+        queryParams: ['tag'],
+        sortProperties: ['service', 'account'],
         sortAscending: true,
-        position: "current",
-        state: "",
-        tag: "",
-        query: "",
+        position: 'current',
+        state: '',
+        tag: '',
+        query: '',
         isSyncing: false,
         isAuthorizing: false,
         statusMessage: null,
         isOnline: window.navigator.onLine,
 
         secrets: (function () {
-            var tag = this.get("tag"),
-                query = this.get("query"),
-                content = this.get("content").sortBy("service", "account");
+            var tag = this.get('tag'),
+                query = this.get('query'),
+                content = this.get('content').sortBy('service', 'account');
 
             return content.filter(function (item) {
                 return item.matches(tag, query);
             });
-        }).property("content.isLoaded", "tag", "query"),
+        }).property('content.isLoaded', 'tag', 'query'),
 
         secretsCount: (function () {
-            return this.get("secrets").length;
-        }).property("secrets"),
+            return this.get('secrets').length;
+        }).property('secrets'),
 
         secretsNoun: (function () {
-            var secretsCount = this.get("secretsCount");
-            return secretsCount === 1 ? "secret" : "secrets";
-        }).property("secretsCount"),
+            var secretsCount = this.get('secretsCount');
+            return secretsCount === 1 ? 'secret' : 'secrets';
+        }).property('secretsCount'),
 
         statusClass: (function () {
-            var msg = this.get("statusMessage");
+            var msg = this.get('statusMessage');
             if (msg === null) {
-                return "hidden";
-            } else if (msg === "") {
-                return "";
+                return 'hidden';
+            } else if (msg === '') {
+                return '';
             } else {
-                return "onviewport";
+                return 'onviewport';
             }
-        }).property("statusMessage"),
+        }).property('statusMessage'),
 
         showMessage: function showMessage(msg) {
-            this.set("statusMessage", msg);
+            this.set('statusMessage', msg);
             Ember['default'].run.later(this, function () {
-                this.set("statusMessage", "");
+                this.set('statusMessage', '');
                 Ember['default'].run.later(this, function () {
-                    this.set("statusMessage", null);
+                    this.set('statusMessage', null);
                 }, 500);
             }, 2500);
         },
@@ -206,27 +212,27 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
                 clientId = null,
                 serverBaseUrl = null;
 
-            if (this.get("isSyncing") === true) {
+            if (this.get('isSyncing') === true) {
                 return;
             } else {
-                this.set("isSyncing", true);
+                this.set('isSyncing', true);
 
-                accessToken = this.authManager.get("accessToken");
-                clientId = this.authManager.get("clientId");
-                serverBaseUrl = this.settings.getSetting("serverBaseUrl");
+                accessToken = this.authManager.get('accessToken');
+                clientId = this.authManager.get('clientId');
+                serverBaseUrl = this.settings.getSetting('serverBaseUrl');
 
                 this.syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId).then(function (results) {
                     var msg = [],
                         length;
-                    controller.settings.setSetting("lastSync", new Date());
-                    controller.set("isSyncing", false);
+                    controller.settings.setSetting('lastSync', new Date());
+                    controller.set('isSyncing', false);
                     length = results.secrets.length;
                     if (length > 0) {
-                        msg.push("" + length);
-                        msg.push(length > 1 ? "secrets have" : "secret has");
-                        msg.push("been succesfully updated");
+                        msg.push('' + length);
+                        msg.push(length > 1 ? 'secrets have' : 'secret has');
+                        msg.push('been succesfully updated');
                     }
-                    controller.showMessage(msg.join(" "));
+                    controller.showMessage(msg.join(' '));
                 });
             }
         },
@@ -235,15 +241,15 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
             var controller = this,
                 serverBaseUrl = null;
 
-            if (this.get("isAuthorizing") === true) {
+            if (this.get('isAuthorizing') === true) {
                 return;
             } else {
-                this.set("isAuthorizing", true);
+                this.set('isAuthorizing', true);
 
-                serverBaseUrl = this.settings.getSetting("serverBaseUrl");
+                serverBaseUrl = this.settings.getSetting('serverBaseUrl');
                 this.authManager.authorize(serverBaseUrl).then(function () {
-                    controller.set("isAuthorizing", false);
-                    controller.showMessage("You have succesfully logged in");
+                    controller.set('isAuthorizing', false);
+                    controller.showMessage('You have succesfully logged in');
                 });
             }
         },
@@ -251,24 +257,24 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
         logout: function logout() {
             var self = this;
             this.authManager.deleteToken();
-            this.settings.deleteSetting("lastAccount");
+            this.settings.deleteSetting('lastAccount');
             this.syncManager.deleteAccount().then(function () {
-                self.transitionToRoute("firstTime");
+                self.transitionToRoute('firstTime');
             });
         },
 
         actions: {
 
             clearQuery: function clearQuery() {
-                this.set("query", "");
+                this.set('query', '');
             },
 
             offline: function offline() {
-                this.set("isOnline", false);
+                this.set('isOnline', false);
             },
 
             online: function online() {
-                this.set("isOnline", true);
+                this.set('isOnline', true);
             }
 
         }
@@ -280,83 +286,83 @@ define('yith-library-mobile-client/controllers/secrets/drawer', ['exports', 'emb
     'use strict';
 
     exports['default'] = Ember['default'].ArrayController.extend({
-        needs: ["application", "secrets"],
-        sortProperties: ["count:desc"],
-        sortedTags: Ember['default'].computed.sort("content", "sortProperties"),
+        needs: ['application', 'secrets'],
+        sortProperties: ['count:desc'],
+        sortedTags: Ember['default'].computed.sort('content', 'sortProperties'),
         tagsToDisplay: 5,
-        tag: Ember['default'].computed.alias("controllers.secrets.tag"),
+        tag: Ember['default'].computed.alias('controllers.secrets.tag'),
 
         accountDisplayName: (function () {
-            return this.get("controllers.application.model.displayName");
-        }).property("controllers.application.model.displayName"),
+            return this.get('controllers.application.model.displayName');
+        }).property('controllers.application.model.displayName'),
 
         selectedTagCount: (function () {
-            var tag = this.get("sortedTags").findBy("name", this.get("tag"));
+            var tag = this.get('sortedTags').findBy('name', this.get('tag'));
             if (tag) {
-                return tag.get("count");
+                return tag.get('count');
             } else {
                 return 0;
             }
-        }).property("sortedTags.[]", "tag"),
+        }).property('sortedTags.[]', 'tag'),
 
         mostUsedTags: (function () {
-            var tags = this.get("sortedTags");
-            var mostUsed = tags.slice(0, this.get("tagsToDisplay"));
-            var selectedTag = this.get("tag");
+            var tags = this.get('sortedTags');
+            var mostUsed = tags.slice(0, this.get('tagsToDisplay'));
+            var selectedTag = this.get('tag');
             var foundSelectedTag = false;
             var wrapped = mostUsed.map(function (element) {
-                var name = element.get("name");
+                var name = element.get('name');
                 if (name === selectedTag) {
                     foundSelectedTag = true;
                 }
                 return {
-                    name: name,
-                    count: element.get("count"),
-                    selectTag: name === selectedTag ? "" : name
+                    'name': name,
+                    'count': element.get('count'),
+                    'selectTag': name === selectedTag ? '' : name
                 };
             });
-            if (!foundSelectedTag && selectedTag !== "") {
+            if (!foundSelectedTag && selectedTag !== '') {
                 wrapped.pop();
                 wrapped.push({
-                    name: selectedTag,
-                    count: this.get("selectedTagCount"),
-                    selectTag: ""
+                    'name': selectedTag,
+                    'count': this.get('selectedTagCount'),
+                    'selectTag': ''
                 });
             }
             return wrapped;
-        }).property("selectedTagCount", "sortedTags.[]", "tag", "tagsToDisplay"),
+        }).property('selectedTagCount', 'sortedTags.[]', 'tag', 'tagsToDisplay'),
 
         hasMoreTags: (function () {
-            return this.get("sortedTags").length > this.get("tagsToDisplay");
-        }).property("sortedTags.[]", "tagsToDisplay"),
+            return this.get('sortedTags').length > this.get('tagsToDisplay');
+        }).property('sortedTags.[]', 'tagsToDisplay'),
 
         syncButtonDisabled: (function () {
-            return this.get("controllers.secrets.isSyncing") || !this.get("controllers.secrets.isOnline");
-        }).property("controllers.secrets.isSyncing", "controllers.secrets.isOnline"),
+            return this.get('controllers.secrets.isSyncing') || !this.get('controllers.secrets.isOnline');
+        }).property('controllers.secrets.isSyncing', 'controllers.secrets.isOnline'),
 
         loginButtonDisabled: (function () {
-            return !this.get("isOnline");
-        }).property("controllers.secrets.isOnline"),
+            return !this.get('isOnline');
+        }).property('controllers.secrets.isOnline'),
 
         actions: {
             login: function login() {
-                this.transitionToRoute("secrets");
+                this.transitionToRoute('secrets');
                 Ember['default'].run.next(this, function () {
-                    this.get("controllers.secrets").authorizeInServer();
+                    this.get('controllers.secrets').authorizeInServer();
                 });
             },
 
             sync: function sync() {
-                this.transitionToRoute("secrets");
+                this.transitionToRoute('secrets');
                 Ember['default'].run.next(this, function () {
-                    this.get("controllers.secrets").syncFromServer();
+                    this.get('controllers.secrets').syncFromServer();
                 });
             },
 
             logout: function logout() {
-                this.transitionToRoute("secrets");
+                this.transitionToRoute('secrets');
                 Ember['default'].run.next(this, function () {
-                    this.get("controllers.secrets").logout();
+                    this.get('controllers.secrets').logout();
                 });
             }
         }
@@ -369,15 +375,15 @@ define('yith-library-mobile-client/controllers/secrets/tags', ['exports', 'ember
     'use strict';
 
     exports['default'] = Ember['default'].ArrayController.extend({
-        tagsSortProperties: ["name:asc"],
-        sortedTags: Ember['default'].computed.sort("content", "tagsSortProperties"),
+        tagsSortProperties: ['name:asc'],
+        sortedTags: Ember['default'].computed.sort('content', 'tagsSortProperties'),
         actions: {
             selectTag: function selectTag(tagName) {
-                this.transitionToRoute("secrets", { queryParams: { tag: tagName } });
+                this.transitionToRoute('secrets', { queryParams: { tag: tagName } });
             },
 
             cancel: function cancel() {
-                this.transitionToRoute("secrets");
+                this.transitionToRoute('secrets');
             }
         }
     });
@@ -388,7 +394,7 @@ define('yith-library-mobile-client/helpers/current-tag', ['exports', 'ember'], f
     'use strict';
 
     exports['default'] = Ember['default'].Handlebars.makeBoundHelper(function (tagName, selectedTag) {
-        return tagName === selectedTag ? "*" : "";
+        return tagName === selectedTag ? '*' : '';
     });
 
 });
@@ -397,10 +403,10 @@ define('yith-library-mobile-client/helpers/current-version', ['exports', 'ember'
     'use strict';
 
     exports['default'] = Ember['default'].Handlebars.makeBoundHelper(function () {
-        var versionStatus = ["<section role=\"status\" class=\"onviewport\">",
+        var versionStatus = ['<section role="status" class="onviewport">',
         //        '<p><small>v' + YithLibraryMobileClient.get('version') + '</small></p>',
-        "</section>"];
-        return new Ember['default'].Handlebars.SafeString(versionStatus.join(""));
+        '</section>'];
+        return new Ember['default'].Handlebars.SafeString(versionStatus.join(''));
     });
 
 });
@@ -412,7 +418,7 @@ define('yith-library-mobile-client/initializers/app-version', ['exports', 'yith-
   var registered = false;
 
   exports['default'] = {
-    name: "App Version",
+    name: 'App Version',
     initialize: function initialize(container, application) {
       if (!registered) {
         var appName = classify(application.toString());
@@ -428,12 +434,12 @@ define('yith-library-mobile-client/initializers/authmanager', ['exports', 'yith-
     'use strict';
 
     exports['default'] = {
-        name: "authManager",
+        name: 'authManager',
 
         initialize: function initialize(container, application) {
-            application.register("authmanager:main", AuthManager['default']);
+            application.register('authmanager:main', AuthManager['default']);
 
-            application.inject("controller", "authManager", "authmanager:main");
+            application.inject('controller', 'authManager', 'authmanager:main');
         }
     };
 
@@ -449,7 +455,7 @@ define('yith-library-mobile-client/initializers/export-application-global', ['ex
       var value = config['default'].exportApplicationGlobal;
       var globalName;
 
-      if (typeof value === "string") {
+      if (typeof value === 'string') {
         globalName = value;
       } else {
         globalName = Ember['default'].String.classify(config['default'].modulePrefix);
@@ -471,7 +477,7 @@ define('yith-library-mobile-client/initializers/export-application-global', ['ex
   ;
 
   exports['default'] = {
-    name: "export-application-global",
+    name: 'export-application-global',
 
     initialize: initialize
   };
@@ -482,13 +488,13 @@ define('yith-library-mobile-client/initializers/settings', ['exports', 'yith-lib
     'use strict';
 
     exports['default'] = {
-        name: "settings",
+        name: 'settings',
 
         initialize: function initialize(container, application) {
-            application.register("settings:main", Settings['default']);
+            application.register('settings:main', Settings['default']);
 
-            application.inject("route", "settings", "settings:main");
-            application.inject("controller", "settings", "settings:main");
+            application.inject('route', 'settings', 'settings:main');
+            application.inject('controller', 'settings', 'settings:main');
         }
     };
 
@@ -498,13 +504,13 @@ define('yith-library-mobile-client/initializers/syncmanager', ['exports', 'yith-
     'use strict';
 
     exports['default'] = {
-        name: "syncManager",
+        name: 'syncManager',
 
         initialize: function initialize(container, application) {
-            application.register("syncmanager:main", SyncManager['default']);
+            application.register('syncmanager:main', SyncManager['default']);
 
-            application.inject("controller", "syncManager", "syncmanager:main");
-            application.inject("syncmanager", "store", "store:main");
+            application.inject('controller', 'syncManager', 'syncmanager:main');
+            application.inject('syncmanager', 'store', 'store:main');
         }
     };
 
@@ -518,17 +524,17 @@ define('yith-library-mobile-client/main', ['exports', 'ember'], function (export
   exports['default'] = bootApp;
   /* global requirejs, require */
   function bootApp(prefix, attributes) {
-    var App = require(prefix + "/app")["default"];
-    var initializersRegExp = new RegExp(prefix + "/initializers");
+    var App = require(prefix + '/app')['default'];
+    var initializersRegExp = new RegExp(prefix + '/initializers');
 
     Ember['default'].keys(requirejs._eak_seen).filter(function (key) {
       return initializersRegExp.test(key);
     }).forEach(function (moduleName) {
       var module = require(moduleName, null, null, true);
       if (!module) {
-        throw new Error(moduleName + " must export an initializer.");
+        throw new Error(moduleName + ' must export an initializer.');
       }
-      App.initializer(module["default"]);
+      App.initializer(module['default']);
     });
 
     return App.create(attributes || {});
@@ -540,14 +546,14 @@ define('yith-library-mobile-client/models/account', ['exports', 'ember-data'], f
     'use strict';
 
     exports['default'] = DS['default'].Model.extend({
-        email: DS['default'].attr("string"),
-        firstName: DS['default'].attr("string"),
-        lastName: DS['default'].attr("string"),
-        screenName: DS['default'].attr("string"),
+        email: DS['default'].attr('string'),
+        firstName: DS['default'].attr('string'),
+        lastName: DS['default'].attr('string'),
+        screenName: DS['default'].attr('string'),
 
         fullName: (function () {
-            var firstName = this.get("firstName"),
-                lastName = this.get("lastName"),
+            var firstName = this.get('firstName'),
+                lastName = this.get('lastName'),
                 parts = [];
 
             if (firstName) {
@@ -556,24 +562,24 @@ define('yith-library-mobile-client/models/account', ['exports', 'ember-data'], f
             if (lastName) {
                 parts.push(lastName);
             }
-            return parts.join(" ");
-        }).property("firstName", "lastName"),
+            return parts.join(' ');
+        }).property('firstName', 'lastName'),
 
         displayName: (function () {
-            var screenName = this.get("screenName"),
-                fullName = "";
+            var screenName = this.get('screenName'),
+                fullName = '';
 
             if (screenName) {
                 return screenName;
             } else {
-                fullName = this.get("fullName");
+                fullName = this.get('fullName');
                 if (fullName) {
                     return fullName;
                 } else {
-                    return this.get("email");
+                    return this.get('email');
                 }
             }
-        }).property("screenName", "fullName", "email")
+        }).property('screenName', 'fullName', 'email')
 
     });
 
@@ -583,25 +589,25 @@ define('yith-library-mobile-client/models/secret', ['exports', 'ember-data'], fu
     'use strict';
 
     exports['default'] = DS['default'].Model.extend({
-        service: DS['default'].attr("string"),
-        account: DS['default'].attr("string"),
-        secret: DS['default'].attr("string"),
-        notes: DS['default'].attr("string"),
-        tags: DS['default'].attr("string"),
+        service: DS['default'].attr('string'),
+        account: DS['default'].attr('string'),
+        secret: DS['default'].attr('string'),
+        notes: DS['default'].attr('string'),
+        tags: DS['default'].attr('string'),
 
         matches: function matches(tag, query) {
-            var tagMatch = tag === "",
-                queryMatch = query === "",
-                tags = "";
+            var tagMatch = tag === '',
+                queryMatch = query === '',
+                tags = '';
             if (!tagMatch) {
-                tags = this.get("tags");
+                tags = this.get('tags');
                 if (tags) {
                     tagMatch = tags.indexOf(tag) !== -1;
                 }
             }
             if (!queryMatch) {
                 query = query.toLowerCase();
-                queryMatch = this.get("service").toLowerCase().indexOf(query) !== -1 || this.get("account").toLowerCase().indexOf(query) !== -1;
+                queryMatch = this.get('service').toLowerCase().indexOf(query) !== -1 || this.get('account').toLowerCase().indexOf(query) !== -1;
             }
             return tagMatch && queryMatch;
         }
@@ -613,8 +619,8 @@ define('yith-library-mobile-client/models/tag', ['exports', 'ember-data'], funct
     'use strict';
 
     exports['default'] = DS['default'].Model.extend({
-        name: DS['default'].attr("string"),
-        count: DS['default'].attr("number")
+        name: DS['default'].attr('string'),
+        count: DS['default'].attr('number')
     });
 
 });
@@ -626,16 +632,14 @@ define('yith-library-mobile-client/router', ['exports', 'ember', 'yith-library-m
         location: config['default'].locationType
     });
 
-    Router.map(function () {
-        this.route("firstTime", { path: "/first-time" });
-        this.resource("secrets", { path: "/secrets" }, function () {
-            this.resource("secret", { path: "/:secret_id" });
-            this.route("tags", { path: "/tags" });
-            this.route("drawer", { path: "/drawer" });
+    exports['default'] = Router.map(function () {
+        this.route('firstTime', { path: '/first-time' });
+        this.resource('secrets', { path: '/secrets' }, function () {
+            this.resource('secret', { path: '/:secret_id' });
+            this.route('tags', { path: '/tags' });
+            this.route('drawer', { path: '/drawer' });
         });
     });
-
-    exports['default'] = Router;
 
 });
 define('yith-library-mobile-client/routes/application', ['exports', 'ember'], function (exports, Ember) {
@@ -644,9 +648,9 @@ define('yith-library-mobile-client/routes/application', ['exports', 'ember'], fu
 
     exports['default'] = Ember['default'].Route.extend({
         model: function model() {
-            var lastAccount = this.settings.getSetting("lastAccount");
+            var lastAccount = this.settings.getSetting('lastAccount');
             if (lastAccount) {
-                return this.store.find("account", lastAccount);
+                return this.store.find('account', lastAccount);
             } else {
                 return null;
             }
@@ -654,7 +658,7 @@ define('yith-library-mobile-client/routes/application', ['exports', 'ember'], fu
 
         afterModel: function afterModel(model) {
             if (model === null) {
-                this.transitionTo("firstTime");
+                this.transitionTo('firstTime');
             }
         }
     });
@@ -674,7 +678,7 @@ define('yith-library-mobile-client/routes/index', ['exports', 'ember'], function
     exports['default'] = Ember['default'].Route.extend({
 
         setupController: function setupController() {
-            this.transitionTo("secrets");
+            this.transitionTo('secrets');
         }
 
     });
@@ -690,36 +694,36 @@ define('yith-library-mobile-client/routes/secret', ['exports', 'ember'], functio
 
         setupController: function setupController(controller, model) {
             this._super(controller, model);
-            var secretsController = this.controllerFor("secrets");
-            if (secretsController.get("position") !== "left") {
-                secretsController.set("position", "left");
+            var secretsController = this.controllerFor('secrets');
+            if (secretsController.get('position') !== 'left') {
+                secretsController.set('position', 'left');
             }
-            controller.set("position", "current");
+            controller.set('position', 'current');
         },
 
         actions: {
             willTransition: function willTransition(transition) {
-                var secretsController = this.controllerFor("secrets");
-                if (transition.targetName === "secrets.index") {
-                    if (secretsController.get("position") === "left") {
-                        secretsController.set("position", "current");
-                        this.controller.set("position", "right");
-                        this.set("transitionToSecrets", transition);
+                var secretsController = this.controllerFor('secrets');
+                if (transition.targetName === 'secrets.index') {
+                    if (secretsController.get('position') === 'left') {
+                        secretsController.set('position', 'current');
+                        this.controller.set('position', 'right');
+                        this.set('transitionToSecrets', transition);
                         transition.abort();
                         return false;
                     }
-                } else if (transition.targetName === "secret") {
-                    secretsController.set("position", "left");
-                    this.controller.set("position", "current");
+                } else if (transition.targetName === 'secret') {
+                    secretsController.set('position', 'left');
+                    this.controller.set('position', 'current');
                 }
 
                 return true;
             },
 
             finishTransition: function finishTransition() {
-                var transition = this.get("transitionToSecrets");
+                var transition = this.get('transitionToSecrets');
                 if (transition) {
-                    this.set("transitionToSecrets", null);
+                    this.set('transitionToSecrets', null);
                     transition.retry();
                 }
             }
@@ -735,11 +739,11 @@ define('yith-library-mobile-client/routes/secrets-drawer', ['exports', 'ember'],
     exports['default'] = Ember['default'].Route.extend({
 
         model: function model() {
-            return this.store.find("tag");
+            return this.store.find('tag');
         },
 
         renderTemplate: function renderTemplate() {
-            this.render({ outlet: "drawer" });
+            this.render({ outlet: 'drawer' });
         }
 
     });
@@ -753,20 +757,20 @@ define('yith-library-mobile-client/routes/secrets', ['exports', 'ember'], functi
 
         setupController: function setupController(controller, model) {
             this._super(controller, model);
-            controller.set("state", "");
+            controller.set('state', '');
         },
 
         model: function model() {
-            return this.store.find("secret");
+            return this.store.find('secret');
         },
 
         actions: {
             willTransition: function willTransition(transition) {
-                if (transition.targetName === "secret") {
-                    this.controller.set("position", "left");
-                } else if (transition.targetName === "secrets.index") {
-                    this.controller.set("position", "current");
-                    this.controller.set("state", "");
+                if (transition.targetName === 'secret') {
+                    this.controller.set('position', 'left');
+                } else if (transition.targetName === 'secrets.index') {
+                    this.controller.set('position', 'current');
+                    this.controller.set('state', '');
                 }
                 return true;
             }
@@ -786,26 +790,26 @@ define('yith-library-mobile-client/routes/secrets/drawer', ['exports', 'ember'],
 
         setupController: function setupController(controller, model) {
             this._super(controller, model);
-            this.controllerFor("secrets").set("state", "drawer-opened");
+            this.controllerFor('secrets').set('state', 'drawer-opened');
         },
 
         model: function model() {
-            return this.store.find("tag");
+            return this.store.find('tag');
         },
 
         renderTemplate: function renderTemplate() {
-            this.render({ outlet: "drawer" });
+            this.render({ outlet: 'drawer' });
         },
 
         actions: {
             willTransition: function willTransition(transition) {
-                var secretsController = this.controllerFor("secrets");
-                if (transition.targetName === "secrets.index") {
+                var secretsController = this.controllerFor('secrets');
+                if (transition.targetName === 'secrets.index') {
                     // when the transition is retried (see finishTransition)
                     // this if condition will be false
-                    if (secretsController.get("state") === "drawer-opened") {
-                        secretsController.set("state", "");
-                        this.set("transitionToSecrets", transition);
+                    if (secretsController.get('state') === 'drawer-opened') {
+                        secretsController.set('state', '');
+                        this.set('transitionToSecrets', transition);
 
                         // abort the transition until the CSS transition finishes
                         transition.abort();
@@ -816,9 +820,9 @@ define('yith-library-mobile-client/routes/secrets/drawer', ['exports', 'ember'],
             },
 
             finishTransition: function finishTransition() {
-                var transition = this.get("transitionToSecrets");
+                var transition = this.get('transitionToSecrets');
                 if (transition) {
-                    this.set("transitionToSecrets", null);
+                    this.set('transitionToSecrets', null);
                     transition.retry();
                 }
             }
@@ -834,7 +838,7 @@ define('yith-library-mobile-client/routes/secrets/tags', ['exports', 'ember'], f
     exports['default'] = Ember['default'].Route.extend({
 
         model: function model() {
-            return this.store.find("tag");
+            return this.store.find('tag');
         }
 
     });
@@ -854,7 +858,7 @@ define('yith-library-mobile-client/templates/application', ['exports'], function
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -903,7 +907,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1029,7 +1033,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1065,7 +1069,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child1 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1108,7 +1112,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child2 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1158,7 +1162,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.0",
+            revision: "Ember@1.11.1",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1200,7 +1204,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.0",
+            revision: "Ember@1.11.1",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1241,7 +1245,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1282,7 +1286,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child4 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1332,7 +1336,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.0",
+            revision: "Ember@1.11.1",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1374,7 +1378,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.0",
+            revision: "Ember@1.11.1",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1415,7 +1419,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1456,7 +1460,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child6 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1506,7 +1510,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.0",
+            revision: "Ember@1.11.1",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1548,7 +1552,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.0",
+            revision: "Ember@1.11.1",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1589,7 +1593,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1629,7 +1633,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1725,7 +1729,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     var child2 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1783,7 +1787,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1877,7 +1881,7 @@ define('yith-library-mobile-client/templates/loading', ['exports'], function (ex
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1965,7 +1969,7 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2045,7 +2049,7 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2100,7 +2104,7 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2163,7 +2167,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2206,7 +2210,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2263,7 +2267,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child2 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2319,7 +2323,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2438,7 +2442,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2481,7 +2485,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2528,7 +2532,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2580,7 +2584,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2628,7 +2632,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2811,7 +2815,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2848,7 +2852,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2895,7 +2899,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.0",
+            revision: "Ember@1.11.1",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2941,7 +2945,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.0",
+            revision: "Ember@1.11.1",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2986,7 +2990,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3026,7 +3030,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3068,7 +3072,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3115,7 +3119,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.0",
+            revision: "Ember@1.11.1",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -3161,7 +3165,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.0",
+            revision: "Ember@1.11.1",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -3206,7 +3210,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3246,7 +3250,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3288,7 +3292,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3342,7 +3346,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3392,7 +3396,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.0",
+          revision: "Ember@1.11.1",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3427,7 +3431,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3475,7 +3479,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -3625,7 +3629,7 @@ define('yith-library-mobile-client/templates/secrets/tags', ['exports'], functio
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.0",
+        revision: "Ember@1.11.1",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3682,7 +3686,7 @@ define('yith-library-mobile-client/templates/secrets/tags', ['exports'], functio
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.0",
+      revision: "Ember@1.11.1",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -4204,7 +4208,7 @@ define('yith-library-mobile-client/utils/authmanager', ['exports', 'ember', 'yit
 
         clientId: ENV['default'].defaults.clientId,
         clientBaseUrl: ENV['default'].defaults.clientBaseUrl,
-        scope: "read-passwords read-userinfo",
+        scope: 'read-passwords read-userinfo',
         accessToken: null,
         accessTokenExpiration: null,
 
@@ -4214,34 +4218,34 @@ define('yith-library-mobile-client/utils/authmanager', ['exports', 'ember', 'yit
         },
 
         redirectUri: (function () {
-            return this.get("clientBaseUrl") + "/assets/auth-callback.html";
-        }).property("clientBaseUrl"),
+            return this.get('clientBaseUrl') + '/assets/auth-callback.html';
+        }).property('clientBaseUrl'),
 
         authUri: (function () {
-            return [this.get("authBaseUri"), "?response_type=token", "&redirect_uri=" + encodeURIComponent(this.get("redirectUri")), "&client_id=" + encodeURIComponent(this.get("clientId")), "&scope=" + encodeURIComponent(this.get("scope"))].join("");
-        }).property("authBaseUri", "providerId", "clientId", "scope"),
+            return [this.get('authBaseUri'), '?response_type=token', '&redirect_uri=' + encodeURIComponent(this.get('redirectUri')), '&client_id=' + encodeURIComponent(this.get('clientId')), '&scope=' + encodeURIComponent(this.get('scope'))].join('');
+        }).property('authBaseUri', 'providerId', 'clientId', 'scope'),
 
         hasValidAccessToken: (function () {
-            var accessToken = this.get("accessToken"),
-                expiration = this.get("accessTokenExpiration");
+            var accessToken = this.get('accessToken'),
+                expiration = this.get('accessTokenExpiration');
             return accessToken !== null && this.now() < expiration;
-        }).property("accessToken", "accessTokenExpiration"),
+        }).property('accessToken', 'accessTokenExpiration'),
 
         authorize: function authorize(serverBaseUrl) {
             var self = this,
                 state = this.uuid(),
                 encodedState = encodeURIComponent(state),
-                authUri = this.get("authUri") + "&state=" + encodedState,
-                uri = serverBaseUrl + "/oauth2/endpoints/authorization" + authUri,
-                dialog = window.open(uri, "Authorize", "height=600, width=450"),
-                clientBaseUrl = this.get("clientBaseUrl");
+                authUri = this.get('authUri') + '&state=' + encodedState,
+                uri = serverBaseUrl + '/oauth2/endpoints/authorization' + authUri,
+                dialog = window.open(uri, 'Authorize', 'height=600, width=450'),
+                clientBaseUrl = this.get('clientBaseUrl');
 
             if (window.focus) {
                 dialog.focus();
             }
 
             return new Ember['default'].RSVP.Promise(function (resolve, reject) {
-                Ember['default'].$(window).on("message", function (event) {
+                Ember['default'].$(window).on('message', function (event) {
                     var params;
                     if (event.originalEvent.origin === clientBaseUrl) {
                         dialog.close();
@@ -4278,33 +4282,33 @@ define('yith-library-mobile-client/utils/authmanager', ['exports', 'ember', 'yit
 
         saveToken: function saveToken(token) {
             var expiration = this.now() + parseInt(token.expiresIn, 10);
-            this.set("accessToken", token.accessToken);
-            this.set("accessTokenExpiration", expiration);
-            window.localStorage.setItem("accessToken", token.accessToken);
-            window.localStorage.setItem("accessTokenExpiration", expiration);
+            this.set('accessToken', token.accessToken);
+            this.set('accessTokenExpiration', expiration);
+            window.localStorage.setItem('accessToken', token.accessToken);
+            window.localStorage.setItem('accessTokenExpiration', expiration);
         },
 
         loadToken: function loadToken() {
-            var accessToken = window.localStorage.getItem("accessToken"),
-                expiration = window.localStorage.getItem("accessTokenExpiration");
-            this.set("accessToken", accessToken);
-            this.set("accessTokenExpiration", expiration);
+            var accessToken = window.localStorage.getItem('accessToken'),
+                expiration = window.localStorage.getItem('accessTokenExpiration');
+            this.set('accessToken', accessToken);
+            this.set('accessTokenExpiration', expiration);
         },
 
         deleteToken: function deleteToken() {
-            window.localStorage.removeItem("accessToken");
-            window.localStorage.removeItem("accessTokenExpiration");
+            window.localStorage.removeItem('accessToken');
+            window.localStorage.removeItem('accessTokenExpiration');
         },
 
         now: function now() {
-            return Math.round(new Date().getTime() / 1000);
+            return Math.round(new Date().getTime() / 1000.0);
         },
 
         uuid: function uuid() {
-            var template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+            var template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
             return template.replace(/[xy]/g, function (c) {
                 var r = Math.random() * 16 | 0,
-                    v = c === "x" ? r : r & 3 | 8;
+                    v = c === 'x' ? r : r & 0x3 | 0x8;
                 return v.toString(16);
             });
         }
@@ -4318,11 +4322,11 @@ define('yith-library-mobile-client/utils/prefix-event', ['exports'], function (e
     exports['default'] = prefixEvent;
 
     function prefixEvent(event) {
-        var vendorPrefixes = ["webkit", "moz", "MS", "o", ""];
+        var vendorPrefixes = ['webkit', 'moz', 'MS', 'o', ''];
         var prefixedEventNames = vendorPrefixes.map(function (prefix) {
             return prefix ? prefix + event : event.toLowerCase();
         });
-        return prefixedEventNames.join(" ");
+        return prefixedEventNames.join(' ');
     }
 
 });
@@ -4333,7 +4337,7 @@ define('yith-library-mobile-client/utils/settings', ['exports', 'ember', 'yith-l
     exports['default'] = Ember['default'].Object.extend({
 
         defaults: {
-            serverBaseUrl: ENV['default'].defaults.serverBaseUrl
+            'serverBaseUrl': ENV['default'].defaults.serverBaseUrl
         },
 
         getSetting: function getSetting(name) {
@@ -4364,15 +4368,15 @@ define('yith-library-mobile-client/utils/snake-case-to-camel-case', ['exports'],
     exports['default'] = snakeCaseToCamelCase;
 
     function snakeCaseToCamelCase(symbol) {
-        return symbol.split("_").filter(function (word) {
-            return word !== "";
+        return symbol.split('_').filter(function (word) {
+            return word !== '';
         }).map(function (word, idx) {
             if (idx === 0) {
                 return word;
             } else {
                 return word.charAt(0).toUpperCase() + word.slice(1);
             }
-        }).join("");
+        }).join('');
     }
 
 });
@@ -4387,11 +4391,11 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
 
             return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
                 Ember['default'].$.ajax({
-                    url: serverBaseUrl + "/user?client_id=" + clientId,
-                    type: "GET",
+                    url: serverBaseUrl + '/user?client_id=' + clientId,
+                    type: 'GET',
                     crossDomain: true,
                     headers: {
-                        Authorization: "Bearer " + accessToken
+                        'Authorization': 'Bearer ' + accessToken
                     }
                 }).done(function (data /*, textStatus, jqXHR*/) {
                     resolve(data);
@@ -4421,18 +4425,18 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
 
             return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
                 var data = self.convertRecord(rawData);
-                self.store.findById("account", data.id).then(function (existingRecord) {
+                self.store.findById('account', data.id).then(function (existingRecord) {
                     // update account
-                    existingRecord.set("email", data.email);
-                    existingRecord.set("firstName", data.firstName);
-                    existingRecord.set("lastName", data.lastName);
-                    existingRecord.set("screenName", data.screenName);
+                    existingRecord.set('email', data.email);
+                    existingRecord.set('firstName', data.firstName);
+                    existingRecord.set('lastName', data.lastName);
+                    existingRecord.set('screenName', data.screenName);
                     resolve(existingRecord);
                 }, function () {
                     // create account
                     // because we try to find it, it is already in the store
                     // but the record is empty.
-                    var newRecord = self.store.recordForId("account", data.id);
+                    var newRecord = self.store.recordForId('account', data.id);
                     newRecord.loadedData();
                     newRecord.setProperties({
                         email: data.email,
@@ -4452,11 +4456,11 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
 
             return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
                 Ember['default'].$.ajax({
-                    url: serverBaseUrl + "/passwords?client_id=" + clientId,
-                    type: "GET",
+                    url: serverBaseUrl + '/passwords?client_id=' + clientId,
+                    type: 'GET',
                     crossDomain: true,
                     headers: {
-                        Authorization: "Bearer " + accessToken
+                        'Authorization': 'Bearer ' + accessToken
                     }
                 }).done(function (data /*, textStatus, jqXHR*/) {
                     resolve(data);
@@ -4469,8 +4473,8 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
         updateSecretsStore: function updateSecretsStore(data) {
             var self = this,
                 promises = {
-                secrets: this.store.find("secret"),
-                tags: this.store.find("tag")
+                secrets: this.store.find('secret'),
+                tags: this.store.find('tag')
             };
             return Ember['default'].RSVP.hash(promises).then(function (results) {
                 var secretsPromise = Ember['default'].RSVP.all(self.updateSecrets(results.secrets, data.passwords)),
@@ -4486,7 +4490,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             var self = this,
                 result = [];
             passwords.forEach(function (password) {
-                var existingRecord = existingRecords.findBy("id", password.id);
+                var existingRecord = existingRecords.findBy('id', password.id);
                 if (existingRecord !== undefined) {
                     result.push(self.updateSecret(existingRecord, password));
                 } else {
@@ -4497,22 +4501,22 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
         },
 
         createSecret: function createSecret(data) {
-            return this.store.createRecord("secret", {
+            return this.store.createRecord('secret', {
                 id: data.id,
                 service: data.service,
                 account: data.account,
                 secret: data.secret,
                 notes: data.notes,
-                tags: data.tags.join(" ")
+                tags: data.tags.join(' ')
             }).save();
         },
 
         updateSecret: function updateSecret(record, data) {
-            record.set("service", data.service);
-            record.set("account", data.account);
-            record.set("secret", data.secret);
-            record.set("notes", data.notes);
-            record.set("tags", data.tags.join(" "));
+            record.set('service', data.service);
+            record.set('account', data.account);
+            record.set('secret', data.secret);
+            record.set('notes', data.notes);
+            record.set('tags', data.tags.join(' '));
             return record.save();
         },
 
@@ -4531,7 +4535,7 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
             });
 
             newTags.forEach(function (name, count) {
-                var existingRecord = existingRecords.findBy("name", name);
+                var existingRecord = existingRecords.findBy('name', name);
                 if (existingRecord !== undefined) {
                     result.push(self.updateTag(existingRecord, name, count));
                 } else {
@@ -4542,27 +4546,27 @@ define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yit
         },
 
         createTag: function createTag(name, count) {
-            return this.store.createRecord("tag", {
+            return this.store.createRecord('tag', {
                 name: name,
                 count: count
             }).save();
         },
 
         updateTag: function updateTag(record, name, count) {
-            record.set("name", name);
-            record.set("count", count);
+            record.set('name', name);
+            record.set('count', count);
             return record.save();
         },
 
         deleteAccount: function deleteAccount() {
             var promises = [];
-            this.store.all("secret").forEach(function (secret) {
+            this.store.all('secret').forEach(function (secret) {
                 promises.push(secret.destroyRecord());
             }, this);
-            this.store.all("tag").forEach(function (tag) {
+            this.store.all('tag').forEach(function (tag) {
                 promises.push(tag.destroyRecord());
             }, this);
-            this.store.all("account").forEach(function (account) {
+            this.store.all('account').forEach(function (account) {
                 promises.push(account.destroyRecord());
             }, this);
 
@@ -4577,7 +4581,7 @@ define('yith-library-mobile-client/views/application', ['exports', 'ember'], fun
     'use strict';
 
     exports['default'] = Ember['default'].View.extend({
-        classNames: ["full-height"]
+        classNames: ['full-height']
     });
 
 });
@@ -4586,20 +4590,20 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
     'use strict';
 
     exports['default'] = Ember['default'].View.extend({
-        templateName: "secret-revealer",
-        tagName: "form",
-        classNames: ["secret-revealer"],
-        attributeBindings: ["autocomplete"],
-        autocomplete: "off",
-        buttonClass: "recommend",
-        buttonText: "Reveal secret",
+        templateName: 'secret-revealer',
+        tagName: 'form',
+        classNames: ['secret-revealer'],
+        attributeBindings: ['autocomplete'],
+        autocomplete: 'off',
+        buttonClass: 'recommend',
+        buttonText: 'Reveal secret',
         decryptedSecret: null,
-        encryptedSecret: "",
+        encryptedSecret: '',
 
         click: function click(event) {
             var $target = Ember['default'].$(event.target);
 
-            if ($target.is("button")) {
+            if ($target.is('button')) {
                 this.buttonClicked();
             }
 
@@ -4610,16 +4614,16 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
         buttonClicked: function buttonClicked() {
             var $masterPasswordInput = null,
                 masterPasswordValue = null,
-                secret = "";
+                secret = '';
 
-            if (this.get("decryptedSecret") !== null) {
+            if (this.get('decryptedSecret') !== null) {
                 this.hideSecret();
             } else {
 
-                $masterPasswordInput = this.$("input[type=password]");
+                $masterPasswordInput = this.$('input[type=password]');
                 masterPasswordValue = $masterPasswordInput.val();
-                $masterPasswordInput.val("");
-                secret = this.get("encryptedSecret");
+                $masterPasswordInput.val('');
+                secret = this.get('encryptedSecret');
                 try {
                     this.revealSecret(sjcl.decrypt(masterPasswordValue, secret));
                     masterPasswordValue = null;
@@ -4632,24 +4636,24 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
         hideSecret: function hideSecret() {
             this.stopTimer();
 
-            this.set("buttonText", "Reveal secret");
-            this.set("buttonClass", "recommend");
-            this.set("decryptedSecret", null);
+            this.set('buttonText', 'Reveal secret');
+            this.set('buttonClass', 'recommend');
+            this.set('decryptedSecret', null);
         },
 
         badMasterPassword: function badMasterPassword() {
-            this.set("buttonText", "Wrong master password, try again");
-            this.set("buttonClass", "danger");
-            this.$("input[type=password]").focus();
+            this.set('buttonText', 'Wrong master password, try again');
+            this.set('buttonClass', 'danger');
+            this.$('input[type=password]').focus();
         },
 
         revealSecret: function revealSecret(secret) {
-            this.set("buttonText", "Hide secret");
-            this.set("buttonClass", "recommend");
-            this.set("decryptedSecret", secret);
+            this.set('buttonText', 'Hide secret');
+            this.set('buttonClass', 'recommend');
+            this.set('decryptedSecret', secret);
 
-            Ember['default'].run.scheduleOnce("afterRender", this, function () {
-                this.$("input[type=text]").focus().select();
+            Ember['default'].run.scheduleOnce('afterRender', this, function () {
+                this.$('input[type=text]').focus().select();
                 this.startTimer();
             });
         },
@@ -4673,19 +4677,19 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
         },
 
         tick: function tick() {
-            var $timer = this.$("svg"),
+            var $timer = this.$('svg'),
                 width = $timer.width(),
                 width2 = width / 2,
                 radius = width * 0.45,
                 now = new Date(),
-                elapsed = (now - this.start) / 1000,
+                elapsed = (now - this.start) / 1000.0,
                 completion = elapsed / this.totalTime,
                 endAngle = 360 * completion,
                 endPoint = this.polarToCartesian(width2, width2, radius, endAngle),
-                arcSweep = endAngle <= 180 ? "1" : "0",
-                d = ["M", width2, width2 - radius, "A", radius, radius, 0, arcSweep, 0, endPoint.x, endPoint.y, "L", width2, width2, "Z"].join(" ");
+                arcSweep = endAngle <= 180 ? '1' : '0',
+                d = ['M', width2, width2 - radius, 'A', radius, radius, 0, arcSweep, 0, endPoint.x, endPoint.y, 'L', width2, width2, 'Z'].join(' ');
 
-            this.$("path").attr("d", d);
+            this.$('path').attr('d', d);
 
             // If completion is 100% hide the secret
             if (completion >= 1) {
@@ -4696,7 +4700,7 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
         },
 
         polarToCartesian: function polarToCartesian(x, y, radius, degrees) {
-            var radians = (degrees - 90) * Math.PI / 180;
+            var radians = (degrees - 90) * Math.PI / 180.0;
             return {
                 x: x + radius * Math.cos(radians),
                 y: y + radius * Math.sin(radians)
@@ -4704,7 +4708,7 @@ define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'],
         },
 
         didInsertElement: function didInsertElement() {
-            this.$("input").focus();
+            this.$('input').focus();
         },
 
         willDestroy: function willDestroy() {
@@ -4718,27 +4722,27 @@ define('yith-library-mobile-client/views/secrets', ['exports', 'ember'], functio
     'use strict';
 
     exports['default'] = Ember['default'].View.extend({
-        classNames: ["full-height"],
+        classNames: ['full-height'],
 
         didInsertElement: function didInsertElement() {
-            window.addEventListener("offline", this);
-            window.addEventListener("online", this);
+            window.addEventListener('offline', this);
+            window.addEventListener('online', this);
         },
 
         handleEvent: function handleEvent(event) {
             switch (event.type) {
-                case "offline":
-                    this.get("controller").send("offline");
+                case 'offline':
+                    this.get('controller').send('offline');
                     break;
-                case "online":
-                    this.get("controller").send("online");
+                case 'online':
+                    this.get('controller').send('online');
                     break;
             }
         },
 
         willDestroy: function willDestroy() {
-            window.removeEventListener("offline", this);
-            window.removeEventListener("online", this);
+            window.removeEventListener('offline', this);
+            window.removeEventListener('online', this);
         }
     });
 
