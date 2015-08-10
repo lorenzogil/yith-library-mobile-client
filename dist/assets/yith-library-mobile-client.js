@@ -27,7 +27,6 @@ define('yith-library-mobile-client/app', ['exports', 'ember', 'ember/resolver', 
 
   App = Ember['default'].Application.extend({
     modulePrefix: config['default'].modulePrefix,
-    podModulePrefix: config['default'].podModulePrefix,
     Resolver: Resolver['default'],
     customEvents: {
       'animationend animationEnd webkitAnimationEnd mozAnimationEnd MSAnimationEnd oAnimationEnd': 'animationEnd',
@@ -49,6 +48,13 @@ define('yith-library-mobile-client/controllers/application', ['exports', 'ember'
         // The active Account object will be set as the model for this controller
 
     });
+
+});
+define('yith-library-mobile-client/controllers/array', ['exports', 'ember'], function (exports, Ember) {
+
+	'use strict';
+
+	exports['default'] = Ember['default'].Controller;
 
 });
 define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember'], function (exports, Ember) {
@@ -136,6 +142,13 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
             }
         }
     });
+
+});
+define('yith-library-mobile-client/controllers/object', ['exports', 'ember'], function (exports, Ember) {
+
+	'use strict';
+
+	exports['default'] = Ember['default'].Controller;
 
 });
 define('yith-library-mobile-client/controllers/secret', ['exports', 'ember'], function (exports, Ember) {
@@ -632,7 +645,7 @@ define('yith-library-mobile-client/router', ['exports', 'ember', 'yith-library-m
         location: config['default'].locationType
     });
 
-    exports['default'] = Router.map(function () {
+    Router.map(function () {
         this.route('firstTime', { path: '/first-time' });
         this.resource('secrets', { path: '/secrets' }, function () {
             this.resource('secret', { path: '/:secret_id' });
@@ -640,6 +653,8 @@ define('yith-library-mobile-client/router', ['exports', 'ember', 'yith-library-m
             this.route('drawer', { path: '/drawer' });
         });
     });
+
+    exports['default'] = Router;
 
 });
 define('yith-library-mobile-client/routes/application', ['exports', 'ember'], function (exports, Ember) {
@@ -858,7 +873,7 @@ define('yith-library-mobile-client/templates/application', ['exports'], function
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.1",
+      revision: "Ember@1.12.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -907,7 +922,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1033,7 +1048,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1069,7 +1084,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child1 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1112,7 +1127,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child2 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1162,7 +1177,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.1",
+            revision: "Ember@1.12.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1204,7 +1219,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.1",
+            revision: "Ember@1.12.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1245,7 +1260,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1286,7 +1301,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child4 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1336,7 +1351,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.1",
+            revision: "Ember@1.12.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1378,7 +1393,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.1",
+            revision: "Ember@1.12.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1419,7 +1434,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1460,7 +1475,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child6 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1510,7 +1525,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.1",
+            revision: "Ember@1.12.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1552,7 +1567,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.1",
+            revision: "Ember@1.12.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1593,7 +1608,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1633,7 +1648,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1729,7 +1744,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     var child2 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1787,7 +1802,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.1",
+      revision: "Ember@1.12.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1881,7 +1896,7 @@ define('yith-library-mobile-client/templates/loading', ['exports'], function (ex
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.1",
+      revision: "Ember@1.12.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1969,7 +1984,7 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2049,7 +2064,7 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2104,7 +2119,7 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.1",
+      revision: "Ember@1.12.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2167,7 +2182,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2210,7 +2225,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2267,7 +2282,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child2 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2323,7 +2338,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.1",
+      revision: "Ember@1.12.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2442,7 +2457,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2485,7 +2500,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2532,7 +2547,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2584,7 +2599,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2632,7 +2647,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.1",
+      revision: "Ember@1.12.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2815,7 +2830,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2852,7 +2867,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2899,7 +2914,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.1",
+            revision: "Ember@1.12.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2945,7 +2960,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.1",
+            revision: "Ember@1.12.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2990,7 +3005,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3030,7 +3045,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3072,7 +3087,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3119,7 +3134,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.1",
+            revision: "Ember@1.12.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -3165,7 +3180,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.1",
+            revision: "Ember@1.12.0",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -3210,7 +3225,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3250,7 +3265,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3292,7 +3307,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3346,7 +3361,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3396,7 +3411,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.1",
+          revision: "Ember@1.12.0",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3431,7 +3446,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3479,7 +3494,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.1",
+      revision: "Ember@1.12.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -3629,7 +3644,7 @@ define('yith-library-mobile-client/templates/secrets/tags', ['exports'], functio
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.1",
+        revision: "Ember@1.12.0",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3686,7 +3701,7 @@ define('yith-library-mobile-client/templates/secrets/tags', ['exports'], functio
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.1",
+      revision: "Ember@1.12.0",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
