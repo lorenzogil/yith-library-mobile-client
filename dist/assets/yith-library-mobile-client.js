@@ -27,6 +27,7 @@ define('yith-library-mobile-client/app', ['exports', 'ember', 'ember/resolver', 
 
   App = Ember['default'].Application.extend({
     modulePrefix: config['default'].modulePrefix,
+    podModeulePrefix: config['default'].podModulePrefix,
     Resolver: Resolver['default'],
     customEvents: {
       'animationend animationEnd webkitAnimationEnd mozAnimationEnd MSAnimationEnd oAnimationEnd': 'animationEnd',
