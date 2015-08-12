@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# version 0.7.0
+# version @@projectVersion
 
 CACHE:
 index.html
