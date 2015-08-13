@@ -9,7 +9,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   1.13.3
+ * @version   1.13.5
  */
 
 (function() {
@@ -301,15 +301,46 @@ enifed("ember-debug", ["exports", "ember-metal/core", "ember-metal/error", "embe
   
     @method deprecateFunc
     @param {String} message A description of the deprecation.
+    @param {Object} [options] The options object for Ember.deprecate.
     @param {Function} func The new function called to replace its deprecated counterpart.
     @return {Function} a new function that wrapped the original function with a deprecation warning
     @private
   */
-  _emberMetalCore["default"].deprecateFunc = function (message, func) {
-    return function () {
-      _emberMetalCore["default"].deprecate(message);
-      return func.apply(this, arguments);
-    };
+  _emberMetalCore["default"].deprecateFunc = function () {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    if (args.length === 3) {
+      var _ret = (function () {
+        var message = args[0];
+        var options = args[1];
+        var func = args[2];
+
+        return {
+          v: function () {
+            _emberMetalCore["default"].deprecate(message, false, options);
+            return func.apply(this, arguments);
+          }
+        };
+      })();
+
+      if (typeof _ret === "object") return _ret.v;
+    } else {
+      var _ret2 = (function () {
+        var message = args[0];
+        var func = args[1];
+
+        return {
+          v: function () {
+            _emberMetalCore["default"].deprecate(message);
+            return func.apply(this, arguments);
+          }
+        };
+      })();
+
+      if (typeof _ret2 === "object") return _ret2.v;
+    }
   };
 
   /**
@@ -317,10 +348,10 @@ enifed("ember-debug", ["exports", "ember-metal/core", "ember-metal/error", "embe
     `Ember.runInDebug()` when doing a production build.
   
     ```javascript
-    Ember.runInDebug(function() {
-      Ember.Handlebars.EachView.reopen({
-        didInsertElement: function() {
-          console.log('I\'m happy');
+    Ember.runInDebug(() => {
+      Ember.Component.reopen({
+        didInsertElement() {
+          console.log("I'm happy");
         }
       });
     });
@@ -364,10 +395,7 @@ enifed("ember-debug", ["exports", "ember-metal/core", "ember-metal/error", "embe
     _emberMetalCore["default"].FEATURES["features-stripped-test"] = true;
     var featuresWereStripped = true;
 
-    if (_emberMetalCore["default"].FEATURES.isEnabled("features-stripped-test")) {
-      featuresWereStripped = false;
-    }
-
+    
     delete _emberMetalCore["default"].FEATURES["features-stripped-test"];
     _warnIfUsingStrippedFeatureFlags(_emberMetalCore["default"].ENV.FEATURES, featuresWereStripped);
 
@@ -813,40 +841,7 @@ enifed("ember-testing/helpers", ["exports", "ember-metal/core", "ember-metal/pro
   */
   asyncHelper("click", click);
 
-  if (_emberMetalCore["default"].FEATURES.isEnabled("ember-testing-checkbox-helpers")) {
     /**
-      Checks a checkbox. Ensures the presence of the `checked` attribute
-       Example:
-       ```javascript
-      check('#remember-me').then(function() {
-        // assert something
-      });
-      ```
-       @method check
-      @param {String} selector jQuery selector finding an `input[type="checkbox"]`
-      element on the DOM to check
-      @return {RSVP.Promise}
-      @private
-    */
-    asyncHelper("check", check);
-
-    /**
-      Unchecks a checkbox. Ensures the absence of the `checked` attribute
-       Example:
-       ```javascript
-      uncheck('#remember-me').then(function() {
-       // assert something
-      });
-      ```
-       @method check
-      @param {String} selector jQuery selector finding an `input[type="checkbox"]`
-      element on the DOM to uncheck
-      @return {RSVP.Promise}
-      @private
-    */
-    asyncHelper("uncheck", uncheck);
-  }
-  /**
     Simulates a key event, e.g. `keypress`, `keydown`, `keyup` with the desired keyCode
   
     Example:
@@ -918,7 +913,7 @@ enifed("ember-testing/helpers", ["exports", "ember-metal/core", "ember-metal/pro
     the DOM
     @return {Object} jQuery object representing the results of the query
     @throws {Error} throws error if jQuery object returned has a length of 0
-    @private
+    @public
   */
   helper("findWithAssert", findWithAssert);
 
@@ -1844,9 +1839,11 @@ define('ember-test-helpers/build-registry', ['exports'], function (exports) {
     ];
 
     function exposeRegistryMethod(container, method) {
-      container[method] = function() {
-        return container._registry[method].apply(container._registry, arguments);
-      };
+      if (method in container) {
+        container[method] = function() {
+          return container._registry[method].apply(container._registry, arguments);
+        };
+      }
     }
 
     for (var i = 0, l = methods.length; i < l; i++) {
@@ -1882,8 +1879,18 @@ define('ember-test-helpers/build-registry', ['exports'], function (exports) {
 
     // Ember 1.10.0 did not properly add `view:toplevel` or `view:default`
     // to the registry in Ember.Application.buildRegistry :(
-    register('view:toplevel', Ember.View.extend());
-    register('view:default', Ember._MetamorphView);
+    //
+    // Ember 2.0.0 removed Ember.View as public API, so only do this when
+    // Ember.View is present
+    if (Ember.View) {
+      register('view:toplevel', Ember.View.extend());
+    }
+
+    // Ember 2.0.0 removed Ember._MetamorphView from the Ember global, so only
+    // do this when present
+    if (Ember._MetamorphView) {
+      register('view:default', Ember._MetamorphView);
+    }
 
     var globalContext = typeof global === 'object' && global || self;
     if (globalContext.DS) {
@@ -1919,6 +1926,7 @@ define('ember-test-helpers/test-context', ['exports'], function (exports) {
 
   exports.setContext = setContext;
   exports.getContext = getContext;
+  exports.unsetContext = unsetContext;
 
   var __test_context__;
 
@@ -1928,6 +1936,10 @@ define('ember-test-helpers/test-context', ['exports'], function (exports) {
 
   function getContext() {
     return __test_context__;
+  }
+
+  function unsetContext() {
+    __test_context__ = undefined;
   }
 
 });
@@ -1980,32 +1992,32 @@ define('ember-test-helpers/test-module-for-component', ['exports', 'ember-test-h
     setupComponentUnitTest: function() {
       var _this = this;
       var resolver = test_resolver.getResolver();
-      var container = this.container;
       var context = this.context;
 
       var layoutName = 'template:components/' + this.componentName;
 
       var layout = resolver.resolve(layoutName);
 
+      var thingToRegisterWith = this.registry || this.container;
       if (layout) {
-        container.register(layoutName, layout);
-        container.injection(this.subjectName, 'layout', layoutName);
+        thingToRegisterWith.register(layoutName, layout);
+        thingToRegisterWith.injection(this.subjectName, 'layout', layoutName);
       }
 
-      context.dispatcher = Ember['default'].EventDispatcher.create();
+      context.dispatcher = this.container.lookup('event_dispatcher:main') || Ember['default'].EventDispatcher.create();
       context.dispatcher.setup({}, '#ember-testing');
 
       this.callbacks.render = function() {
-        var containerView = Ember['default'].ContainerView.create({container: container});
+        var subject;
+
         Ember['default'].run(function(){
-          var subject = context.subject();
-          containerView.pushObject(subject);
-          containerView.appendTo('#ember-testing');
+          subject = context.subject();
+          subject.appendTo('#ember-testing');
         });
 
         _this.teardownSteps.unshift(function() {
           Ember['default'].run(function() {
-            Ember['default'].tryInvoke(containerView, 'destroy');
+            Ember['default'].tryInvoke(subject, 'destroy');
           });
         });
       };
@@ -2026,9 +2038,19 @@ define('ember-test-helpers/test-module-for-component', ['exports', 'ember-test-h
     setupComponentIntegrationTest: function() {
       var module = this;
       var context = this.context;
-      context.dispatcher = Ember['default'].EventDispatcher.create();
-      context.dispatcher.setup({}, '#ember-testing');
+
       this.actionHooks = {};
+
+      context.dispatcher = this.container.lookup('event_dispatcher:main') || Ember['default'].EventDispatcher.create();
+      context.dispatcher.setup({}, '#ember-testing');
+      context.actions = module.actionHooks;
+
+      // This thing is registered as "view:" instead of "component:"
+      // because only views get the necessary _viewRegistry
+      // injection. Which is arguably an Ember bug, but doesn't impact
+      // normal app usage since apps always use a "view:" at the top
+      // level.
+      (this.registry || this.container).register('view:test-holder', Ember['default'].Component.extend());
 
       context.render = function(template) {
         if (!template) {
@@ -2040,10 +2062,10 @@ define('ember-test-helpers/test-module-for-component', ['exports', 'ember-test-h
         if (typeof template === 'string') {
           template = Ember['default'].Handlebars.compile(template);
         }
-        module.component = Ember['default'].Component.create({
-          layout: template,
-          container: module.container
+        module.component = module.container.lookupFactory('view:test-holder').create({
+          layout: template
         });
+
         module.component.set('context' ,context);
         module.component.set('controller', module);
 
@@ -2062,8 +2084,19 @@ define('ember-test-helpers/test-module-for-component', ['exports', 'ember-test-h
         });
       };
 
+      context.setProperties = function(hash) {
+        Ember['default'].run(function() {
+          Ember['default'].setProperties(context, hash);
+        });
+      };
+
       context.get = function(key) {
         return Ember['default'].get(context, key);
+      };
+
+      context.getProperties = function() {
+        var args = Array.prototype.slice.call(arguments);
+        return Ember['default'].getProperties(context, args);
       };
 
       context.on = function(actionName, handler) {
@@ -2078,7 +2111,6 @@ define('ember-test-helpers/test-module-for-component', ['exports', 'ember-test-h
         this.context.factory = function() {};
       }
     },
-
 
     send: function(actionName) {
       var hook = this.actionHooks[actionName];
@@ -2096,8 +2128,6 @@ define('ember-test-helpers/test-module-for-component', ['exports', 'ember-test-h
         });
       }
     }
-
-
   });
 
 });
@@ -2122,7 +2152,10 @@ define('ember-test-helpers/test-module-for-model', ['exports', 'ember-test-helpe
 
       var adapterFactory = container.lookupFactory('adapter:application');
       if (!adapterFactory) {
-        container.register('adapter:application', DS.FixtureAdapter);
+        adapterFactory = DS.JSONAPIAdapter || DS.FixtureAdapter;
+
+        var thingToRegisterWith = this.registry || this.container;
+        thingToRegisterWith.register('adapter:application', adapterFactory);
       }
 
       callbacks.store = function(){
@@ -2314,7 +2347,10 @@ define('ember-test-helpers/test-module', ['exports', 'ember', 'ember-test-helper
 
     teardownContext: function() {
       var context = this.context;
-      if (context.dispatcher) {
+      this.context = undefined;
+      test_context.unsetContext();
+
+      if (context.dispatcher && !context.dispatcher.isDestroyed) {
         Ember['default'].run(function() {
           context.dispatcher.destroy();
         });
@@ -2323,7 +2359,12 @@ define('ember-test-helpers/test-module', ['exports', 'ember', 'ember-test-helper
 
     teardownTestElements: function() {
       Ember['default'].$('#ember-testing').empty();
-      Ember['default'].View.views = {};
+
+      // Ember 2.0.0 removed Ember.View as public API, so only do this when
+      // Ember.View is present
+      if (Ember['default'].View) {
+        Ember['default'].View.views = {};
+      }
     },
 
     defaultSubject: function(options, factory) {
@@ -2366,6 +2407,7 @@ define('ember-test-helpers/test-module', ['exports', 'ember', 'ember-test-helper
 
       this.container = items.container;
       this.registry = items.registry;
+
 
       var thingToRegisterWith = this.registry || this.container;
       var router = resolver.resolve('router:main');

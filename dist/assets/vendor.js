@@ -10559,7 +10559,7 @@ return jQuery;
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   1.13.3
+ * @version   1.13.5
  */
 
 (function() {
@@ -12047,9 +12047,9 @@ enifed('container/registry', ['exports', 'ember-metal/core', 'ember-metal/dictio
   var VALID_FULL_NAME_REGEXP = /^[^:]+.+:[^:]+$/;
 
   var instanceInitializersFeatureEnabled;
-  if (_emberMetalCore["default"].FEATURES.isEnabled('ember-application-instance-initializers')) {
+  
     instanceInitializersFeatureEnabled = true;
-  }
+  
 
   /**
    A registry used to store factory and option information keyed
@@ -13980,6 +13980,8 @@ enifed("ember-application/ext/controller", ["exports", "ember-metal/core", "embe
   var defaultControllersComputedProperty = _emberMetalComputed.computed(function () {
     var controller = this;
 
+    _emberMetalCore["default"].deprecate("Controller#needs is deprecated, please use Ember.inject.controller() instead");
+
     return {
       needs: _emberMetalProperty_get.get(controller, "needs"),
       container: _emberMetalProperty_get.get(controller, "container"),
@@ -14071,11 +14073,11 @@ enifed("ember-application/ext/controller", ["exports", "ember-metal/core", "embe
     /**
       @method controllerFor
       @see {Ember.Route#controllerFor}
-      @deprecated Use `needs` instead
+      @deprecated Use `Ember.inject.controller()` instead.
       @public
     */
     controllerFor: function (controllerName) {
-      _emberMetalCore["default"].deprecate("Controller#controllerFor is deprecated, please use Controller#needs instead");
+      _emberMetalCore["default"].deprecate("Controller#controllerFor is deprecated, please use Ember.inject.controller() instead");
       return _emberRoutingSystemController_for["default"](_emberMetalProperty_get.get(this, "container"), controllerName);
     },
 
@@ -14093,6 +14095,7 @@ enifed("ember-application/ext/controller", ["exports", "ember-metal/core", "embe
       });
       ```
        @see {Ember.ControllerMixin#needs}
+      @deprecated Use `Ember.inject.controller()` instead.
       @property {Object} controllers
       @default null
       @public
@@ -14550,21 +14553,11 @@ enifed('ember-application/system/application', ['exports', 'dag-map', 'container
       // decremented by the Application's own `initialize` method.
       this._readinessDeferrals = 1;
 
-      if (_emberMetal["default"].FEATURES.isEnabled('ember-application-visit')) {
-        if (this.autoboot) {
-          // Create subclass of Ember.Router for this Application instance.
-          // This is to ensure that someone reopening `App.Router` does not
-          // tamper with the default `Ember.Router`.
-          // 2.0TODO: Can we move this into a globals-mode-only library?
-          this.Router = (this.Router || _emberRoutingSystemRouter["default"]).extend();
-          this.buildDefaultInstance();
-          this.waitForDOMReady();
-        }
-      } else {
+      
         this.Router = (this.Router || _emberRoutingSystemRouter["default"]).extend();
         this.buildDefaultInstance();
         this.waitForDOMReady();
-      }
+      
     },
 
     /**
@@ -14893,13 +14886,9 @@ enifed('ember-application/system/application', ['exports', 'dag-map', 'container
       this._runInitializer('initializers', function (name, initializer) {
         _emberMetal["default"].assert('No application initializer named \'' + name + '\'', !!initializer);
 
-        if (_emberMetal["default"].FEATURES.isEnabled('ember-application-initializer-context')) {
+        
           initializer.initialize(registry, App);
-        } else {
-          var ref = initializer.initialize;
-          ref(registry, App);
-        }
-      });
+              });
     },
 
     runInstanceInitializers: function (instance) {
@@ -15001,7 +14990,7 @@ enifed('ember-application/system/application', ['exports', 'dag-map', 'container
     }
   });
 
-  if (_emberMetal["default"].FEATURES.isEnabled('ember-application-instance-initializers')) {
+  
     Application.reopen({
       instanceInitializer: function (options) {
         this.constructor.instanceInitializer(options);
@@ -15011,43 +15000,9 @@ enifed('ember-application/system/application', ['exports', 'dag-map', 'container
     Application.reopenClass({
       instanceInitializer: buildInitializerMethod('instanceInitializers', 'instance initializer')
     });
-  }
+  
 
-  if (_emberMetal["default"].FEATURES.isEnabled('ember-application-visit')) {
-    Application.reopen({
-      /**
-        Creates a new instance of the application and instructs it to route to the
-        specified initial URL. This method returns a promise that will be resolved
-        once rendering is complete. That promise is resolved with the instance.
-         ```js
-        App.visit('/users').then(function(instance) {
-          var view = instance.view;
-          view.appendTo('#qunit-test-fixtures');
-        });
-       ```
-         @method visit
-        @private
-      */
-      visit: function (url) {
-        var instance = this.buildInstance();
-        this.runInstanceInitializers(instance);
-
-        var renderPromise = new _emberMetal["default"].RSVP.Promise(function (res, rej) {
-          instance.didCreateRootView = function (view) {
-            instance.view = view;
-            res(instance);
-          };
-        });
-
-        instance.overrideRouterLocation({ location: 'none' });
-
-        return instance.handleURL(url).then(function () {
-          return renderPromise;
-        });
-      }
-    });
-  }
-
+  
   Application.reopenClass({
     initializers: _emberMetalPlatformCreate["default"](null),
     instanceInitializers: _emberMetalPlatformCreate["default"](null),
@@ -16027,15 +15982,46 @@ enifed("ember-debug", ["exports", "ember-metal/core", "ember-metal/error", "embe
   
     @method deprecateFunc
     @param {String} message A description of the deprecation.
+    @param {Object} [options] The options object for Ember.deprecate.
     @param {Function} func The new function called to replace its deprecated counterpart.
     @return {Function} a new function that wrapped the original function with a deprecation warning
     @private
   */
-  _emberMetalCore["default"].deprecateFunc = function (message, func) {
-    return function () {
-      _emberMetalCore["default"].deprecate(message);
-      return func.apply(this, arguments);
-    };
+  _emberMetalCore["default"].deprecateFunc = function () {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    if (args.length === 3) {
+      var _ret = (function () {
+        var message = args[0];
+        var options = args[1];
+        var func = args[2];
+
+        return {
+          v: function () {
+            _emberMetalCore["default"].deprecate(message, false, options);
+            return func.apply(this, arguments);
+          }
+        };
+      })();
+
+      if (typeof _ret === "object") return _ret.v;
+    } else {
+      var _ret2 = (function () {
+        var message = args[0];
+        var func = args[1];
+
+        return {
+          v: function () {
+            _emberMetalCore["default"].deprecate(message);
+            return func.apply(this, arguments);
+          }
+        };
+      })();
+
+      if (typeof _ret2 === "object") return _ret2.v;
+    }
   };
 
   /**
@@ -16043,10 +16029,10 @@ enifed("ember-debug", ["exports", "ember-metal/core", "ember-metal/error", "embe
     `Ember.runInDebug()` when doing a production build.
   
     ```javascript
-    Ember.runInDebug(function() {
-      Ember.Handlebars.EachView.reopen({
-        didInsertElement: function() {
-          console.log('I\'m happy');
+    Ember.runInDebug(() => {
+      Ember.Component.reopen({
+        didInsertElement() {
+          console.log("I'm happy");
         }
       });
     });
@@ -16090,10 +16076,7 @@ enifed("ember-debug", ["exports", "ember-metal/core", "ember-metal/error", "embe
     _emberMetalCore["default"].FEATURES["features-stripped-test"] = true;
     var featuresWereStripped = true;
 
-    if (_emberMetalCore["default"].FEATURES.isEnabled("features-stripped-test")) {
-      featuresWereStripped = false;
-    }
-
+    
     delete _emberMetalCore["default"].FEATURES["features-stripped-test"];
     _warnIfUsingStrippedFeatureFlags(_emberMetalCore["default"].ENV.FEATURES, featuresWereStripped);
 
@@ -16803,11 +16786,35 @@ enifed("ember-htmlbars", ["exports", "ember-metal/core", "ember-template-compile
     DOMHelper: _emberHtmlbarsSystemDomHelper["default"]
   };
 
-  if (_emberMetalCore["default"].FEATURES.isEnabled("ember-htmlbars-helper")) {
+  
     _emberHtmlbarsHelper["default"].helper = _emberHtmlbarsHelper.helper;
     _emberMetalCore["default"].Helper = _emberHtmlbarsHelper["default"];
-  }
+  
 });
+/**
+
+  &nbsp;
+
+  @module ember
+  @submodule ember-templates
+  @main ember-templates
+  @public
+*/
+
+/**
+
+  [HTMLBars](https://github.com/tildeio/htmlbars) is a [Handlebars](http://handlebarsjs.com/)
+  compatible templating engine used by Ember.js. The classes and namespaces
+  covered by this documentation attempt to focus on APIs for interacting
+  with HTMLBars itself. For more general guidance on Ember.js templates and
+  helpers, please see the [ember-templates](/api/modules/ember-templates.html)
+  package.
+
+  @module ember
+  @submodule ember-htmlbars
+  @main ember-htmlbars
+  @public
+*/
 
 // importing adds template bootstrapping
 // initializer to enable embedded templates
@@ -17021,8 +17028,6 @@ enifed("ember-htmlbars/compat/make-bound-helper", ["exports", "ember-metal/strea
   @module ember
   @submodule ember-htmlbars
   */
-
-  //import Helper from "ember-htmlbars/system/helper";
 
   /**
     A helper function used by `registerBoundHelper`. Takes the
@@ -17273,22 +17278,107 @@ enifed("ember-htmlbars/env", ["exports", "ember-metal/environment", "htmlbars-ru
 
   exports.domHelper = domHelper;
 });
-enifed("ember-htmlbars/helper", ["exports", "ember-runtime/system/object"], function (exports, _emberRuntimeSystemObject) {
+enifed('ember-htmlbars/helper', ['exports', 'ember-runtime/system/object'], function (exports, _emberRuntimeSystemObject) {
   exports.helper = helper;
 
-  // Ember.Helper.extend({ compute(params, hash) {} });
+  /**
+    Ember Helpers are functions that can compute values, and are used in templates.
+    For example, this code calls a helper named `format-currency`:
+  
+    ```handlebars
+    <div>{{format-currency cents currency="$"}}</div>
+    ```
+  
+    Additionally a helper can be called as a nested helper (sometimes called a
+    subexpression). In this example, the computed value of a helper is passed
+    to a component named `show-money`:
+  
+    ```handlebars
+    {{show-money amount=(format-currency cents currency="$")}}
+    ```
+  
+    Helpers defined using a class must provide a `compute` function. For example:
+  
+    ```js
+    export default Ember.Helper.extend({
+      compute(params, hash) {
+        let cents = params[0];
+        let currency = hash.currency;
+        return `${currency}${cents * 0.01}`;
+      }
+    });
+    ```
+  
+    Each time the input to a helper changes, the `compute` function will be
+    called again.
+  
+    As instances, these helpers also have access to the container an will accept
+    injected dependencies.
+  
+    Additionally, class helpers can call `recompute` to force a new computation.
+  
+    @class Ember.Helper
+    @public
+  */
   var Helper = _emberRuntimeSystemObject["default"].extend({
     isHelper: true,
+
+    /**
+      On a class-based helper, it may be useful to force a recomputation of that
+      helpers value. This is akin to `rerender` on a component.
+       For example, this component will rerender when the `currentUser` on a
+      session service changes:
+       ```js
+      // app/helpers/current-user-email.js
+      export default Ember.Helper.extend({
+        session: Ember.inject.service(),
+        onNewUser: Ember.observer('session.currentUser', function() {
+          this.recompute();
+        }),
+        compute() {
+          return this.get('session.currentUser.email');
+        }
+      });
+      ```
+       @method recompute
+      @public
+    */
     recompute: function () {
       this._stream.notify();
     }
+
+    /**
+      Override this function when writing a class-based helper.
+       @method compute
+      @param {Array} params The positional arguments to the helper
+      @param {Object} hash The named arguments to the helper
+      @public
+    */
   });
 
   Helper.reopenClass({
     isHelperFactory: true
   });
 
-  // Ember.Helper.helper(function(params, hash) {});
+  /**
+    In many cases, the ceremony of a full `Ember.Helper` class is not required.
+    The `helper` method create pure-function helpers without instances. For
+    example:
+  
+    ```js
+    // app/helpers/format-currency.js
+    export default Ember.Helper.helper(function(params, hash) {
+      let cents = params[0];
+      let currency = hash.currency;
+      return `${currency}${cents * 0.01}`;
+    });
+    ```
+  
+    @static
+    @param {Function} helper The helper function
+    @method helper
+    @public
+  */
 
   function helper(helperFn) {
     return {
@@ -17299,6 +17389,10 @@ enifed("ember-htmlbars/helper", ["exports", "ember-runtime/system/object"], func
 
   exports["default"] = Helper;
 });
+/**
+@module ember
+@submodule ember-templates
+*/
 enifed("ember-htmlbars/helpers", ["exports", "ember-metal/platform/create"], function (exports, _emberMetalPlatformCreate) {
   exports.registerHelper = registerHelper;
 
@@ -17748,7 +17842,7 @@ enifed('ember-htmlbars/helpers/each', ['exports', 'ember-metal/core', 'ember-met
     ```
   
     @method each
-    @for Ember.Handlebars.helpers
+    @for Ember.Templates.helpers
     @public
   */
 
@@ -17841,7 +17935,7 @@ enifed("ember-htmlbars/helpers/if_unless", ["exports", "ember-metal/core", "embe
     ```
   
     @method if
-    @for Ember.Handlebars.helpers
+    @for Ember.Templates.helpers
     @public
   */
   function ifHelper(params, hash, options) {
@@ -17854,7 +17948,7 @@ enifed("ember-htmlbars/helpers/if_unless", ["exports", "ember-metal/core", "embe
     helper can also be used with `unless`.
   
     @method unless
-    @for Ember.Handlebars.helpers
+    @for Ember.Templates.helpers
     @public
   */
   function unlessHelper(params, hash, options) {
@@ -17886,7 +17980,7 @@ enifed("ember-htmlbars/helpers/if_unless", ["exports", "ember-metal/core", "embe
 });
 /**
 @module ember
-@submodule ember-htmlbars
+@submodule ember-templates
 */
 
 // Ember.assert
@@ -17895,32 +17989,37 @@ enifed('ember-htmlbars/helpers/loc', ['exports', 'ember-runtime/system/string'],
 
   /**
   @module ember
-  @submodule ember-htmlbars
+  @submodule ember-templates
   */
 
   /**
     Calls [Ember.String.loc](/api/classes/Ember.String.html#method_loc) with the
-    provided string.
-    This is a convenient way to localize text within a template:
+    provided string. This is a convenient way to localize text within a template.
+    For example:
+  
     ```javascript
     Ember.STRINGS = {
       '_welcome_': 'Bonjour'
     };
     ```
+  
     ```handlebars
     <div class='message'>
       {{loc '_welcome_'}}
     </div>
     ```
+  
     ```html
     <div class='message'>
       Bonjour
     </div>
     ```
+  
     See [Ember.String.loc](/api/classes/Ember.String.html#method_loc) for how to
     set up localized string references.
+  
     @method loc
-    @for Ember.Handlebars.helpers
+    @for Ember.Templates.helpers
     @param {String} str The string to format
     @see {Ember.String#loc}
     @public
@@ -17936,11 +18035,13 @@ enifed("ember-htmlbars/helpers/log", ["exports", "ember-metal/logger"], function
   /**
     `log` allows you to output the value of variables in the current rendering
     context. `log` also accepts primitive types such as strings or numbers.
+  
     ```handlebars
     {{log "myVariable:" myVariable }}
     ```
+  
     @method log
-    @for Ember.Handlebars.helpers
+    @for Ember.Templates.helpers
     @param {*} values
     @public
   */
@@ -17951,7 +18052,7 @@ enifed("ember-htmlbars/helpers/log", ["exports", "ember-metal/logger"], function
 });
 /**
 @module ember
-@submodule ember-htmlbars
+@submodule ember-templates
 */
 enifed("ember-htmlbars/helpers/with", ["exports", "ember-htmlbars/utils/normalize-self", "ember-views/streams/should_display"], function (exports, _emberHtmlbarsUtilsNormalizeSelf, _emberViewsStreamsShould_display) {
   exports["default"] = withHelper;
@@ -17983,7 +18084,7 @@ enifed("ember-htmlbars/helpers/with", ["exports", "ember-htmlbars/utils/normaliz
     the first part of the property path, `foo`. Instead, use `{{#with foo.bar as |baz|}}`.
   
     @method with
-    @for Ember.Handlebars.helpers
+    @for Ember.Templates.helpers
     @param {Object} options
     @return {String} HTML string
     @public
@@ -18018,7 +18119,7 @@ enifed("ember-htmlbars/helpers/with", ["exports", "ember-htmlbars/utils/normaliz
 });
 /**
 @module ember
-@submodule ember-htmlbars
+@submodule ember-templates
 */
 enifed("ember-htmlbars/hooks/bind-local", ["exports", "ember-metal/streams/stream", "ember-metal/streams/proxy-stream"], function (exports, _emberMetalStreamsStream, _emberMetalStreamsProxyStream) {
   exports["default"] = bindLocal;
@@ -18061,7 +18162,6 @@ enifed("ember-htmlbars/hooks/bind-self", ["exports", "ember-metal/streams/proxy-
     }
 
     if (self && self.isView) {
-      scope.view = self;
       newStream(scope.locals, "view", self, null);
       newStream(scope.locals, "controller", scope.locals.view.getKey("controller"));
       newStream(scope, "self", scope.locals.view.getKey("context"), null, true);
@@ -18218,13 +18318,59 @@ enifed("ember-htmlbars/hooks/concat", ["exports", "ember-metal/streams/utils"], 
 */
 enifed("ember-htmlbars/hooks/create-fresh-scope", ["exports"], function (exports) {
   exports["default"] = createFreshScope;
+  /*
+    Ember's implementation of HTMLBars creates an enriched scope.
+  
+    * self: same as HTMLBars, this field represents the dynamic lookup
+      of root keys that are not special keywords or block arguments.
+    * blocks: same as HTMLBars, a bundle of named blocks the layout
+      can yield to.
+    * component: indicates that the scope is the layout of a component,
+      which is used to trigger lifecycle hooks for the component when
+      one of the streams in its layout fires.
+    * attrs: a map of key-value attributes sent in by the invoker of
+      a template, and available in the component's layout.
+    * locals: a map of locals, produced by block params (`as |a b|`)
+    * localPresent: a map of available locals to avoid expensive
+      `hasOwnProperty` checks.
+  
+    The `self` field has two special meanings:
+  
+    * If `self` is a view (`isView`), the actual HTMLBars `self` becomes
+      the view's `context`. This is legacy semantics; components always
+      use the component itself as the `this`.
+    * If `self` is a view, two special locals are created: `view` and
+      `controller`. These locals are legacy semantics.
+    * If self has a `hasBoundController` property, it is coming from
+      a legacy form of #with or #each
+      (`{{#with something controller=someController}}`). This has
+      the special effect of giving the child scope the supplied
+      `controller` keyword, with an unrelated `self`. This is
+      legacy functionality, as both the `view` and `controller`
+      keywords have been deprecated.
+  
+    **IMPORTANT**: There are two places in Ember where the ambient
+    controller is looked up. Both of those places use the presence
+    of `scope.locals.view` to indicate that the controller lookup
+    should be dynamic off of the ambient view. If `scope.locals.view`
+    does not exist, the code assumes that it is inside of a top-level
+    template (without a view) and uses the `self` itself as the
+    controller. This means that if you remove `scope.locals.view`
+    (perhaps because we are finally ready to shed the view keyword),
+    there may be unexpected consequences on controller semantics.
+    If this happens to you, I hope you find this comment. - YK & TD
+  
+    In practice, this means that with the exceptions of top-level
+    view-less templates and the legacy `controller=foo` semantics,
+    the controller hierarchy is managed dynamically by looking at
+    the current view's `controller`.
+  */
 
   function createFreshScope() {
     return {
       self: null,
       blocks: {},
       component: null,
-      view: null,
       attrs: null,
       locals: {},
       localPresent: {}
@@ -18255,10 +18401,9 @@ enifed("ember-htmlbars/hooks/did-cleanup-tree", ["exports"], function (exports) 
   exports["default"] = didCleanupTree;
 
   function didCleanupTree(env) {
-    var view;
-    if (view = env.view) {
-      view.ownerView.isDestroyingSubtree = false;
-    }
+    // Once we have finsihed cleaning up the render node and sub-nodes, reset
+    // state tracking which view those render nodes belonged to.
+    env.view.ownerView._destroyingSubtreeForView = null;
   }
 });
 enifed("ember-htmlbars/hooks/did-render-node", ["exports"], function (exports) {
@@ -18495,7 +18640,7 @@ enifed("ember-htmlbars/hooks/link-render-node", ["exports", "ember-htmlbars/util
         case "each":
           params[0] = eachParam(params[0]);break;
         default:
-          helper = _emberHtmlbarsSystemLookupHelper.findHelper(path, scope.view, env);
+          helper = _emberHtmlbarsSystemLookupHelper.findHelper(path, env.view, env);
 
           if (helper && helper.isHandlebarsCompat && params[0]) {
             params[0] = processHandlebarsCompatDepKeys(params[0], helper._dependentKeys);
@@ -18678,7 +18823,6 @@ enifed("ember-htmlbars/hooks/update-self", ["exports", "ember-metal/property_get
     Ember.assert("BUG: scope.attrs and self.isView should not both be true", !(scope.attrs && self.isView));
 
     if (self && self.isView) {
-      scope.view = self;
       _emberHtmlbarsUtilsUpdateScope["default"](scope.locals, "view", self, null);
       _emberHtmlbarsUtilsUpdateScope["default"](scope, "self", _emberMetalProperty_get.get(self, "context"), null, true);
       return;
@@ -18694,15 +18838,37 @@ enifed("ember-htmlbars/hooks/update-self", ["exports", "ember-metal/property_get
 enifed("ember-htmlbars/hooks/will-cleanup-tree", ["exports"], function (exports) {
   exports["default"] = willCleanupTree;
 
-  function willCleanupTree(env, morph, destroySelf) {
-    var view = morph.emberView;
-    if (destroySelf && view && view.parentView) {
-      view.parentView.removeChild(view);
-    }
+  function willCleanupTree(env) {
+    var view = env.view;
 
-    if (view = env.view) {
-      view.ownerView.isDestroyingSubtree = true;
-    }
+    // When we go to clean up the render node and all of its children, we may
+    // encounter views/components associated with those nodes along the way. In
+    // those cases, we need to make sure we need to sever the link between the
+    // existing view hierarchy and those views.
+    //
+    // However, we do *not* need to remove the child views of child views, since
+    // severing the connection to their parent effectively severs them from the
+    // view graph.
+    //
+    // For example, imagine the following view graph:
+    //
+    //    A
+    //   / \
+    //  B  C
+    //    / \
+    //   D  E
+    //
+    // If we are cleaning up the node for view C, we need to remove that view
+    // from A's child views. However, we do not need to remove D and E from C's
+    // child views, since removing C transitively removes D and E as well.
+    //
+    // To accomplish this, we track the nearest view to this render node on the
+    // owner view, the root-most view in the graph (A in the example above). If
+    // we detect a view that is a direct child of that view, we remove it from
+    // the `childViews` array. Other parent/child view relationships are
+    // untouched.  This view is then cleared once cleanup is complete in
+    // `didCleanupTree`.
+    view.ownerView._destroyingSubtreeForView = view;
   }
 });
 enifed("ember-htmlbars/keywords", ["exports", "htmlbars-runtime", "ember-metal/platform/create"], function (exports, _htmlbarsRuntime, _emberMetalPlatformCreate) {
@@ -18743,7 +18909,7 @@ enifed("ember-htmlbars/keywords/collection", ["exports", "ember-views/streams/ut
       var read = env.hooks.getValue;
 
       return _emberMetalMerge.assign({}, state, {
-        parentView: read(scope.locals.view),
+        parentView: env.view,
         viewClassOrInstance: getView(read(params[0]), env.container)
       });
     },
@@ -18800,7 +18966,55 @@ enifed("ember-htmlbars/keywords/collection", ["exports", "ember-views/streams/ut
 @module ember
 @submodule ember-htmlbars
 */
-enifed("ember-htmlbars/keywords/component", ["exports", "ember-metal/merge"], function (exports, _emberMetalMerge) {
+enifed('ember-htmlbars/keywords/component', ['exports', 'ember-metal/merge'], function (exports, _emberMetalMerge) {
+
+  /**
+    The `{{component}}` helper lets you add instances of `Ember.Component` to a
+    template. See [Ember.Component](/api/classes/Ember.Component.html) for
+    additional information on how a `Component` functions.
+    `{{component}}`'s primary use is for cases where you want to dynamically
+    change which type of component is rendered as the state of your application
+    changes. The provided block will be applied as the template for the component.
+    Given an empty `<body>` the following template:
+  
+    ```handlebars
+    {{! application.hbs }}
+    {{component infographicComponentName}}
+    ```
+  
+    And the following application code:
+  
+    ```javascript
+    export default Ember.Controller.extend({
+      infographicComponentName: computed('isMarketOpen', {
+        get() {
+          if (this.get('isMarketOpen')) {
+            return 'live-updating-chart';
+          } else {
+            return 'market-close-summary';
+          }
+        }
+      })
+    });
+    ```
+  
+    The `live-updating-chart` component will be appended when `isMarketOpen` is
+    `true`, and the `market-close-summary` component will be appended when
+    `isMarketOpen` is `false`. If the value changes while the app is running,
+    the component will be automatically swapped out accordingly.
+    Note: You should not use this helper when you are consistently rendering the same
+    component. In that case, use standard component syntax, for example:
+  
+    ```handlebars
+    {{! application.hbs }}
+    {{live-updating-chart}}
+    ```
+  
+    @method component
+    @since 1.11.0
+    @for Ember.Templates.helpers
+    @public
+  */
   exports["default"] = {
     setupState: function (lastState, env, scope, params, hash) {
       var componentPath = env.hooks.getValue(params[0]);
@@ -18839,6 +19053,11 @@ enifed("ember-htmlbars/keywords/component", ["exports", "ember-metal/merge"], fu
     env.hooks.component(morph, env, scope, componentPath, params, hash, { "default": template, inverse: inverse }, visitor);
   }
 });
+/**
+  @module ember
+  @submodule ember-templates
+  @public
+*/
 enifed("ember-htmlbars/keywords/customized_outlet", ["exports", "ember-htmlbars/node-managers/view-node-manager", "ember-views/streams/utils", "ember-metal/streams/utils"], function (exports, _emberHtmlbarsNodeManagersViewNodeManager, _emberViewsStreamsUtils, _emberMetalStreamsUtils) {
   exports["default"] = {
     setupState: function (state, env, scope, params, hash) {
@@ -18906,7 +19125,7 @@ enifed("ember-htmlbars/keywords/debugger", ["exports", "ember-metal/logger"], fu
     ```
   
     @method debugger
-    @for Ember.Handlebars.helpers
+    @for Ember.Templates.helpers
     @public
   */
 
@@ -19161,7 +19380,7 @@ enifed("ember-htmlbars/keywords/readonly", ["exports", "ember-htmlbars/keywords/
   }
 });
 enifed("ember-htmlbars/keywords/real_outlet", ["exports", "ember-metal/property_get", "ember-htmlbars/node-managers/view-node-manager", "ember-htmlbars/templates/top-level-view"], function (exports, _emberMetalProperty_get, _emberHtmlbarsNodeManagersViewNodeManager, _emberHtmlbarsTemplatesTopLevelView) {
-  _emberHtmlbarsTemplatesTopLevelView["default"].meta.revision = "Ember@1.13.3";
+  _emberHtmlbarsTemplatesTopLevelView["default"].meta.revision = "Ember@1.13.5";
 
   exports["default"] = {
     willRender: function (renderNode, env) {
@@ -19360,11 +19579,11 @@ enifed("ember-htmlbars/keywords/view", ["exports", "ember-views/streams/utils", 
 
       // if parentView exists, use its controller (the default
       // behavior), otherwise use `scope.self` as the controller
-      var controller = scope.view ? null : read(scope.self);
+      var controller = scope.locals.view ? null : read(scope.self);
 
       return {
         manager: state.manager,
-        parentView: scope.view,
+        parentView: env.view,
         controller: controller,
         targetObject: targetObject,
         viewClassOrInstance: viewClassOrInstance
@@ -19456,7 +19675,7 @@ enifed("ember-htmlbars/keywords/view", ["exports", "ember-views/streams/utils", 
 @module ember
 @submodule ember-htmlbars
 */
-enifed("ember-htmlbars/keywords/with", ["exports", "htmlbars-runtime", "ember-metal/property_get"], function (exports, _htmlbarsRuntime, _emberMetalProperty_get) {
+enifed('ember-htmlbars/keywords/with', ['exports', 'ember-metal/core', 'ember-metal/property_get', 'htmlbars-runtime', 'ember-metal/streams/utils'], function (exports, _emberMetalCore, _emberMetalProperty_get, _htmlbarsRuntime, _emberMetalStreamsUtils) {
   exports["default"] = {
     setupState: function (state, env, scope, params, hash) {
       var controller = hash.controller;
@@ -19464,8 +19683,14 @@ enifed("ember-htmlbars/keywords/with", ["exports", "htmlbars-runtime", "ember-me
       if (controller) {
         if (!state.controller) {
           var context = params[0];
-          var controllerFactory = env.container.lookupFactory("controller:" + controller);
-          var parentController = scope.view ? _emberMetalProperty_get.get(scope.view, "context") : null;
+          var controllerFactory = env.container.lookupFactory('controller:' + controller);
+          var parentController = null;
+
+          if (scope.locals.controller) {
+            parentController = _emberMetalStreamsUtils.read(scope.locals.controller);
+          } else if (scope.locals.view) {
+            parentController = _emberMetalProperty_get.get(_emberMetalStreamsUtils.read(scope.locals.view), 'context');
+          }
 
           var controllerInstance = controllerFactory.create({
             model: env.hooks.getValue(context),
@@ -19497,19 +19722,19 @@ enifed("ember-htmlbars/keywords/with", ["exports", "htmlbars-runtime", "ember-me
         hash.controller = morph.state.controller;
       }
 
-      Ember.assert("{{#with foo}} must be called with a single argument or the use the " + "{{#with foo as bar}} syntax", params.length === 1);
+      _emberMetalCore["default"].assert('{{#with foo}} must be called with a single argument or the use the ' + '{{#with foo as bar}} syntax', params.length === 1);
 
-      Ember.assert("The {{#with}} helper must be called with a block", !!template);
+      _emberMetalCore["default"].assert('The {{#with}} helper must be called with a block', !!template);
 
       if (template && template.arity === 0) {
-        Ember.deprecate("Using the context switching form of `{{with}}` is deprecated. " + "Please use the block param form (`{{#with bar as |foo|}}`) instead.", false, { url: "http://emberjs.com/guides/deprecations/#toc_more-consistent-handlebars-scope" });
+        _emberMetalCore["default"].deprecate('Using the context switching form of `{{with}}` is deprecated. ' + 'Please use the block param form (`{{#with bar as |foo|}}`) instead.', false, { url: 'http://emberjs.com/guides/deprecations/#toc_more-consistent-handlebars-scope' });
       }
 
-      _htmlbarsRuntime.internal.continueBlock(morph, env, scope, "with", params, hash, template, inverse, visitor);
+      _htmlbarsRuntime.internal.continueBlock(morph, env, scope, 'with', params, hash, template, inverse, visitor);
     },
 
     rerender: function (morph, env, scope, params, hash, template, inverse, visitor) {
-      _htmlbarsRuntime.internal.continueBlock(morph, env, scope, "with", params, hash, template, inverse, visitor);
+      _htmlbarsRuntime.internal.continueBlock(morph, env, scope, 'with', params, hash, template, inverse, visitor);
     }
   };
 });
@@ -19584,14 +19809,13 @@ enifed("ember-htmlbars/morphs/morph", ["exports", "dom-helper", "ember-metal/pla
   };
 
   proto.cleanup = function () {
-    var view;
+    var view = this.emberView;
 
-    if (view = this.emberView) {
-      if (!view.ownerView.isDestroyingSubtree) {
-        view.ownerView.isDestroyingSubtree = true;
-        if (view.parentView) {
-          view.parentView.removeChild(view);
-        }
+    if (view) {
+      var parentView = view.parentView;
+
+      if (parentView && view.ownerView._destroyingSubtreeForView === parentView) {
+        parentView.removeChild(view);
       }
     }
 
@@ -19886,7 +20110,7 @@ enifed("ember-htmlbars/node-managers/component-node-manager", ["exports", "ember
   };
 
   function createComponent(_component, isAngleBracket, _props, renderNode, env) {
-    var attrs = arguments[5] === undefined ? {} : arguments[5];
+    var attrs = arguments.length <= 5 || arguments[5] === undefined ? {} : arguments[5];
 
     var props = _emberMetalMerge.assign({}, _props);
 
@@ -19921,6 +20145,7 @@ enifed("ember-htmlbars/node-managers/component-node-manager", ["exports", "ember
 
     component._renderNode = renderNode;
     renderNode.emberView = component;
+    renderNode.buildChildEnv = buildChildEnv;
     return component;
   }
 
@@ -19974,6 +20199,10 @@ enifed("ember-htmlbars/node-managers/component-node-manager", ["exports", "ember
     }
 
     return target;
+  }
+
+  function buildChildEnv(state, env) {
+    return env.childWithView(this.emberView);
   }
 });
 
@@ -20136,12 +20365,16 @@ enifed("ember-htmlbars/node-managers/view-node-manager", ["exports", "ember-meta
   }
 
   function createOrUpdateComponent(component, options, createOptions, renderNode, env) {
-    var attrs = arguments[5] === undefined ? {} : arguments[5];
+    var attrs = arguments.length <= 5 || arguments[5] === undefined ? {} : arguments[5];
 
     var snapshot = takeSnapshot(attrs);
     var props = _emberMetalMerge["default"]({}, options);
     var defaultController = _emberViewsViewsView["default"].proto().controller;
     var hasSuppliedController = "controller" in attrs || "controller" in props;
+
+    if (!props.ownerView && options.parentView) {
+      props.ownerView = options.parentView.ownerView;
+    }
 
     props.attrs = snapshot;
     if (component.create) {
@@ -20395,7 +20628,7 @@ enifed("ember-htmlbars/system/bootstrap", ["exports", "ember-metal/core", "ember
 
   /**
   @module ember
-  @submodule ember-handlebars
+  @submodule ember-htmlbars
   */
 
   /**
@@ -20404,13 +20637,13 @@ enifed("ember-htmlbars/system/bootstrap", ["exports", "ember-metal/core", "ember
     as as jQuery DOM-ready callback.
   
     Script tags with `text/x-handlebars` will be compiled
-    with Ember's Handlebars and are suitable for use as a view's template.
+    with Ember's template compiler and are suitable for use as a view's template.
     Those with type `text/x-raw-handlebars` will be compiled with regular
     Handlebars and are suitable for use in views' computed properties.
   
     @private
     @method bootstrap
-    @for Ember.Handlebars
+    @for Ember.HTMLBars
     @static
     @param ctx
   */
@@ -20495,7 +20728,7 @@ enifed('ember-htmlbars/system/discover-known-helpers', ['exports', 'ember-metal/
     var registry = container && container._registry;
     var helpers = _emberMetalDictionary["default"](null);
 
-    if (_emberMetalCore["default"].FEATURES.isEnabled('ember-htmlbars-dashless-helpers')) {
+    
       if (!registry) {
         return helpers;
       }
@@ -20509,7 +20742,7 @@ enifed('ember-htmlbars/system/discover-known-helpers', ['exports', 'ember-metal/
 
         helpers[_name] = true;
       }
-    }
+    
 
     return helpers;
   }
@@ -20529,14 +20762,9 @@ enifed("ember-htmlbars/system/dom-helper", ["exports", "dom-helper", "ember-html
 enifed("ember-htmlbars/system/helper", ["exports"], function (exports) {
   /**
   @module ember
-  @submodule ember-htmlbars
+  @submodule ember-templates
   */
 
-  /**
-    @class Helper
-    @namespace Ember.HTMLBars
-    @private
-  */
   function Helper(helper) {
     this.helperFunction = helper;
 
@@ -20640,7 +20868,7 @@ enifed("ember-htmlbars/system/lookup-helper", ["exports", "ember-metal/core", "e
     @private
     @method resolveHelper
     @param {String} name the name of the helper to lookup
-    @return {Handlebars Helper}
+    @return {Helper}
   */
 
   function findHelper(name, view, env) {
@@ -20804,7 +21032,7 @@ enifed("ember-htmlbars/system/render-env", ["exports", "ember-htmlbars/env", "em
   };
 
   RenderEnv.prototype.childWithOutletState = function (outletState) {
-    var hasParentOutlet = arguments[1] === undefined ? this.hasParentOutlet : arguments[1];
+    var hasParentOutlet = arguments.length <= 1 || arguments[1] === undefined ? this.hasParentOutlet : arguments[1];
 
     return new RenderEnv({
       view: this.view,
@@ -21797,9 +22025,9 @@ enifed("ember-htmlbars/utils/normalize-self", ["exports"], function (exports) {
 enifed("ember-htmlbars/utils/string", ["exports", "htmlbars-util", "ember-runtime/system/string"], function (exports, _htmlbarsUtil, _emberRuntimeSystemString) {
 
   /**
-    Mark a string as safe for unescaped output with Handlebars. If you
-    return HTML from a Handlebars helper, use this function to
-    ensure Handlebars does not escape the HTML.
+    Mark a string as safe for unescaped output with Ember templates. If you
+    return HTML from a helper, use this function to
+    ensure Ember's rendering layer does not escape the HTML.
   
     ```javascript
     Ember.String.htmlSafe('<div>someString</div>')
@@ -21824,18 +22052,6 @@ enifed("ember-htmlbars/utils/string", ["exports", "htmlbars-util", "ember-runtim
 
   _emberRuntimeSystemString["default"].htmlSafe = htmlSafe;
   if (Ember.EXTEND_PROTOTYPES === true || Ember.EXTEND_PROTOTYPES.String) {
-
-    /**
-      Mark a string as being safe for unescaped output with Handlebars.
-       ```javascript
-      '<div>someString</div>'.htmlSafe()
-      ```
-       See [Ember.String.htmlSafe](/api/classes/Ember.String.html#method_htmlSafe).
-       @method htmlSafe
-      @for String
-      @return {Handlebars.SafeString} a string that will not be html escaped by Handlebars
-      @public
-    */
     String.prototype.htmlSafe = function () {
       return htmlSafe(this);
     };
@@ -22289,20 +22505,16 @@ enifed("ember-metal", ["exports", "ember-metal/core", "ember-metal/merge", "embe
   _emberMetalCore["default"].addObserver = _emberMetalObserver.addObserver;
   _emberMetalCore["default"].observersFor = _emberMetalObserver.observersFor;
   _emberMetalCore["default"].removeObserver = _emberMetalObserver.removeObserver;
-  _emberMetalCore["default"].addBeforeObserver = _emberMetalObserver.addBeforeObserver;
   _emberMetalCore["default"]._suspendBeforeObserver = _emberMetalObserver._suspendBeforeObserver;
   _emberMetalCore["default"]._suspendBeforeObservers = _emberMetalObserver._suspendBeforeObservers;
   _emberMetalCore["default"]._suspendObserver = _emberMetalObserver._suspendObserver;
   _emberMetalCore["default"]._suspendObservers = _emberMetalObserver._suspendObservers;
-  _emberMetalCore["default"].beforeObserversFor = _emberMetalObserver.beforeObserversFor;
-  _emberMetalCore["default"].removeBeforeObserver = _emberMetalObserver.removeBeforeObserver;
 
   _emberMetalCore["default"].IS_BINDING = _emberMetalMixin.IS_BINDING;
   _emberMetalCore["default"].required = _emberMetalMixin.required;
   _emberMetalCore["default"].aliasMethod = _emberMetalMixin.aliasMethod;
   _emberMetalCore["default"].observer = _emberMetalMixin.observer;
-  _emberMetalCore["default"].immediateObserver = _emberMetalMixin.immediateObserver;
-  _emberMetalCore["default"].beforeObserver = _emberMetalMixin.beforeObserver;
+  _emberMetalCore["default"].immediateObserver = _emberMetalMixin._immediateObserver;
   _emberMetalCore["default"].mixin = _emberMetalMixin.mixin;
   _emberMetalCore["default"].Mixin = _emberMetalMixin.Mixin;
 
@@ -22333,23 +22545,7 @@ enifed("ember-metal", ["exports", "ember-metal/core", "ember-metal/merge", "embe
 
   _emberMetalCore["default"].merge = _emberMetalMerge["default"];
 
-  if (_emberMetalCore["default"].FEATURES.isEnabled("ember-metal-stream")) {
-    _emberMetalCore["default"].stream = {
-      Stream: _emberMetalStreamsStream["default"],
-
-      isStream: _emberMetalStreamsUtils.isStream,
-      subscribe: _emberMetalStreamsUtils.subscribe,
-      unsubscribe: _emberMetalStreamsUtils.unsubscribe,
-      read: _emberMetalStreamsUtils.read,
-      readHash: _emberMetalStreamsUtils.readHash,
-      readArray: _emberMetalStreamsUtils.readArray,
-      scanArray: _emberMetalStreamsUtils.scanArray,
-      scanHash: _emberMetalStreamsUtils.scanHash,
-      concat: _emberMetalStreamsUtils.concat,
-      chain: _emberMetalStreamsUtils.chain
-    };
-  }
-
+  
   /**
     A function may be assigned to `Ember.onerror` to be called when Ember
     internals encounter an error. This is useful for specialized error handling
@@ -22376,12 +22572,18 @@ enifed("ember-metal", ["exports", "ember-metal/core", "ember-metal/merge", "embe
 
   // do this for side-effects of updating Ember.assert, warn, etc when
   // ember-debug is present
+  // This needs to be called before any deprecateFunc
   if (_emberMetalCore["default"].__loader.registry["ember-debug"]) {
     requireModule("ember-debug");
   }
 
   _emberMetalCore["default"].create = _emberMetalCore["default"].deprecateFunc("Ember.create is deprecated in favor of Object.create", _emberMetalPlatformCreate["default"]);
   _emberMetalCore["default"].keys = _emberMetalCore["default"].deprecateFunc("Ember.keys is deprecated in favor of Object.keys", _emberMetalKeys["default"]);
+
+  _emberMetalCore["default"].addBeforeObserver = _emberMetalCore["default"].deprecateFunc("Ember.addBeforeObserver is deprecated and will be removed in the near future.", { url: "http://emberjs.com/deprecations/v1.x/#toc_beforeobserver" }, _emberMetalObserver._addBeforeObserver);
+  _emberMetalCore["default"].removeBeforeObserver = _emberMetalCore["default"].deprecateFunc("Ember.removeBeforeObserver is deprecated and will be removed in the near future.", { url: "http://emberjs.com/deprecations/v1.x/#toc_beforeobserver" }, _emberMetalObserver._removeBeforeObserver);
+  _emberMetalCore["default"].beforeObserversFor = _emberMetalCore["default"].deprecateFunc("Ember.beforeObserversFor is deprecated and will be removed in the near future.", { url: "http://emberjs.com/deprecations/v1.x/#toc_beforeobserver" }, _emberMetalObserver._beforeObserversFor);
+  _emberMetalCore["default"].beforeObserver = _emberMetalCore["default"].deprecateFunc("Ember.beforeObserver is deprecated and will be removed in the near future.", { url: "http://emberjs.com/deprecations/v1.x/#toc_beforeobserver" }, _emberMetalMixin._beforeObserver);
 
   exports["default"] = _emberMetalCore["default"];
 });
@@ -22910,6 +23112,7 @@ enifed("ember-metal/binding", ["exports", "ember-metal/core", "ember-metal/prope
         binding `oneWay`. You can instead pass `false` to disable `oneWay`, making the
         binding two way again.
       @return {Ember.Binding} `this`
+      @deprecated
       @public
     */
     oneWay: function (from, flag) {
@@ -24978,7 +25181,7 @@ enifed('ember-metal/core', ['exports'], function (exports) {
   
     @class Ember
     @static
-    @version 1.13.3
+    @version 1.13.5
     @public
   */
 
@@ -25010,11 +25213,11 @@ enifed('ember-metal/core', ['exports'], function (exports) {
   
     @property VERSION
     @type String
-    @default '1.13.3'
+    @default '1.13.5'
     @static
     @public
   */
-  Ember.VERSION = '1.13.3';
+  Ember.VERSION = '1.13.5';
 
   /**
     The hash of environment variables used to control various configuration
@@ -25197,8 +25400,12 @@ enifed('ember-metal/core', ['exports'], function (exports) {
     Ember.deprecate = K;
   }
   if ('undefined' === typeof Ember.deprecateFunc) {
-    Ember.deprecateFunc = function (_, func) {
-      return func;
+    Ember.deprecateFunc = function () {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      return args[args.length - 1];
     };
   }
 
@@ -26284,7 +26491,7 @@ enifed("ember-metal/get_properties", ["exports", "ember-metal/property_get", "em
     @param {Object} obj
     @param {String...|Array} list of keys to get
     @return {Object}
-    @private
+    @public
   */
 
   function getProperties(obj) {
@@ -26862,12 +27069,7 @@ enifed("ember-metal/libraries", ["exports", "ember-metal/core", "ember-metal/enu
     }
   };
 
-  if (_emberMetalCore["default"].FEATURES.isEnabled("ember-libraries-isregistered")) {
-    Libraries.prototype.isRegistered = function (name) {
-      return !!this._getLibraryByName(name);
-    };
-  }
-
+  
   exports["default"] = Libraries;
 });
 enifed("ember-metal/logger", ["exports", "ember-metal/core", "ember-metal/error"], function (exports, _emberMetalCore, _emberMetalError) {
@@ -27611,8 +27813,8 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
   exports.required = required;
   exports.aliasMethod = aliasMethod;
   exports.observer = observer;
-  exports.immediateObserver = immediateObserver;
-  exports.beforeObserver = beforeObserver;
+  exports._immediateObserver = _immediateObserver;
+  exports._beforeObserver = _beforeObserver;
   // Remove "use strict"; from transpiled module until
   // https://bugs.webkit.org/show_bug.cgi?id=138038 is fixed
   //
@@ -28004,13 +28206,13 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     var prev = obj[key];
 
     if ("function" === typeof prev) {
-      updateObserversAndListeners(obj, key, prev, "__ember_observesBefore__", _emberMetalObserver.removeBeforeObserver);
+      updateObserversAndListeners(obj, key, prev, "__ember_observesBefore__", _emberMetalObserver._removeBeforeObserver);
       updateObserversAndListeners(obj, key, prev, "__ember_observes__", _emberMetalObserver.removeObserver);
       updateObserversAndListeners(obj, key, prev, "__ember_listens__", _emberMetalEvents.removeListener);
     }
 
     if ("function" === typeof observerOrListener) {
-      updateObserversAndListeners(obj, key, observerOrListener, "__ember_observesBefore__", _emberMetalObserver.addBeforeObserver);
+      updateObserversAndListeners(obj, key, observerOrListener, "__ember_observesBefore__", _emberMetalObserver._addBeforeObserver);
       updateObserversAndListeners(obj, key, observerOrListener, "__ember_observes__", _emberMetalObserver.addObserver);
       updateObserversAndListeners(obj, key, observerOrListener, "__ember_listens__", _emberMetalEvents.addListener);
     }
@@ -28451,6 +28653,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
 
     if (typeof func !== "function") {
       // revert to old, soft-deprecated argument ordering
+      _emberMetalCore["default"].deprecate("Passing the dependentKeys after the callback function in Ember.observer is deprecated. Ensure the callback function is the last argument.");
 
       func = args[0];
       _paths = args.slice(1);
@@ -28487,7 +28690,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     Also available as `Function.prototype.observesImmediately` if prototype extensions are
     enabled.
   
-    @method immediateObserver
+    @method _immediateObserver
     @for Ember
     @param {String} propertyNames*
     @param {Function} func
@@ -28496,7 +28699,7 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     @private
   */
 
-  function immediateObserver() {
+  function _immediateObserver() {
     _emberMetalCore["default"].deprecate("Usage of `Ember.immediateObserver` is deprecated, use `Ember.observer` instead.");
 
     for (var i = 0, l = arguments.length; i < l; i++) {
@@ -28513,9 +28716,9 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     Note, `@each.property` observer is called per each add or replace of an element
     and it's not called with a specific enumeration item.
   
-    A `beforeObserver` fires before a property changes.
+    A `_beforeObserver` fires before a property changes.
   
-    A `beforeObserver` is an alternative form of `.observesBefore()`.
+    A `_beforeObserver` is an alternative form of `.observesBefore()`.
   
     ```javascript
     App.PersonView = Ember.View.extend({
@@ -28548,10 +28751,11 @@ enifed("ember-metal/mixin", ["exports", "ember-metal/core", "ember-metal/merge",
     @param {String} propertyNames*
     @param {Function} func
     @return func
+    @deprecated
     @private
   */
 
-  function beforeObserver() {
+  function _beforeObserver() {
     for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
       args[_key5] = arguments[_key5];
     }
@@ -28601,13 +28805,13 @@ enifed("ember-metal/observer", ["exports", "ember-metal/watching", "ember-metal/
   exports.addObserver = addObserver;
   exports.observersFor = observersFor;
   exports.removeObserver = removeObserver;
-  exports.addBeforeObserver = addBeforeObserver;
+  exports._addBeforeObserver = _addBeforeObserver;
   exports._suspendBeforeObserver = _suspendBeforeObserver;
   exports._suspendObserver = _suspendObserver;
   exports._suspendBeforeObservers = _suspendBeforeObservers;
   exports._suspendObservers = _suspendObservers;
-  exports.beforeObserversFor = beforeObserversFor;
-  exports.removeBeforeObserver = removeBeforeObserver;
+  exports._beforeObserversFor = _beforeObserversFor;
+  exports._removeBeforeObserver = _removeBeforeObserver;
 
   /**
   @module ember-metal
@@ -28663,16 +28867,17 @@ enifed("ember-metal/observer", ["exports", "ember-metal/watching", "ember-metal/
   }
 
   /**
-    @method addBeforeObserver
+    @method _addBeforeObserver
     @for Ember
     @param obj
     @param {String} path
     @param {Object|Function} target
     @param {Function|String} [method]
+    @deprecated
     @private
   */
 
-  function addBeforeObserver(obj, path, target, method) {
+  function _addBeforeObserver(obj, path, target, method) {
     _emberMetalEvents.addListener(obj, beforeEvent(path), target, method);
     _emberMetalWatching.watch(obj, path);
 
@@ -28702,7 +28907,7 @@ enifed("ember-metal/observer", ["exports", "ember-metal/watching", "ember-metal/
     return _emberMetalEvents.suspendListeners(obj, events, target, method, callback);
   }
 
-  function beforeObserversFor(obj, path) {
+  function _beforeObserversFor(obj, path) {
     return _emberMetalEvents.listenersFor(obj, beforeEvent(path));
   }
 
@@ -28713,10 +28918,11 @@ enifed("ember-metal/observer", ["exports", "ember-metal/watching", "ember-metal/
     @param {String} path
     @param {Object|Function} target
     @param {Function|String} [method]
+    @deprecated
     @private
   */
 
-  function removeBeforeObserver(obj, path, target, method) {
+  function _removeBeforeObserver(obj, path, target, method) {
     _emberMetalWatching.unwatch(obj, path);
     _emberMetalEvents.removeListener(obj, beforeEvent(path), target, method);
 
@@ -29240,7 +29446,7 @@ enifed("ember-metal/properties", ["exports", "ember-metal/core", "ember-metal/ut
     if (desc instanceof Descriptor) {
       value = desc;
 
-      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
+      
         if (watching && _emberMetalPlatformDefine_property.hasPropertyAccessors) {
           _emberMetalPlatformDefine_property.defineProperty(obj, keyName, {
             configurable: true,
@@ -29251,17 +29457,14 @@ enifed("ember-metal/properties", ["exports", "ember-metal/core", "ember-metal/ut
         } else {
           obj[keyName] = value;
         }
-      } else {
-        obj[keyName] = value;
-      }
-      if (desc.setup) {
+            if (desc.setup) {
         desc.setup(obj, keyName);
       }
     } else {
       if (desc == null) {
         value = data;
 
-        if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
+        
           if (watching && _emberMetalPlatformDefine_property.hasPropertyAccessors) {
             meta.values[keyName] = data;
             _emberMetalPlatformDefine_property.defineProperty(obj, keyName, {
@@ -29273,10 +29476,7 @@ enifed("ember-metal/properties", ["exports", "ember-metal/core", "ember-metal/ut
           } else {
             obj[keyName] = data;
           }
-        } else {
-          obj[keyName] = data;
-        }
-      } else {
+              } else {
         value = desc;
 
         // compatibility with ES5
@@ -29661,12 +29861,14 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
   */
 
   function get(obj, keyName) {
+    _emberMetalCore["default"].deprecate("Get must be called with two arguments; an object and a property key", arguments.length === 2);
     // Helpers that operate with 'this' within an #each
     if (keyName === "") {
       return obj;
     }
 
     if (!keyName && "string" === typeof obj) {
+      _emberMetalCore["default"].deprecate("Calling Ember.get with only a property key has been deprecated, please also specify a target object.");
       keyName = obj;
       obj = _emberMetalCore["default"].lookup;
     }
@@ -29675,6 +29877,7 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
     _emberMetalCore["default"].assert("Cannot call get with '" + keyName + "' on an undefined object.", obj !== undefined);
 
     if (_emberMetalIs_none["default"](obj)) {
+      _emberMetalCore["default"].deprecate("Calling Ember.get without a target object has been deprecated, please specify a target object.");
       return _getPath(obj, keyName);
     }
 
@@ -29697,16 +29900,13 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
     if (desc) {
       return desc.get(obj, keyName);
     } else {
-      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
+      
         if (_emberMetalPlatformDefine_property.hasPropertyAccessors && meta && meta.watching[keyName] > 0) {
           ret = meta.values[keyName];
         } else {
           ret = obj[keyName];
         }
-      } else {
-        ret = obj[keyName];
-      }
-
+      
       if (ret === undefined && "object" === typeof obj && !(keyName in obj) && "function" === typeof obj.unknownProperty) {
         return obj.unknownProperty(keyName);
       }
@@ -29770,6 +29970,8 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
     // detect complicated paths and normalize them
     hasThis = _emberMetalPath_cache.hasThis(path);
 
+    _emberMetalCore["default"].deprecate("Ember.get with 'this' in the path has been deprecated. Please use the same path without 'this'.", !hasThis);
+
     if (!root || hasThis) {
       tuple = normalizeTuple(root, path);
       root = tuple[0];
@@ -29780,7 +29982,7 @@ enifed("ember-metal/property_get", ["exports", "ember-metal/core", "ember-metal/
     parts = path.split(".");
     len = parts.length;
     for (idx = 0; root != null && idx < len; idx++) {
-      root = get(root, parts[idx], true);
+      root = get(root, parts[idx]);
       if (root && root.isDestroyed) {
         return undefined;
       }
@@ -29828,11 +30030,13 @@ enifed("ember-metal/property_set", ["exports", "ember-metal/core", "ember-metal/
   function set(obj, keyName, value, tolerant) {
     if (typeof obj === "string") {
       _emberMetalCore["default"].assert("Path '" + obj + "' must be global if no obj is given.", _emberMetalPath_cache.isGlobalPath(obj));
+      _emberMetalCore["default"].deprecate("Calling Ember.set with only a property key and a value has been deprecated, please also specify a target object.");
       value = keyName;
       keyName = obj;
       obj = _emberMetalCore["default"].lookup;
     }
 
+    _emberMetalCore["default"].deprecate("Set must be called with tree or four arguments; an object, a property key, a value and tolerant true/false", arguments.length === 3 || arguments.length === 4);
     _emberMetalCore["default"].assert("Cannot call set with '" + keyName + "' key.", !!keyName);
 
     if (obj === _emberMetalCore["default"].lookup) {
@@ -29858,6 +30062,7 @@ enifed("ember-metal/property_set", ["exports", "ember-metal/core", "ember-metal/
 
     var isUnknown, currentValue;
     if ((!obj || desc === undefined) && _emberMetalPath_cache.isPath(keyName)) {
+      _emberMetalCore["default"].deprecate("Calling Ember.set without a target object has been deprecated, please specify a target object.", !!obj);
       return setPath(obj, keyName, value, tolerant);
     }
 
@@ -29881,20 +30086,17 @@ enifed("ember-metal/property_set", ["exports", "ember-metal/core", "ember-metal/
         obj.setUnknownProperty(keyName, value);
       } else if (meta && meta.watching[keyName] > 0) {
         if (meta.proto !== obj) {
-          if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
+          
             if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
               currentValue = meta.values[keyName];
             } else {
               currentValue = obj[keyName];
             }
-          } else {
-            currentValue = obj[keyName];
-          }
-        }
+                  }
         // only trigger a change if the value has changed
         if (value !== currentValue) {
           _emberMetalProperty_events.propertyWillChange(obj, keyName);
-          if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
+          
             if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
               if (currentValue === undefined && !(keyName in obj) || !Object.prototype.propertyIsEnumerable.call(obj, keyName)) {
                 _emberMetalProperties.defineProperty(obj, keyName, null, value); // setup mandatory setter
@@ -29904,10 +30106,7 @@ enifed("ember-metal/property_set", ["exports", "ember-metal/core", "ember-metal/
             } else {
               obj[keyName] = value;
             }
-          } else {
-            obj[keyName] = value;
-          }
-          _emberMetalProperty_events.propertyDidChange(obj, keyName);
+                    _emberMetalProperty_events.propertyDidChange(obj, keyName);
         }
       } else {
         obj[keyName] = value;
@@ -29932,6 +30131,8 @@ enifed("ember-metal/property_set", ["exports", "ember-metal/core", "ember-metal/
     // get the root
     if (path !== "this") {
       root = _emberMetalProperty_get._getPath(root, path);
+    } else {
+      _emberMetalCore["default"].deprecate("Ember.set with 'this' in the path has been deprecated. Please use the same path without 'this'.");
     }
 
     if (!keyName || keyName.length === 0) {
@@ -31984,11 +32185,11 @@ enifed("ember-metal/utils", ["exports", "ember-metal/core", "ember-metal/platfor
   // Placeholder for non-writable metas.
   var EMPTY_META = new Meta(null);
 
-  if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
+  
     if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
       EMPTY_META.values = {};
     }
-  }
+  
 
   /**
     Retrieves the meta hash for an object. If `writable` is true ensures the
@@ -32025,11 +32226,11 @@ enifed("ember-metal/utils", ["exports", "ember-metal/core", "ember-metal/platfor
 
       ret = new Meta(obj);
 
-      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
+      
         if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
           ret.values = {};
         }
-      }
+      
 
       obj.__ember_meta__ = ret;
     } else if (ret.source !== obj) {
@@ -32045,11 +32246,11 @@ enifed("ember-metal/utils", ["exports", "ember-metal/core", "ember-metal/platfor
       ret.cacheMeta = undefined;
       ret.source = obj;
 
-      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
+      
         if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
           ret.values = _emberMetalPlatformCreate["default"](ret.values);
         }
-      }
+      
 
       obj["__ember_meta__"] = ret;
     }
@@ -32602,17 +32803,17 @@ enifed("ember-metal/watch_key", ["exports", "ember-metal/core", "ember-metal/uti
         obj.willWatchProperty(keyName);
       }
 
-      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
+      
         if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
           handleMandatorySetter(m, obj, keyName);
         }
-      }
+      
     } else {
       watching[keyName] = (watching[keyName] || 0) + 1;
     }
   }
 
-  if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
+  
     var handleMandatorySetter = function handleMandatorySetter(m, obj, keyName) {
       var descriptor = Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(obj, keyName);
       var configurable = descriptor ? descriptor.configurable : true;
@@ -32636,7 +32837,7 @@ enifed("ember-metal/watch_key", ["exports", "ember-metal/core", "ember-metal/uti
         });
       }
     };
-  }
+  
 
   // This is super annoying, but required until
   // https://github.com/babel/babel/issues/906 is resolved
@@ -32659,7 +32860,7 @@ enifed("ember-metal/watch_key", ["exports", "ember-metal/core", "ember-metal/uti
         obj.didUnwatchProperty(keyName);
       }
 
-      if (_emberMetalCore["default"].FEATURES.isEnabled("mandatory-setter")) {
+      
         if (!desc && _emberMetalPlatformDefine_property.hasPropertyAccessors && keyName in obj) {
           _emberMetalPlatformDefine_property.defineProperty(obj, keyName, {
             configurable: true,
@@ -32677,7 +32878,7 @@ enifed("ember-metal/watch_key", ["exports", "ember-metal/core", "ember-metal/uti
             get: _emberMetalProperties.DEFAULT_GETTER_FUNCTION(keyName)
           });
         }
-      }
+      
     } else if (watching[keyName] > 1) {
       watching[keyName]--;
     }
@@ -32863,17 +33064,19 @@ enifed("ember-routing-htmlbars/helpers/query-params", ["exports", "ember-metal/c
   exports.queryParamsHelper = queryParamsHelper;
 
   /**
-    This is a sub-expression to be used in conjunction with the link-to helper.
+    This is a helper to be used in conjunction with the link-to helper.
     It will supply url query parameters to the target route.
   
     Example
   
+    ```handlebars
     {{#link-to 'posts' (query-params direction="asc")}}Sort{{/link-to}}
+    ```
   
     @method query-params
-    @for Ember.Handlebars.helpers
+    @for Ember.Templates.helpers
     @param {Object} hash takes a hash of query parameters
-    @return {String} HTML string
+    @return {Object} A `QueryParams` object for `{{link-to}}`
     @public
   */
 
@@ -32894,59 +33097,150 @@ enifed("ember-routing-htmlbars/helpers/query-params", ["exports", "ember-metal/c
 enifed("ember-routing-htmlbars/keywords/action", ["exports", "htmlbars-runtime/hooks", "ember-routing-htmlbars/keywords/closure-action"], function (exports, _htmlbarsRuntimeHooks, _emberRoutingHtmlbarsKeywordsClosureAction) {
 
   /**
-    The `{{action}}` helper provides a useful shortcut for registering an HTML
-    element within a template for a single DOM event and forwarding that
-    interaction to the template's controller or specified `target` option.
+    The `{{action}}` helper provides a way to pass triggers for behavior (usually
+    just a function) between components, and into components from controllers.
   
-    If the controller does not implement the specified action, the event is sent
-    to the current route, and it bubbles up the route hierarchy from there.
+    ### Passing functions with the action helper
   
-    For more advanced event handling see [Ember.Component](/api/classes/Ember.Component.html)
-  
-  
-    ### Use
-    Given the following application Handlebars template on the page
+    There are three contexts an action helper can be used in. The first two
+    contexts to discuss are attribute context, and Handlebars value context.
   
     ```handlebars
-    <div {{action 'anActionName'}}>
-      click me
-    </div>
+    {{! An example of attribute context }}
+    <div onclick={{action "save"}}></div>
+    {{! Examples of Handlebars value context }}
+    {{input on-input=(action "save")}}
+    {{yield (action "refreshData") andAnotherParam}}
     ```
   
-    And application code
+    In these contexts,
+    the helper is called a "closure action" helper. It's behavior is simple:
+    If passed a function name, read that function off the `actions` property
+    of the current context. Once that function is read (or if a function was
+    passed), create a closure over that function and any arguments.
   
-    ```javascript
-    App.ApplicationController = Ember.Controller.extend({
+    The resulting value of an action helper used this way is simply a function.
+    For example with this attribute context example:
+  
+    ```handlebars
+    {{! An example of attribute context }}
+    <div onclick={{action "save"}}></div>
+    ```
+  
+    The resulting template render logic would be:
+  
+    ```js
+    var div = document.createElement('div');
+    var actionFunction = (function(context){
+      return function() {
+        return context.actions.save.apply(context, arguments);
+      };
+    })(context);
+    div.onclick = actionFunction;
+    ```
+  
+    Thus when the div is clicked, the action on that context is called.
+    Because the `actionFunction` is just a function, closure actions can be
+    passed between components the still execute in the correct context.
+  
+    Here is an example action handler on a component:
+  
+    ```js
+    export default Ember.Component.extend({
       actions: {
-        anActionName: function() {
+        save(/* event *\/) {
+          this.get('model').save();
         }
       }
     });
     ```
   
-    Will result in the following rendered HTML
+    Actions are always looked up on the `actions` property of the current context.
+    This avoids collisions in the naming of common actions, such as `destroy`.
   
-    ```html
-    <div class="ember-view">
-      <div data-ember-action="1">
-        click me
-      </div>
-    </div>
+    Two options can be passed to the `action` helper when it is used in this way.
+  
+    * `target=someProperty` will look to `someProperty` instead of the current
+      context for the `actions` hash. This can be useful when targetting a
+      service for actions.
+    * `value="target.value"` will read the path `target.value` off the first
+      argument to the action when it is called and rewrite the first argument
+      to be that value. This is useful when attaching actions to event listeners.
+  
+    ### Invoking an action
+  
+    Closure actions curry both their scope and any arguments. When invoked, any
+    additional arguments are added to the already curried list.
+  
+    Actions should be invoked using the [sendAction](/api/classes/Ember.Component.html#method_sendAction)
+    method. The first argument to `sendAction` is the action to be called, and
+    additional arguments are passed to the action function. This has interesting
+    properties combined with currying of arguments. For example:
+  
+    ```js
+    export default Ember.Component.extend({
+      actions: {
+        // Usage {{input on-input=(action (action 'setName' model) value="target.value")}}
+        setName(model, name) {
+          model.set('name', name);
+        }
+      }
+    });
     ```
   
-    Clicking "click me" will trigger the `anActionName` action of the
-    `App.ApplicationController`. In this case, no additional parameters will be passed.
+    The first argument (`model`) was curried over, and the run-time argument (`event`)
+    becomes a second argument. Action calls be nested this way because each simply
+    returns a function. Any function can be passed to the `{{action` helper, including
+    other actions.
   
-    If you provide additional parameters to the helper:
+    Actions invoked with `sendAction` have the same currying behavior as demonstrated
+    with `on-input` above. For example:
+  
+    ```js
+    export default Ember.Component.extend({
+      actions: {
+        setName(model, name) {
+          model.set('name', name);
+        }
+      }
+    });
+    ```
   
     ```handlebars
-    <button {{action 'edit' post}}>Edit</button>
+    {{my-input submit=(action 'setName' model)}}
     ```
   
-    Those parameters will be passed along as arguments to the JavaScript
-    function implementing the action.
+    ```js
+    // app/components/my-component.js
+    export default Ember.Component.extend({
+      click() {
+        // Note that model is not passed, it was curried in the template
+        this.sendAction('submit', 'bob');
+      }
+    });
+    ```
+  
+    ### Attaching actions to DOM
+  
+    The third context the `{{action` helper can be used in we call "element space".
+    For example:
+  
+    ```handlebars
+    {{! An example of element space }}
+    <div {{action "save"}}></div>
+    ```
+  
+    Used this way, the `{{action}}` helper provides a useful shortcut for
+    registering an HTML element within a template for a single DOM event and
+    forwarding that interaction to the template's context (controller or component).
+  
+    If the context of a template is a controller, actions used this way will
+    bubble to routes when the controller does not implement the specified action.
+    Once an action hits a route, it will bubble through the route hierarchy.
   
     ### Event Propagation
+  
+    `{{action` helpers called in element space can control event bubbling.
   
     Events triggered through the action helper will automatically have
     `.preventDefault()` called on them. You do not need to do so in your event
@@ -32972,19 +33266,23 @@ enifed("ember-routing-htmlbars/keywords/action", ["exports", "htmlbars-runtime/h
   
     ### Specifying DOM event type
   
+    `{{action` helpers called in element space can specify an event type.
+  
     By default the `{{action}}` helper registers for DOM `click` events. You can
     supply an `on` option to the helper to specify a different DOM event name:
   
     ```handlebars
-    <div {{action "anActionName" on="doubleClick"}}>
+    <div {{action "anActionName" on="double-click"}}>
       click me
     </div>
     ```
   
-    See `Ember.View` 'Responding to Browser Events' for a list of
+    See [Event Names](/api/classes/Ember.View.html#toc_event-names) for a list of
     acceptable DOM event names.
   
     ### Specifying whitelisted modifier keys
+  
+    `{{action` helpers called in element space can specify modifier keys.
   
     By default the `{{action}}` helper will ignore click event with pressed modifier
     keys. You can supply an `allowedKeys` option to specify which keys should not be ignored.
@@ -33007,51 +33305,26 @@ enifed("ember-routing-htmlbars/keywords/action", ["exports", "htmlbars-runtime/h
   
     ### Specifying a Target
   
-    There are several possible target objects for `{{action}}` helpers:
-  
-    In a typical Ember application, where templates are managed through use of the
-    `{{outlet}}` helper, actions will bubble to the current controller, then
-    to the current route, and then up the route hierarchy.
-  
-    Alternatively, a `target` option can be provided to the helper to change
+    A `target` option can be provided to the helper to change
     which object will receive the method call. This option must be a path
     to an object, accessible in the current context:
   
     ```handlebars
-    {{! the application template }}
-    <div {{action "anActionName" target=view}}>
+    {{! app/templates/application.hbs }}
+    <div {{action "anActionName" target=someService}}>
       click me
     </div>
     ```
   
     ```javascript
-    App.ApplicationView = Ember.View.extend({
-      actions: {
-        anActionName: function() {}
-      }
+    // app/controllers/application.js
+    export default Ember.Controller.extend({
+      someService: Ember.inject.service()
     });
-  
     ```
-  
-    ### Additional Parameters
-  
-    You may specify additional parameters to the `{{action}}` helper. These
-    parameters are passed along as the arguments to the JavaScript function
-    implementing the action.
-  
-    ```handlebars
-    {{#each people as |person|}}
-      <div {{action "edit" person}}>
-        click me
-      </div>
-    {{/each}}
-    ```
-  
-    Clicking "click me" will trigger the `edit` method on the current controller
-    with the value of `person` as a parameter.
   
     @method action
-    @for Ember.Handlebars.helpers
+    @for Ember.Templates.helpers
     @public
   */
 
@@ -33067,7 +33340,7 @@ enifed("ember-routing-htmlbars/keywords/action", ["exports", "htmlbars-runtime/h
 });
 /**
 @module ember
-@submodule ember-htmlbars
+@submodule ember-templates
 */
 enifed("ember-routing-htmlbars/keywords/closure-action", ["exports", "ember-metal/streams/stream", "ember-metal/array", "ember-metal/streams/utils", "ember-metal/keys", "ember-metal/utils", "ember-metal/property_get", "ember-metal/error"], function (exports, _emberMetalStreamsStream, _emberMetalArray, _emberMetalStreamsUtils, _emberMetalKeys, _emberMetalUtils, _emberMetalProperty_get, _emberMetalError) {
   exports["default"] = closureAction;
@@ -33176,12 +33449,9 @@ enifed("ember-routing-htmlbars/keywords/element-action", ["exports", "ember-meta
 
       var actionName = read(params[0]);
 
-      if (_emberMetalCore["default"].FEATURES.isEnabled("ember-routing-htmlbars-improved-actions")) {
+      
         assert("You specified a quoteless path to the {{action}} helper " + "which did not resolve to an action name (a string). " + "Perhaps you meant to use a quoted actionName? (e.g. {{action 'save'}}).", typeof actionName === "string" || typeof actionName === "function");
-      } else {
-        assert("You specified a quoteless path to the {{action}} helper " + "which did not resolve to an action name (a string). " + "Perhaps you meant to use a quoted actionName? (e.g. {{action 'save'}}).", typeof actionName === "string");
-      }
-
+      
       var actionArgs = [];
       for (var i = 1, l = params.length; i < l; i++) {
         actionArgs.push(_emberViewsStreamsUtils.readUnwrappedModel(params[i]));
@@ -33267,12 +33537,12 @@ enifed("ember-routing-htmlbars/keywords/element-action", ["exports", "ember-meta
         var actionArgs = _node$state.actionArgs;
 
         _emberMetalRun_loop["default"](function runRegisteredAction() {
-          if (_emberMetalCore["default"].FEATURES.isEnabled("ember-routing-htmlbars-improved-actions")) {
+          
             if (typeof actionName === "function") {
               actionName.apply(target, actionArgs);
               return;
             }
-          }
+          
           if (target.send) {
             target.send.apply(target, [actionName].concat(actionArgs));
           } else {
@@ -33584,7 +33854,7 @@ enifed("ember-routing-htmlbars/keywords/link-to", ["exports", "ember-metal/strea
     ```
   
     @method link-to
-    @for Ember.Handlebars.helpers
+    @for Ember.Templates.helpers
     @param {String} routeName
     @param {Object} [context]*
     @param [options] {Object} Handlebars key/value pairs of options, you can override any property of Ember.LinkComponent
@@ -33651,7 +33921,7 @@ enifed("ember-routing-htmlbars/keywords/render", ["exports", "ember-metal/core",
       _emberMetalCore["default"].assert("The first argument of {{render}} must be quoted, e.g. {{render \"sidebar\"}}.", typeof name === "string");
 
       return {
-        parentView: scope.view,
+        parentView: env.view,
         manager: prevState.manager,
         controller: prevState.controller,
         childOutletState: childOutletState(name, env)
@@ -33694,7 +33964,9 @@ enifed("ember-routing-htmlbars/keywords/render", ["exports", "ember-metal/core",
       }
 
       // # legacy namespace
+      var originalName = name;
       name = name.replace(/\//g, ".");
+      _emberMetalCore["default"].deprecate("Using a slash for namespacing with the {{render}} render helper has been deprecated.\n                     Please replace \"" + originalName + "\" with \"" + name + "\" in your call to the {{render}} helper.", !originalName.match(/\//g));
       // \ legacy slash as namespace support
 
       var templateName = "template:" + name;
@@ -33856,10 +34128,7 @@ enifed("ember-routing-views", ["exports", "ember-metal/core", "ember-routing-vie
   _emberMetalCore["default"].LinkView = _emberRoutingViewsViewsLink.DeprecatedLinkView;
   _emberMetalCore["default"].LinkComponent = _emberRoutingViewsViewsLink["default"];
   _emberMetalCore["default"].OutletView = _emberRoutingViewsViewsOutlet.OutletView;
-  if (_emberMetalCore["default"].FEATURES.isEnabled("ember-routing-core-outlet")) {
-    _emberMetalCore["default"].CoreOutletView = _emberRoutingViewsViewsOutlet.CoreOutletView;
-  }
-
+  
   exports["default"] = _emberMetalCore["default"];
 });
 /**
@@ -33867,12 +34136,12 @@ enifed("ember-routing-views", ["exports", "ember-metal/core", "ember-routing-vie
 @submodule ember-routing-views
 */
 enifed("ember-routing-views/views/link", ["exports", "ember-metal/core", "ember-metal/property_get", "ember-metal/property_set", "ember-metal/computed", "ember-views/system/utils", "ember-views/views/component", "ember-runtime/inject", "ember-runtime/mixins/controller", "ember-htmlbars/templates/link-to"], function (exports, _emberMetalCore, _emberMetalProperty_get, _emberMetalProperty_set, _emberMetalComputed, _emberViewsSystemUtils, _emberViewsViewsComponent, _emberRuntimeInject, _emberRuntimeMixinsController, _emberHtmlbarsTemplatesLinkTo) {
-  _emberHtmlbarsTemplatesLinkTo["default"].meta.revision = "Ember@1.13.3";
+  _emberHtmlbarsTemplatesLinkTo["default"].meta.revision = "Ember@1.13.5";
 
   var linkComponentClassNameBindings = ["active", "loading", "disabled"];
-  if (_emberMetalCore["default"].FEATURES.isEnabled("ember-routing-transitioning-classes")) {
+  
     linkComponentClassNameBindings = ["active", "loading", "disabled", "transitioningIn", "transitioningOut"];
-  }
+  
 
   /**
     `Ember.LinkComponent` renders an element whose `click` event triggers a
@@ -34211,7 +34480,7 @@ enifed("ember-routing-views/views/link", ["exports", "ember-metal/core", "ember-
       if (lastParam && lastParam.isQueryParams) {
         params.pop();
       }
-      var onlyQueryParamsSupplied = params.length === 0;
+      var onlyQueryParamsSupplied = this.attrs.hasBlock ? params.length === 0 : params.length === 1;
       if (onlyQueryParamsSupplied) {
         var appController = this.container.lookup("controller:application");
         if (appController) {
@@ -34398,7 +34667,7 @@ enifed("ember-routing-views/views/link", ["exports", "ember-metal/core", "ember-
 
 // FEATURES, Logger, assert
 enifed("ember-routing-views/views/outlet", ["exports", "ember-views/views/view", "ember-htmlbars/templates/top-level-view"], function (exports, _emberViewsViewsView, _emberHtmlbarsTemplatesTopLevelView) {
-  _emberHtmlbarsTemplatesTopLevelView["default"].meta.revision = "Ember@1.13.3";
+  _emberHtmlbarsTemplatesTopLevelView["default"].meta.revision = "Ember@1.13.5";
 
   var CoreOutletView = _emberViewsViewsView["default"].extend({
     defaultTemplate: _emberHtmlbarsTemplatesTopLevelView["default"],
@@ -36075,12 +36344,12 @@ enifed("ember-routing/system/dsl", ["exports", "ember-metal/core", "ember-metal/
         return _emberMetalArray.indexOf.call(["array", "basic", "object", "application"], name) === -1;
       })());
 
-      if (_emberMetalCore["default"].FEATURES.isEnabled("ember-routing-named-substates")) {
+      
         if (this.enableLoadingSubstates) {
           createRoute(this, name + "_loading", { resetNamespace: options.resetNamespace });
           createRoute(this, name + "_error", { path: dummyErrorRoute });
         }
-      }
+      
 
       if (callback) {
         var fullName = getFullName(this, name, options.resetNamespace);
@@ -37224,7 +37493,7 @@ enifed("ember-routing/system/route", ["exports", "ember-metal/core", "ember-meta
         args[_key] = arguments[_key];
       }
 
-      if (this.router || !_emberMetalCore["default"].testing) {
+      if (this.router && this.router.router || !_emberMetalCore["default"].testing) {
         var _router;
 
         (_router = this.router).send.apply(_router, args);
@@ -37446,6 +37715,10 @@ enifed("ember-routing/system/route", ["exports", "ember-metal/core", "ember-meta
       this.transitionTo('post', thePost);
        // integer passed in, model hook is called
       this.transitionTo('post', 1);
+       // model id passed in, model hook is called
+      // useful for forcing the hook to execute
+      thePost = store.find('post', 1);
+      this.transitionTo('post', thePost.id);
       ```
         This hook follows the asynchronous/promise semantics
       described in the documentation for `beforeModel`. In particular,
@@ -38615,11 +38888,11 @@ enifed("ember-routing/system/router", ["exports", "ember-metal/core", "ember-met
         emberRouter.didTransition(infos);
       };
 
-      if (_emberMetalCore["default"].FEATURES.isEnabled("ember-router-willtransition")) {
+      
         router.willTransition = function (oldInfos, newInfos, transition) {
           emberRouter.willTransition(oldInfos, newInfos, transition);
         };
-      }
+      
     },
 
     _serializeQueryParams: function (targetRouteName, queryParams) {
@@ -38930,13 +39203,13 @@ enifed("ember-routing/system/router", ["exports", "ember-metal/core", "ember-met
     var targetChildRouteName = originatingChildRoute.routeName.split(".").pop();
     var namespace = parentRoute.routeName === "application" ? "" : parentRoute.routeName + ".";
 
-    if (_emberMetalCore["default"].FEATURES.isEnabled("ember-routing-named-substates")) {
+    
       // First, try a named loading state, e.g. 'foo_loading'
       childName = namespace + targetChildRouteName + "_" + name;
       if (routeHasBeenDefined(router, childName)) {
         return childName;
       }
-    }
+    
 
     // Second, try general loading state, e.g. 'loading'
     childName = namespace + name;
@@ -39859,7 +40132,7 @@ enifed('ember-runtime/computed/reduce_computed', ['exports', 'ember-metal/core',
         observerContexts[index] = observerContext;
 
         _emberMetalEnumerable_utils.forEach(itemPropertyKeys, function (propertyKey) {
-          _emberMetalObserver.addBeforeObserver(item, propertyKey, this, observerContext.beforeObserver);
+          _emberMetalObserver._addBeforeObserver(item, propertyKey, this, observerContext.beforeObserver);
           _emberMetalObserver.addObserver(item, propertyKey, this, observerContext.observer);
         }, this);
       }, this);
@@ -39886,7 +40159,7 @@ enifed('ember-runtime/computed/reduce_computed', ['exports', 'ember-metal/core',
           item = observerContext.item;
 
           _emberMetalEnumerable_utils.forEach(itemPropertyKeys, function (propertyKey) {
-            _emberMetalObserver.removeBeforeObserver(item, propertyKey, dependentArrayObserver, beforeObserver);
+            _emberMetalObserver._removeBeforeObserver(item, propertyKey, dependentArrayObserver, beforeObserver);
             _emberMetalObserver.removeObserver(item, propertyKey, dependentArrayObserver, observer);
           });
         });
@@ -39976,7 +40249,7 @@ enifed('ember-runtime/computed/reduce_computed', ['exports', 'ember-metal/core',
 
       function removeObservers(propertyKey) {
         observerContexts[sliceIndex].destroyed = true;
-        _emberMetalObserver.removeBeforeObserver(item, propertyKey, this, observerContexts[sliceIndex].beforeObserver);
+        _emberMetalObserver._removeBeforeObserver(item, propertyKey, this, observerContexts[sliceIndex].beforeObserver);
         _emberMetalObserver.removeObserver(item, propertyKey, this, observerContexts[sliceIndex].observer);
       }
 
@@ -40017,7 +40290,7 @@ enifed('ember-runtime/computed/reduce_computed', ['exports', 'ember-metal/core',
           observerContexts[sliceIndex] = observerContext;
 
           _emberMetalEnumerable_utils.forEach(itemPropertyKeys, function (propertyKey) {
-            _emberMetalObserver.addBeforeObserver(item, propertyKey, this, observerContext.beforeObserver);
+            _emberMetalObserver._addBeforeObserver(item, propertyKey, this, observerContext.beforeObserver);
             _emberMetalObserver.addObserver(item, propertyKey, this, observerContext.observer);
           }, this);
         }
@@ -41670,7 +41943,8 @@ enifed('ember-runtime/controllers/array_controller', ['exports', 'ember-metal/co
     },
 
     init: function () {
-      _emberMetalCore["default"].deprecate(arrayControllerDeprecation);
+      _emberMetalCore["default"].deprecate(arrayControllerDeprecation, this.isGenerated);
+
       this._super.apply(this, arguments);
       this._subControllers = [];
     },
@@ -42051,8 +42325,7 @@ enifed('ember-runtime/ext/function', ['exports', 'ember-metal/core', 'ember-meta
         }.observes('value')
       });
       ```
-       In the future this method may become asynchronous. If you want to ensure
-      synchronous behavior, use `observesImmediately`.
+       In the future this method may become asynchronous.
        See `Ember.observer`.
        @method observes
       @for Function
@@ -42067,6 +42340,19 @@ enifed('ember-runtime/ext/function', ['exports', 'ember-metal/core', 'ember-meta
       return _emberMetalMixin.observer.apply(this, args);
     };
 
+    FunctionPrototype._observesImmediately = function () {
+      _emberMetalCore["default"].assert('Immediate observers must observe internal properties only, ' + 'not properties on other objects.', function checkIsInternalProperty() {
+        for (var i = 0, l = arguments.length; i < l; i++) {
+          if (arguments[i].indexOf('.') !== -1) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      // observes handles property expansion
+      return this.observes.apply(this, arguments);
+    };
     /**
       The `observesImmediately` extension of Javascript's Function prototype is
       available when `Ember.EXTEND_PROTOTYPES` or
@@ -42086,22 +42372,25 @@ enifed('ember-runtime/ext/function', ['exports', 'ember-metal/core', 'ember-meta
        See `Ember.immediateObserver`.
        @method observesImmediately
       @for Function
+      @deprecated
       @private
     */
-    FunctionPrototype.observesImmediately = function () {
-      _emberMetalCore["default"].assert('Immediate observers must observe internal properties only, ' + 'not properties on other objects.', function checkIsInternalProperty() {
-        for (var i = 0, l = arguments.length; i < l; i++) {
-          if (arguments[i].indexOf('.') !== -1) {
-            return false;
-          }
-        }
-        return true;
-      });
+    FunctionPrototype.observesImmediately = _emberMetalCore["default"].deprecateFunc('Function#observesImmediately is deprecated. Use Function#observes instead', FunctionPrototype._observesImmediately);
 
-      // observes handles property expansion
-      return this.observes.apply(this, arguments);
+    FunctionPrototype._observesBefore = function () {
+      var watched = [];
+      var addWatchedProperty = function (obs) {
+        watched.push(obs);
+      };
+
+      for (var i = 0, l = arguments.length; i < l; ++i) {
+        _emberMetalExpand_properties["default"](arguments[i], addWatchedProperty);
+      }
+
+      this.__ember_observesBefore__ = watched;
+
+      return this;
     };
-
     /**
       The `observesBefore` extension of Javascript's Function prototype is
       available when `Ember.EXTEND_PROTOTYPES` or
@@ -42121,20 +42410,7 @@ enifed('ember-runtime/ext/function', ['exports', 'ember-metal/core', 'ember-meta
       @for Function
       @private
     */
-    FunctionPrototype.observesBefore = function () {
-      var watched = [];
-      var addWatchedProperty = function (obs) {
-        watched.push(obs);
-      };
-
-      for (var i = 0, l = arguments.length; i < l; ++i) {
-        _emberMetalExpand_properties["default"](arguments[i], addWatchedProperty);
-      }
-
-      this.__ember_observesBefore__ = watched;
-
-      return this;
-    };
+    FunctionPrototype.observesBefore = _emberMetalCore["default"].deprecateFunc('Function#observesBefore is deprecated and will be removed in the near future.', { url: 'http://emberjs.com/deprecations/v1.x/#toc_beforeobserver' }, FunctionPrototype._observesBefore);
 
     /**
       The `on` extension of Javascript's Function prototype is available
@@ -42473,13 +42749,13 @@ enifed("ember-runtime/mixins/-proxy", ["exports", "ember-metal/core", "ember-met
 
     willWatchProperty: function (key) {
       var contentKey = "content." + key;
-      _emberMetalObserver.addBeforeObserver(this, contentKey, null, contentPropertyWillChange);
+      _emberMetalObserver._addBeforeObserver(this, contentKey, null, contentPropertyWillChange);
       _emberMetalObserver.addObserver(this, contentKey, null, contentPropertyDidChange);
     },
 
     didUnwatchProperty: function (key) {
       var contentKey = "content." + key;
-      _emberMetalObserver.removeBeforeObserver(this, contentKey, null, contentPropertyWillChange);
+      _emberMetalObserver._removeBeforeObserver(this, contentKey, null, contentPropertyWillChange);
       _emberMetalObserver.removeObserver(this, contentKey, null, contentPropertyDidChange);
     },
 
@@ -43342,7 +43618,7 @@ enifed('ember-runtime/mixins/controller_content_model_alias_deprecation', ['expo
   });
 });
 // Ember.deprecate
-enifed("ember-runtime/mixins/copyable", ["exports", "ember-metal/property_get", "ember-metal/mixin", "ember-runtime/mixins/freezable", "ember-runtime/system/string", "ember-metal/error"], function (exports, _emberMetalProperty_get, _emberMetalMixin, _emberRuntimeMixinsFreezable, _emberRuntimeSystemString, _emberMetalError) {
+enifed('ember-runtime/mixins/copyable', ['exports', 'ember-metal/core', 'ember-metal/property_get', 'ember-metal/mixin', 'ember-runtime/mixins/freezable', 'ember-runtime/system/string', 'ember-metal/error'], function (exports, _emberMetalCore, _emberMetalProperty_get, _emberMetalMixin, _emberRuntimeMixinsFreezable, _emberRuntimeSystemString, _emberMetalError) {
 
   /**
     Implements some standard methods for copying an object. Add this mixin to
@@ -43382,13 +43658,15 @@ enifed("ember-runtime/mixins/copyable", ["exports", "ember-metal/property_get", 
       consuming more memory.
        @method frozenCopy
       @return {Object} copy of receiver or receiver
+      @deprecated Use `Object.freeze` instead.
       @private
     */
     frozenCopy: function () {
+      _emberMetalCore["default"].deprecate('`frozenCopy` is deprecated, use Object.freeze instead.');
       if (_emberRuntimeMixinsFreezable.Freezable && _emberRuntimeMixinsFreezable.Freezable.detect(this)) {
-        return _emberMetalProperty_get.get(this, "isFrozen") ? this : this.copy().freeze();
+        return _emberMetalProperty_get.get(this, 'isFrozen') ? this : this.copy().freeze();
       } else {
-        throw new _emberMetalError["default"](_emberRuntimeSystemString.fmt("%@ does not support freezing", [this]));
+        throw new _emberMetalError["default"](_emberRuntimeSystemString.fmt('%@ does not support freezing', [this]));
       }
     }
   });
@@ -43494,6 +43772,13 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
     return i;
   }
 
+  function deprecatingAliasMethod(oldName, newName) {
+    return function () {
+      _emberMetalCore["default"].deprecate('Ember.Enumerable.' + oldName + ' is deprecated. Use ' + newName + ' instead.');
+      return this[newName].apply(this, arguments);
+    };
+  }
+
   /**
     This mixin defines the common interface implemented by enumerable objects
     in Ember. Most of these methods follow the standard Array iteration
@@ -43581,7 +43866,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       ```
        @property firstObject
       @return {Object} the object or undefined
-      @private
+      @public
     */
     firstObject: _emberMetalComputed.computed('[]', function () {
       if (_emberMetalProperty_get.get(this, 'length') === 0) {
@@ -43609,7 +43894,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       ```
        @property lastObject
       @return {Object} the last object or undefined
-      @private
+      @public
     */
     lastObject: _emberMetalComputed.computed('[]', function () {
       var len = _emberMetalProperty_get.get(this, 'length');
@@ -43645,7 +43930,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
        @method contains
       @param {Object} obj The object to search for.
       @return {Boolean} `true` if object is found in enumerable.
-      @private
+      @public
     */
     contains: function (obj) {
       var found = this.find(function (item) {
@@ -43706,7 +43991,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
        @method getEach
       @param {String} key name of the property
       @return {Array} The mapped array.
-      @private
+      @public
     */
     getEach: _emberMetalMixin.aliasMethod('mapBy'),
 
@@ -43719,7 +44004,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @param {String} key The key to set
       @param {Object} value The object to set
       @return {Object} receiver
-      @private
+      @public
     */
     setEach: function (key, value) {
       return this.forEach(function (item) {
@@ -43746,7 +44031,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @param {Function} callback The callback to execute
       @param {Object} [target] The target object to use
       @return {Array} The mapped array.
-      @private
+      @public
     */
     map: function (callback, target) {
       var ret = _emberMetalCore["default"].A();
@@ -43764,7 +44049,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
        @method mapBy
       @param {String} key name of the property
       @return {Array} The mapped array.
-      @private
+      @public
     */
     mapBy: function (key) {
       return this.map(function (next) {
@@ -43781,8 +44066,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @deprecated Use `mapBy` instead
       @private
     */
-
-    mapProperty: _emberMetalMixin.aliasMethod('mapBy'),
+    mapProperty: deprecatingAliasMethod('mapProperty', 'mapBy'),
 
     /**
       Returns an array with all of the items in the enumeration that the passed
@@ -43805,7 +44089,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @param {Function} callback The callback to execute
       @param {Object} [target] The target object to use
       @return {Array} A filtered array.
-      @private
+      @public
     */
     filter: function (callback, target) {
       var ret = _emberMetalCore["default"].A();
@@ -43838,7 +44122,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @param {Function} callback The callback to execute
       @param {Object} [target] The target object to use
       @return {Array} A rejected array.
-       @private
+      @public
     */
     reject: function (callback, target) {
       return this.filter(function () {
@@ -43854,7 +44138,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @param {String} key the property to test
       @param {*} [value] optional value to test against.
       @return {Array} filtered array
-      @private
+      @public
     */
     filterBy: function (key, value) {
       return this.filter(iter.apply(this, arguments));
@@ -43871,7 +44155,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @deprecated Use `filterBy` instead
       @private
     */
-    filterProperty: _emberMetalMixin.aliasMethod('filterBy'),
+    filterProperty: deprecatingAliasMethod('filterProperty', 'filterBy'),
 
     /**
       Returns an array with the items that do not have truthy values for
@@ -43881,7 +44165,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @param {String} key the property to test
       @param {String} [value] optional value to test against.
       @return {Array} rejected array
-      @private
+      @public
     */
     rejectBy: function (key, value) {
       var exactValue = function (item) {
@@ -43908,7 +44192,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @deprecated Use `rejectBy` instead
       @private
     */
-    rejectProperty: _emberMetalMixin.aliasMethod('rejectBy'),
+    rejectProperty: deprecatingAliasMethod('rejectProperty', 'rejectBy'),
 
     /**
       Returns the first item in the array for which the callback returns true.
@@ -43931,7 +44215,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @param {Function} callback The callback to execute
       @param {Object} [target] The target object to use
       @return {Object} Found item or `undefined`.
-      @private
+      @public
     */
     find: function (callback, target) {
       var len = _emberMetalProperty_get.get(this, 'length');
@@ -43970,7 +44254,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @param {String} key the property to test
       @param {String} [value] optional value to test against.
       @return {Object} found item or `undefined`
-      @private
+      @public
     */
     findBy: function (key, value) {
       return this.find(iter.apply(this, arguments));
@@ -43988,7 +44272,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @deprecated Use `findBy` instead
       @private
     */
-    findProperty: _emberMetalMixin.aliasMethod('findBy'),
+    findProperty: deprecatingAliasMethod('findProperty', 'findBy'),
 
     /**
       Returns `true` if the passed function returns true for every item in the
@@ -44029,9 +44313,9 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @param {String} [value] optional value to test against.
       @deprecated Use `isEvery` instead
       @return {Boolean}
-      @private
+      @public
     */
-    everyBy: _emberMetalMixin.aliasMethod('isEvery'),
+    everyBy: deprecatingAliasMethod('everyBy', 'isEvery'),
 
     /**
       @method everyProperty
@@ -44041,14 +44325,15 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @return {Boolean}
       @private
     */
-    everyProperty: _emberMetalMixin.aliasMethod('isEvery'),
+    everyProperty: deprecatingAliasMethod('everyProperty', 'isEvery'),
 
     /**
-      Returns `true` if the passed property resolves to `true` for all items in
-      the enumerable. This method is often simpler/faster than using a callback.
+      Returns `true` if the passed property resolves to the value of the second
+      argument for all items in the enumerable. This method is often simpler/faster
+      than using a callback.
        @method isEvery
       @param {String} key the property to test
-      @param {String} [value] optional value to test against.
+      @param {String} [value] optional value to test against. Defaults to `true`
       @return {Boolean}
       @since 1.3.0
       @public
@@ -44136,14 +44421,15 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @deprecated Use `any` instead
       @private
     */
-    some: _emberMetalMixin.aliasMethod('any'),
+    some: deprecatingAliasMethod('some', 'any'),
 
     /**
-      Returns `true` if the passed property resolves to `true` for any item in
-      the enumerable. This method is often simpler/faster than using a callback.
+      Returns `true` if the passed property resolves to the value of the second
+      argument for any item in the enumerable. This method is often simpler/faster
+      than using a callback.
        @method isAny
       @param {String} key the property to test
-      @param {String} [value] optional value to test against.
+      @param {String} [value] optional value to test against. Defaults to `true`
       @return {Boolean}
       @since 1.3.0
       @private
@@ -44160,7 +44446,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @deprecated Use `isAny` instead
       @private
     */
-    anyBy: _emberMetalMixin.aliasMethod('isAny'),
+    anyBy: deprecatingAliasMethod('anyBy', 'isAny'),
 
     /**
       @method someProperty
@@ -44170,7 +44456,7 @@ enifed('ember-runtime/mixins/enumerable', ['exports', 'ember-metal/core', 'ember
       @deprecated Use `isAny` instead
       @private
     */
-    someProperty: _emberMetalMixin.aliasMethod('isAny'),
+    someProperty: deprecatingAliasMethod('someProperty', 'isAny'),
 
     /**
       This will combine the values of the enumerator into a single value. It
@@ -44700,7 +44986,7 @@ enifed("ember-runtime/mixins/evented", ["exports", "ember-metal/mixin", "ember-m
     }
   });
 });
-enifed("ember-runtime/mixins/freezable", ["exports", "ember-metal/mixin", "ember-metal/property_get", "ember-metal/property_set"], function (exports, _emberMetalMixin, _emberMetalProperty_get, _emberMetalProperty_set) {
+enifed('ember-runtime/mixins/freezable', ['exports', 'ember-metal/core', 'ember-metal/mixin', 'ember-metal/property_get', 'ember-metal/property_set'], function (exports, _emberMetalCore, _emberMetalMixin, _emberMetalProperty_get, _emberMetalProperty_set) {
 
   /**
     The `Ember.Freezable` mixin implements some basic methods for marking an
@@ -44757,9 +45043,15 @@ enifed("ember-runtime/mixins/freezable", ["exports", "ember-metal/mixin", "ember
     @class Freezable
     @namespace Ember
     @since Ember 0.9
+    @deprecated Use `Object.freeze` instead.
     @private
   */
   var Freezable = _emberMetalMixin.Mixin.create({
+
+    init: function () {
+      _emberMetalCore["default"].deprecate('`Ember.Freezable` is deprecated, use `Object.freeze` instead.');
+      this._super.apply(this, arguments);
+    },
 
     /**
       Set to `true` when the object is frozen. Use this property to detect
@@ -44778,18 +45070,18 @@ enifed("ember-runtime/mixins/freezable", ["exports", "ember-metal/mixin", "ember
       @private
     */
     freeze: function () {
-      if (_emberMetalProperty_get.get(this, "isFrozen")) {
+      if (_emberMetalProperty_get.get(this, 'isFrozen')) {
         return this;
       }
 
-      _emberMetalProperty_set.set(this, "isFrozen", true);
+      _emberMetalProperty_set.set(this, 'isFrozen', true);
       return this;
     }
 
   });
 
   exports.Freezable = Freezable;
-  var FROZEN_ERROR = "Frozen object cannot be modified.";
+  var FROZEN_ERROR = 'Frozen object cannot be modified.';
   exports.FROZEN_ERROR = FROZEN_ERROR;
 });
 /**
@@ -45536,9 +45828,9 @@ enifed("ember-runtime/mixins/observable", ["exports", "ember-metal/core", "ember
       return this;
     },
 
-    addBeforeObserver: function (key, target, method) {
+    _addBeforeObserver: function (key, target, method) {
       _emberMetalCore["default"].deprecate("Before observers are deprecated and will be removed in a future release. If you want to keep track of previous values you have to implement it yourself.", false, { url: "http://emberjs.com/guides/deprecations/#toc_deprecate-beforeobservers" });
-      _emberMetalObserver.addBeforeObserver(this, key, target, method);
+      _emberMetalObserver._addBeforeObserver(this, key, target, method);
     },
 
     /**
@@ -46076,7 +46368,7 @@ enifed("ember-runtime/mixins/sortable", ["exports", "ember-metal/core", "ember-m
       }
     }),
 
-    _contentWillChange: _emberMetalMixin.beforeObserver("content", function () {
+    _contentWillChange: _emberMetalMixin._beforeObserver("content", function () {
       var content = _emberMetalProperty_get.get(this, "content");
       var sortProperties = _emberMetalProperty_get.get(this, "sortProperties");
 
@@ -46091,7 +46383,7 @@ enifed("ember-runtime/mixins/sortable", ["exports", "ember-metal/core", "ember-m
       this._super.apply(this, arguments);
     }),
 
-    sortPropertiesWillChange: _emberMetalMixin.beforeObserver("sortProperties", function () {
+    sortPropertiesWillChange: _emberMetalMixin._beforeObserver("sortProperties", function () {
       this._lastSortAscending = undefined;
     }),
 
@@ -46099,7 +46391,7 @@ enifed("ember-runtime/mixins/sortable", ["exports", "ember-metal/core", "ember-m
       this._lastSortAscending = undefined;
     }),
 
-    sortAscendingWillChange: _emberMetalMixin.beforeObserver("sortAscending", function () {
+    sortAscendingWillChange: _emberMetalMixin._beforeObserver("sortAscending", function () {
       this._lastSortAscending = _emberMetalProperty_get.get(this, "sortAscending");
     }),
 
@@ -46463,7 +46755,7 @@ enifed("ember-runtime/system/array_proxy", ["exports", "ember-metal/core", "embe
        @private
       @method _contentWillChange
     */
-    _contentWillChange: _emberMetalMixin.beforeObserver("content", function () {
+    _contentWillChange: _emberMetalMixin._beforeObserver("content", function () {
       this._teardownContent();
     }),
 
@@ -46526,7 +46818,7 @@ enifed("ember-runtime/system/array_proxy", ["exports", "ember-metal/core", "embe
       }
     },
 
-    _arrangedContentWillChange: _emberMetalMixin.beforeObserver("arrangedContent", function () {
+    _arrangedContentWillChange: _emberMetalMixin._beforeObserver("arrangedContent", function () {
       var arrangedContent = _emberMetalProperty_get.get(this, "arrangedContent");
       var len = arrangedContent ? _emberMetalProperty_get.get(arrangedContent, "length") : 0;
 
@@ -46831,16 +47123,13 @@ enifed("ember-runtime/system/core_object", ["exports", "ember-metal", "ember-met
               if (typeof this.setUnknownProperty === "function" && !(keyName in this)) {
                 this.setUnknownProperty(keyName, value);
               } else {
-                if (_emberMetal["default"].FEATURES.isEnabled("mandatory-setter")) {
+                
                   if (_emberMetalPlatformDefine_property.hasPropertyAccessors) {
                     _emberMetalProperties.defineProperty(this, keyName, null, value); // setup mandatory setter
                   } else {
                     this[keyName] = value;
                   }
-                } else {
-                  this[keyName] = value;
-                }
-              }
+                              }
             }
           }
         }
@@ -47589,7 +47878,7 @@ enifed("ember-runtime/system/each_proxy", ["exports", "ember-metal/core", "ember
       var item = content.objectAt(loc);
       if (item) {
         _emberMetalCore["default"].assert("When using @each to observe the array " + content + ", the array must return an object", _emberRuntimeUtils.typeOf(item) === "instance" || _emberRuntimeUtils.typeOf(item) === "object");
-        _emberMetalObserver.addBeforeObserver(item, keyName, proxy, "contentKeyWillChange");
+        _emberMetalObserver._addBeforeObserver(item, keyName, proxy, "contentKeyWillChange");
         _emberMetalObserver.addObserver(item, keyName, proxy, "contentKeyDidChange");
 
         // keep track of the index each item was found at so we can map
@@ -47615,7 +47904,7 @@ enifed("ember-runtime/system/each_proxy", ["exports", "ember-metal/core", "ember
     while (--loc >= idx) {
       var item = content.objectAt(loc);
       if (item) {
-        _emberMetalObserver.removeBeforeObserver(item, keyName, proxy, "contentKeyWillChange");
+        _emberMetalObserver._removeBeforeObserver(item, keyName, proxy, "contentKeyWillChange");
         _emberMetalObserver.removeObserver(item, keyName, proxy, "contentKeyDidChange");
 
         guid = _emberMetalUtils.guidFor(item);
@@ -47791,14 +48080,14 @@ enifed("ember-runtime/system/lazy_load", ["exports", "ember-metal/core", "ember-
   var loaded = {};
 
   /**
-    Detects when a specific package of Ember (e.g. 'Ember.Handlebars')
+    Detects when a specific package of Ember (e.g. 'Ember.Application')
     has fully loaded and is available for extension.
   
     The provided `callback` will be called with the `name` passed
     resolved from a string into the object:
   
     ``` javascript
-    Ember.onLoad('Ember.Handlebars' function(hbars) {
+    Ember.onLoad('Ember.Application' function(hbars) {
       hbars.registerHelper(...);
     });
     ```
@@ -47822,7 +48111,7 @@ enifed("ember-runtime/system/lazy_load", ["exports", "ember-metal/core", "ember-
   }
 
   /**
-    Called when an Ember.js package (e.g Ember.Handlebars) has finished
+    Called when an Ember.js package (e.g Ember.Application) has finished
     loading. Triggers any callbacks registered for this event.
   
     @method runLoadHooks
@@ -48175,8 +48464,7 @@ enifed("ember-runtime/system/native_array", ["exports", "ember-metal/core", "emb
     }
   });
 
-  exports.NativeArray // TODO: only use default export
-   = NativeArray = NativeArray.without.apply(NativeArray, ignore);
+  exports.NativeArray = NativeArray = NativeArray.without.apply(NativeArray, ignore);
 
   /**
     Creates an `Ember.NativeArray` from an Array like object.
@@ -48248,7 +48536,8 @@ enifed("ember-runtime/system/native_array", ["exports", "ember-metal/core", "emb
 
   _emberMetalCore["default"].A = A; // ES6TODO: Setting A onto the object returned by ember-metal/core to avoid circles
   exports.A = A;
-  exports.NativeArray = NativeArray;
+  exports.NativeArray = NativeArray // TODO: only use default export
+  ;
   exports["default"] = NativeArray;
 });
 /**
@@ -51096,10 +51385,7 @@ enifed("ember-template-compiler/system/compile_options", ["exports", "ember-meta
 
   exports["default"] = function (_options) {
     var disableComponentGeneration = true;
-    if (_emberMetalCore["default"].FEATURES.isEnabled("ember-htmlbars-component-generation")) {
-      disableComponentGeneration = false;
-    }
-
+    
     var options = undefined;
     // When calling `Ember.Handlebars.compile()` a second argument of `true`
     // had a special meaning (long since lost), this just gaurds against
@@ -51123,7 +51409,7 @@ enifed("ember-template-compiler/system/compile_options", ["exports", "ember-meta
 
     options.buildMeta = function buildMeta(program) {
       return {
-        revision: "Ember@1.13.3",
+        revision: "Ember@1.13.5",
         loc: program.loc,
         moduleName: options.moduleName
       };
@@ -51587,40 +51873,7 @@ enifed("ember-testing/helpers", ["exports", "ember-metal/core", "ember-metal/pro
   */
   asyncHelper("click", click);
 
-  if (_emberMetalCore["default"].FEATURES.isEnabled("ember-testing-checkbox-helpers")) {
     /**
-      Checks a checkbox. Ensures the presence of the `checked` attribute
-       Example:
-       ```javascript
-      check('#remember-me').then(function() {
-        // assert something
-      });
-      ```
-       @method check
-      @param {String} selector jQuery selector finding an `input[type="checkbox"]`
-      element on the DOM to check
-      @return {RSVP.Promise}
-      @private
-    */
-    asyncHelper("check", check);
-
-    /**
-      Unchecks a checkbox. Ensures the absence of the `checked` attribute
-       Example:
-       ```javascript
-      uncheck('#remember-me').then(function() {
-       // assert something
-      });
-      ```
-       @method check
-      @param {String} selector jQuery selector finding an `input[type="checkbox"]`
-      element on the DOM to uncheck
-      @return {RSVP.Promise}
-      @private
-    */
-    asyncHelper("uncheck", uncheck);
-  }
-  /**
     Simulates a key event, e.g. `keypress`, `keydown`, `keyup` with the desired keyCode
   
     Example:
@@ -51692,7 +51945,7 @@ enifed("ember-testing/helpers", ["exports", "ember-metal/core", "ember-metal/pro
     the DOM
     @return {Object} jQuery object representing the results of the query
     @throws {Error} throws error if jQuery object returned has a length of 0
-    @private
+    @public
   */
   helper("findWithAssert", findWithAssert);
 
@@ -52552,7 +52805,7 @@ enifed("ember-views/compat/attrs-proxy", ["exports", "ember-metal/property_get",
       }
 
       var attrsKey = "attrs." + key;
-      _emberMetalObserver.addBeforeObserver(this, attrsKey, null, attrsWillChange);
+      _emberMetalObserver._addBeforeObserver(this, attrsKey, null, attrsWillChange);
       _emberMetalObserver.addObserver(this, attrsKey, null, attrsDidChange);
     },
 
@@ -52562,7 +52815,7 @@ enifed("ember-views/compat/attrs-proxy", ["exports", "ember-metal/property_get",
       }
 
       var attrsKey = "attrs." + key;
-      _emberMetalObserver.removeBeforeObserver(this, attrsKey, null, attrsWillChange);
+      _emberMetalObserver._removeBeforeObserver(this, attrsKey, null, attrsWillChange);
       _emberMetalObserver.removeObserver(this, attrsKey, null, attrsDidChange);
     },
 
@@ -53397,7 +53650,7 @@ enifed("ember-views/mixins/class_names_support", ["exports", "ember-metal/core",
        ```javascript
       // Applies the 'high' class to the view element
       Ember.View.extend({
-        classNameBindings: ['priority']
+        classNameBindings: ['priority'],
         priority: 'high'
       });
       ```
@@ -53406,7 +53659,7 @@ enifed("ember-views/mixins/class_names_support", ["exports", "ember-metal/core",
        ```javascript
       // Applies the 'is-urgent' class to the view element
       Ember.View.extend({
-        classNameBindings: ['isUrgent']
+        classNameBindings: ['isUrgent'],
         isUrgent: true
       });
       ```
@@ -53415,7 +53668,7 @@ enifed("ember-views/mixins/class_names_support", ["exports", "ember-metal/core",
        ```javascript
       // Applies the 'urgent' class to the view element
       Ember.View.extend({
-        classNameBindings: ['isUrgent:urgent']
+        classNameBindings: ['isUrgent:urgent'],
         isUrgent: true
       });
       ```
@@ -54080,7 +54333,7 @@ enifed("ember-views/mixins/view_child_views_support", ["exports", "ember-metal/c
 
   var EMPTY_ARRAY = [];
 
-  var ViewChildViewsSupport = _emberMetalMixin.Mixin.create({
+  exports["default"] = _emberMetalMixin.Mixin.create({
     /**
       Array of child views. You should never edit this array directly.
       Instead, use `appendChild` and `removeFromParent`.
@@ -54097,7 +54350,7 @@ enifed("ember-views/mixins/view_child_views_support", ["exports", "ember-metal/c
       // setup child views. be sure to clone the child views array first
       // 2.0TODO: Remove Ember.A() here
       this.childViews = _emberMetalCore["default"].A(this.childViews.slice());
-      this.ownerView = this;
+      this.ownerView = this.ownerView || this;
     },
 
     appendChild: function (view) {
@@ -54158,6 +54411,8 @@ enifed("ember-views/mixins/view_child_views_support", ["exports", "ember-metal/c
 
       var attrs = _attrs || {};
       var view;
+
+      attrs.parentView = this;
       attrs.renderer = this.renderer;
       attrs._viewRegistry = this._viewRegistry;
 
@@ -54191,8 +54446,11 @@ enifed("ember-views/mixins/view_child_views_support", ["exports", "ember-metal/c
 
     linkChild: function (instance) {
       instance.container = this.container;
-      _emberMetalProperty_set.set(instance, "parentView", this);
-      instance.trigger("parentViewDidChange");
+      if (_emberMetalProperty_get.get(instance, "parentView") !== this) {
+        // linkChild should be idempotentj
+        _emberMetalProperty_set.set(instance, "parentView", this);
+        instance.trigger("parentViewDidChange");
+      }
       instance.ownerView = this.ownerView;
     },
 
@@ -54201,8 +54459,6 @@ enifed("ember-views/mixins/view_child_views_support", ["exports", "ember-metal/c
       instance.trigger("parentViewDidChange");
     }
   });
-
-  exports["default"] = ViewChildViewsSupport;
 });
 /**
 @module ember
@@ -55431,7 +55687,7 @@ enifed("ember-views/views/checkbox", ["exports", "ember-metal/property_get", "em
     The internal class used to create text inputs when the `{{input}}`
     helper is used with `type` of `checkbox`.
   
-    See [handlebars.helpers.input](/api/classes/Ember.Handlebars.helpers.html#method_input)  for usage details.
+    See [Ember.Templates.helpers.input](/api/classes/Ember.Templates.helpers.html#method_input)  for usage details.
   
     ## Direct manipulation of `checked`
   
@@ -55519,7 +55775,7 @@ enifed("ember-views/views/collection_view", ["exports", "ember-metal/core", "emb
       classNames: ['a-collection'],
       content: ['A','B','C'],
       itemViewClass: Ember.View.extend({
-        template: Ember.Handlebars.compile("the letter: {{view.content}}")
+        template: Ember.HTMLBars.compile("the letter: {{view.content}}")
       })
     });
     ```
@@ -55554,7 +55810,7 @@ enifed("ember-views/views/collection_view", ["exports", "ember-metal/core", "emb
       tagName: 'ul',
       content: ['A','B','C'],
       itemViewClass: Ember.View.extend({
-        template: Ember.Handlebars.compile("the letter: {{view.content}}")
+        template: Ember.HTMLBars.compile("the letter: {{view.content}}")
       })
     });
     ```
@@ -55614,7 +55870,7 @@ enifed("ember-views/views/collection_view", ["exports", "ember-metal/core", "emb
       classNames: ['nothing'],
       content: null,
       emptyView: Ember.View.extend({
-        template: Ember.Handlebars.compile("The collection is empty")
+        template: Ember.HTMLBars.compile("The collection is empty")
       })
     });
     ```
@@ -55685,7 +55941,7 @@ enifed("ember-views/views/collection_view", ["exports", "ember-metal/core", "emb
        @private
       @method _contentWillChange
     */
-    _contentWillChange: _emberMetalMixin.beforeObserver("content", function () {
+    _contentWillChange: _emberMetalMixin._beforeObserver("content", function () {
       var content = this.get("content");
 
       if (content) {
@@ -56113,14 +56369,14 @@ enifed("ember-views/views/component", ["exports", "ember-metal/core", "ember-vie
     }),
 
     /**
-      Triggers a named action on the controller context where the component is used if
-      this controller has registered for notifications of the action.
+      Calls a action passed to a component.
        For example a component for playing or pausing music may translate click events
       into action notifications of "play" or "stop" depending on some internal state
       of the component:
-        ```javascript
-      App.PlayButtonComponent = Ember.Component.extend({
-        click: function() {
+       ```javascript
+      // app/components/play-button.js
+      export default Ember.Component.extend({
+        click() {
           if (this.get('isPlaying')) {
             this.sendAction('play');
           } else {
@@ -56129,55 +56385,56 @@ enifed("ember-views/views/component", ["exports", "ember-metal/core", "ember-vie
         }
       });
       ```
-       When used inside a template these component actions are configured to
-      trigger actions in the outer application context:
+       The actions "play" and "stop" must be passed to this `play-button` component:
        ```handlebars
-      {{! application.hbs }}
-      {{play-button play="musicStarted" stop="musicStopped"}}
+      {{! app/templates/application.hbs }}
+      {{play-button play=(action "musicStarted") stop=(action "musicStopped")}}
       ```
        When the component receives a browser `click` event it translate this
       interaction into application-specific semantics ("play" or "stop") and
-      triggers the specified action name on the controller for the template
-      where the component is used:
-        ```javascript
-      App.ApplicationController = Ember.Controller.extend({
+      calls the specified action.
+       ```javascript
+      // app/controller/application.js
+      export default Ember.Controller.extend({
         actions: {
-          musicStarted: function() {
+          musicStarted() {
             // called when the play button is clicked
             // and the music started playing
           },
-          musicStopped: function() {
+          musicStopped() {
             // called when the play button is clicked
             // and the music stopped playing
           }
         }
       });
       ```
-       If no action name is passed to `sendAction` a default name of "action"
+       If no action is passed to `sendAction` a default name of "action"
       is assumed.
        ```javascript
-      App.NextButtonComponent = Ember.Component.extend({
-        click: function() {
+      // app/components/next-button.js
+      export default Ember.Component.extend({
+        click() {
           this.sendAction();
         }
       });
       ```
        ```handlebars
-      {{! application.hbs }}
-      {{next-button action="playNextSongInAlbum"}}
+      {{! app/templates/application.hbs }}
+      {{next-button action=(action "playNextSongInAlbum")}}
       ```
        ```javascript
+      // app/controllers/application.js
       App.ApplicationController = Ember.Controller.extend({
         actions: {
-          playNextSongInAlbum: function() {
+          playNextSongInAlbum() {
             ...
           }
         }
       });
       ```
        @method sendAction
-      @param [action] {String} the action to trigger
-      @param [context] {*} a context to send with the action
+      @param [action] {String} the action to call
+      @param [params] {*} arguments for the action
       @public
     */
     sendAction: function (action) {
@@ -56303,7 +56560,7 @@ enifed("ember-views/views/component", ["exports", "ember-metal/core", "ember-vie
 });
 // Ember.assert, Ember.Handlebars
 enifed("ember-views/views/container_view", ["exports", "ember-metal/core", "ember-runtime/mixins/mutable_array", "ember-views/views/view", "ember-metal/property_get", "ember-metal/property_set", "ember-metal/enumerable_utils", "ember-metal/mixin", "ember-metal/events", "ember-htmlbars/templates/container-view"], function (exports, _emberMetalCore, _emberRuntimeMixinsMutable_array, _emberViewsViewsView, _emberMetalProperty_get, _emberMetalProperty_set, _emberMetalEnumerable_utils, _emberMetalMixin, _emberMetalEvents, _emberHtmlbarsTemplatesContainerView) {
-  _emberHtmlbarsTemplatesContainerView["default"].meta.revision = "Ember@1.13.3";
+  _emberHtmlbarsTemplatesContainerView["default"].meta.revision = "Ember@1.13.5";
 
   /**
   @module ember
@@ -56363,10 +56620,10 @@ enifed("ember-views/views/container_view", ["exports", "ember-metal/core", "embe
       classNames: ['the-container'],
       childViews: ['aView', 'bView'],
       aView: Ember.View.create({
-        template: Ember.Handlebars.compile("A")
+        template: Ember.HTMLBars.compile("A")
       }),
       bView: Ember.View.create({
-        template: Ember.Handlebars.compile("B")
+        template: Ember.HTMLBars.compile("B")
       })
     });
   
@@ -56408,10 +56665,10 @@ enifed("ember-views/views/container_view", ["exports", "ember-metal/core", "embe
       classNames: ['the-container'],
       childViews: ['aView', 'bView'],
       aView: Ember.View.create({
-        template: Ember.Handlebars.compile("A")
+        template: Ember.HTMLBars.compile("A")
       }),
       bView: Ember.View.create({
-        template: Ember.Handlebars.compile("B")
+        template: Ember.HTMLBars.compile("B")
       })
     });
   
@@ -56431,7 +56688,7 @@ enifed("ember-views/views/container_view", ["exports", "ember-metal/core", "embe
   
     ```javascript
     AnotherViewClass = Ember.View.extend({
-      template: Ember.Handlebars.compile("Another view")
+      template: Ember.HTMLBars.compile("Another view")
     });
   
     aContainer.toArray();  // [aContainer.aView, aContainer.bView]
@@ -56515,7 +56772,7 @@ enifed("ember-views/views/container_view", ["exports", "ember-metal/core", "embe
       }
     },
 
-    _currentViewWillChange: _emberMetalMixin.beforeObserver("currentView", function () {
+    _currentViewWillChange: _emberMetalMixin._beforeObserver("currentView", function () {
       var currentView = _emberMetalProperty_get.get(this, "currentView");
       if (currentView) {
         currentView.destroy();
@@ -56535,7 +56792,7 @@ enifed("ember-views/views/container_view", ["exports", "ember-metal/core", "embe
     replace: function (idx, removedCount) {
       var _this = this;
 
-      var addedViews = arguments[2] === undefined ? [] : arguments[2];
+      var addedViews = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
 
       var addedCount = _emberMetalProperty_get.get(addedViews, "length");
       var childViews = _emberMetalProperty_get.get(this, "childViews");
@@ -56653,7 +56910,7 @@ enifed("ember-views/views/core_view", ["exports", "ember-metal-views/renderer", 
         this.renderer = renderer;
       }
 
-      this.isDestroyingSubtree = false;
+      this._destroyingSubtreeForView = null;
       this._dispatching = null;
     },
 
@@ -56703,24 +56960,21 @@ enifed("ember-views/views/core_view", ["exports", "ember-metal-views/renderer", 
     },
 
     destroy: function () {
-      var parent = this.parentView;
-
       if (!this._super.apply(this, arguments)) {
         return;
       }
 
       this.currentState.cleanup(this);
 
-      if (!this.ownerView.isDestroyingSubtree) {
-        this.ownerView.isDestroyingSubtree = true;
-        if (parent) {
-          parent.removeChild(this);
-        }
-        if (this._renderNode) {
-          Ember.assert("BUG: Render node exists without concomitant env.", this.ownerView.env);
-          _htmlbarsRuntime.internal.clearMorph(this._renderNode, this.ownerView.env, true);
-        }
-        this.ownerView.isDestroyingSubtree = false;
+      // If the destroyingSubtreeForView property is not set but we have an
+      // associated render node, it means this view is being destroyed from user
+      // code and not via a change in the templating layer (like an {{if}}
+      // becoming falsy, for example).  In this case, it is our responsibility to
+      // make sure that any render nodes created as part of the rendering process
+      // are cleaned up.
+      if (!this.ownerView._destroyingSubtreeForView && this._renderNode) {
+        Ember.assert("BUG: Render node exists without concomitant env.", this.ownerView.env);
+        _htmlbarsRuntime.internal.clearMorph(this._renderNode, this.ownerView.env, true);
       }
 
       return this;
@@ -57329,7 +57583,7 @@ enifed("ember-views/views/select", ["exports", "ember-metal/enumerable_utils", "
     },
 
     _selectedIndex: function (value) {
-      var defaultIndex = arguments[1] === undefined ? 0 : arguments[1];
+      var defaultIndex = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
 
       var content = _emberMetalProperty_get.get(this, "contentValues");
 
@@ -57651,7 +57905,7 @@ enifed("ember-views/views/states/has_element", ["exports", "ember-views/views/st
 @module ember
 @submodule ember-views
 */
-enifed("ember-views/views/states/in_dom", ["exports", "ember-metal/platform/create", "ember-metal/merge", "ember-metal/error", "ember-metal/observer", "ember-views/views/states/has_element"], function (exports, _emberMetalPlatformCreate, _emberMetalMerge, _emberMetalError, _emberMetalObserver, _emberViewsViewsStatesHas_element) {
+enifed('ember-views/views/states/in_dom', ['exports', 'ember-metal/core', 'ember-metal/platform/create', 'ember-metal/merge', 'ember-metal/error', 'ember-metal/observer', 'ember-views/views/states/has_element'], function (exports, _emberMetalCore, _emberMetalPlatformCreate, _emberMetalMerge, _emberMetalError, _emberMetalObserver, _emberViewsViewsStatesHas_element) {
   /**
   @module ember
   @submodule ember-views
@@ -57663,13 +57917,13 @@ enifed("ember-views/views/states/in_dom", ["exports", "ember-metal/platform/crea
     enter: function (view) {
       // Register the view for event handling. This hash is used by
       // Ember.EventDispatcher to dispatch incoming events.
-      if (view.tagName !== "") {
+      if (view.tagName !== '') {
         view._register();
       }
 
-      Ember.runInDebug(function () {
-        _emberMetalObserver.addBeforeObserver(view, "elementId", function () {
-          throw new _emberMetalError["default"]("Changing a view's elementId after creation is not allowed");
+      _emberMetalCore["default"].runInDebug(function () {
+        _emberMetalObserver._addBeforeObserver(view, 'elementId', function () {
+          throw new _emberMetalError["default"]('Changing a view\'s elementId after creation is not allowed');
         });
       });
     },
@@ -57689,7 +57943,7 @@ enifed("ember-views/views/states/in_dom", ["exports", "ember-metal/platform/crea
       attrNode.parentView = view;
       view.renderer.appendAttrTo(attrNode, view.element, attrNode.attrName);
 
-      view.propertyDidChange("childViews");
+      view.propertyDidChange('childViews');
 
       return attrNode;
     }
@@ -57721,7 +57975,7 @@ enifed("ember-views/views/text_area", ["exports", "ember-views/views/component",
     The internal class used to create textarea element when the `{{textarea}}`
     helper is used.
   
-    See [handlebars.helpers.textarea](/api/classes/Ember.Handlebars.helpers.html#method_textarea)  for usage details.
+    See [Ember.Templates.helpers.textarea](/api/classes/Ember.Templates.helpers.html#method_textarea)  for usage details.
   
     ## Layout and LayoutName properties
   
@@ -57783,7 +58037,7 @@ enifed("ember-views/views/text_field", ["exports", "ember-metal/computed", "embe
     The internal class used to create text inputs when the `{{input}}`
     helper is used with `type` of `text`.
   
-    See [Handlebars.helpers.input](/api/classes/Ember.Handlebars.helpers.html#method_input)  for usage details.
+    See [Ember.Templates.helpers.input](/api/classes/Ember.Templates.helpers.html#method_input)  for usage details.
   
     ## Layout and LayoutName properties
   
@@ -58193,11 +58447,11 @@ enifed("ember-views/views/view", ["exports", "ember-metal/core", "ember-runtime/
     template. Templates can be any function that accepts an optional context
     parameter and returns a string of HTML that will be inserted within the
     view's tag. Most typically in Ember this function will be a compiled
-    `Ember.Handlebars` template.
+    template.
   
     ```javascript
     AView = Ember.View.extend({
-      template: Ember.Handlebars.compile('I am the template')
+      template: Ember.HTMLBars.compile('I am the template')
     });
     ```
   
@@ -58240,18 +58494,18 @@ enifed("ember-views/views/view", ["exports", "ember-metal/core", "ember-runtime/
     });
     ```
   
-    Using a value for `templateName` that does not have a Handlebars template
+    Using a value for `templateName` that does not have a template
     with a matching `data-template-name` attribute will throw an error.
   
     For views classes that may have a template later defined (e.g. as the block
-    portion of a `{{view}}` Handlebars helper call in another template or in
+    portion of a `{{view}}` helper call in another template or in
     a subclass), you can provide a `defaultTemplate` property set to compiled
     template function. If a template is not later provided for the view instance
     the `defaultTemplate` value will be used:
   
     ```javascript
     AView = Ember.View.extend({
-      defaultTemplate: Ember.Handlebars.compile('I was the default'),
+      defaultTemplate: Ember.HTMLBars.compile('I was the default'),
       template: null,
       templateName: null
     });
@@ -58268,11 +58522,11 @@ enifed("ember-views/views/view", ["exports", "ember-metal/core", "ember-runtime/
   
     ```javascript
     AView = Ember.View.extend({
-      defaultTemplate: Ember.Handlebars.compile('I was the default')
+      defaultTemplate: Ember.HTMLBars.compile('I was the default')
     });
   
     aView = AView.create({
-      template: Ember.Handlebars.compile('I was the template, not default')
+      template: Ember.HTMLBars.compile('I was the template, not default')
     });
     ```
   
@@ -58288,7 +58542,7 @@ enifed("ember-views/views/view", ["exports", "ember-metal/core", "ember-runtime/
   
     ```javascript
     AView = Ember.View.extend({
-      template: Ember.Handlebars.compile('Hello {{excitedGreeting}}')
+      template: Ember.HTMLBars.compile('Hello {{excitedGreeting}}')
     });
   
     aController = Ember.Object.create({
@@ -58321,20 +58575,19 @@ enifed("ember-views/views/view", ["exports", "ember-metal/core", "ember-runtime/
     view's tag. Views whose HTML element is self closing (e.g. `<input />`)
     cannot have a layout and this property will be ignored.
   
-    Most typically in Ember a layout will be a compiled `Ember.Handlebars`
-    template.
+    Most typically in Ember a layout will be a compiled template.
   
     A view's layout can be set directly with the `layout` property or reference
-    an existing Handlebars template by name with the `layoutName` property.
+    an existing template by name with the `layoutName` property.
   
-    A template used as a layout must contain a single use of the Handlebars
+    A template used as a layout must contain a single use of the
     `{{yield}}` helper. The HTML contents of a view's rendered `template` will be
     inserted at this location:
   
     ```javascript
     AViewWithLayout = Ember.View.extend({
-      layout: Ember.Handlebars.compile("<div class='my-decorative-class'>{{yield}}</div>"),
-      template: Ember.Handlebars.compile("I got wrapped")
+      layout: Ember.HTMLBars.compile("<div class='my-decorative-class'>{{yield}}</div>"),
+      template: Ember.HTMLBars.compile("I got wrapped")
     });
     ```
   
@@ -58348,7 +58601,7 @@ enifed("ember-views/views/view", ["exports", "ember-metal/core", "ember-runtime/
     </div>
     ```
   
-    See [Ember.Handlebars.helpers.yield](/api/classes/Ember.Handlebars.helpers.html#method_yield)
+    See [Ember.Templates.helpers.yield](/api/classes/Ember.Templates.helpers.html#method_yield)
     for more information.
   
     ## Responding to Browser Events
@@ -58422,7 +58675,7 @@ enifed("ember-views/views/view", ["exports", "ember-metal/core", "ember-runtime/
     ```javascript
     var App = Ember.Application.create();
     App.OuterView = Ember.View.extend({
-      template: Ember.Handlebars.compile("outer {{#view 'inner'}}inner{{/view}} outer"),
+      template: Ember.HTMLBars.compile("outer {{#view 'inner'}}inner{{/view}} outer"),
       eventManager: Ember.Object.create({
         mouseEnter: function(event, view) {
           // view might be instance of either
@@ -58445,9 +58698,9 @@ enifed("ember-views/views/view", ["exports", "ember-metal/core", "ember-runtime/
     });
     ```
   
-    ### Handlebars `{{action}}` Helper
+    ### `{{action}}` Helper
   
-    See [Handlebars.helpers.action](/api/classes/Ember.Handlebars.helpers.html#method_action).
+    See [Ember.Templates.helpers.action](/api/classes/Ember.Templates.helpers.html#method_action).
   
     ### Event Names
   
@@ -58500,10 +58753,10 @@ enifed("ember-views/views/view", ["exports", "ember-metal/core", "ember-runtime/
     * `dragEnd`
     * `drop`
   
-    ## Handlebars `{{view}}` Helper
+    ## `{{view}}` Helper
   
     Other `Ember.View` instances can be included as part of a view's template by
-    using the `{{view}}` Handlebars helper. See [Ember.Handlebars.helpers.view](/api/classes/Ember.Handlebars.helpers.html#method_view)
+    using the `{{view}}` helper. See [Ember.Templates.helpers.view](/api/classes/Ember.Templates.helpers.html#method_view)
     for additional information.
   
     @class View
@@ -60204,7 +60457,7 @@ enifed("htmlbars-runtime/hooks", ["exports", "./render", "../morph-range/morph-l
   */
 
   function bindBlock(env, scope, block) {
-    var name = arguments[3] === undefined ? "default" : arguments[3];
+    var name = arguments.length <= 3 || arguments[3] === undefined ? "default" : arguments[3];
 
     scope.blocks[name] = block;
   }
@@ -68419,6 +68672,160 @@ define("ember/load-initializers",
   });
 ;(function() {
     "use strict";
+    var ember$lib$main$$default = Ember;
+    var ember$data$lib$system$object$polyfills$$keysFunc = Object.keys || Ember.keys;
+    var ember$data$lib$system$object$polyfills$$create = Object.create || Ember.create;
+
+    var ember$data$lib$adapters$errors$$EmberError = Ember.Error;
+    var ember$data$lib$adapters$errors$$forEach = Ember.ArrayPolyfills.forEach;
+    var ember$data$lib$adapters$errors$$SOURCE_POINTER_REGEXP = /^\/?data\/(attributes|relationships)\/(.*)/;/**
+      @class AdapterError
+      @namespace DS
+    */
+    function ember$data$lib$adapters$errors$$AdapterError(errors, message) {
+      message = message || "Adapter operation failed";
+
+      ember$data$lib$adapters$errors$$EmberError.call(this, message);
+
+      this.errors = errors || [{
+        title: "Adapter Error",
+        detail: message
+      }];
+    }
+
+    ember$data$lib$adapters$errors$$AdapterError.prototype = ember$data$lib$system$object$polyfills$$create(ember$data$lib$adapters$errors$$EmberError.prototype);
+
+    /**
+      A `DS.InvalidError` is used by an adapter to signal the external API
+      was unable to process a request because the content was not
+      semantically correct or meaningful per the API. Usually this means a
+      record failed some form of server side validation. When a promise
+      from an adapter is rejected with a `DS.InvalidError` the record will
+      transition to the `invalid` state and the errors will be set to the
+      `errors` property on the record.
+
+      For Ember Data to correctly map errors to their corresponding
+      properties on the model, Ember Data expects each error to be
+      a valid json-api error object with a `source/pointer` that matches
+      the property name. For example if you had a Post model that
+      looked like this.
+
+      ```app/models/post.js
+      import DS from 'ember-data';
+
+      export default DS.Model.extend({
+        title: DS.attr('string'),
+        content: DS.attr('string')
+      });
+      ```
+
+      To show an error from the server related to the `title` and
+      `content` properties your adapter could return a promise that
+      rejects with a `DS.InvalidError` object that looks like this:
+
+      ```app/adapters/post.js
+      import Ember from 'ember';
+      import DS from 'ember-data';
+
+      export default DS.RESTAdapter.extend({
+        updateRecord: function() {
+          // Fictional adapter that always rejects
+          return Ember.RSVP.reject(new DS.InvalidError([
+            {
+              detail: 'Must be unique',
+              source: { pointer: 'data/attributes/title' }
+            },
+            {
+              detail: 'Must not be blank',
+              source: { pointer: 'data/attributes/content'}
+            }
+          ]));
+        }
+      });
+      ```
+
+      Your backend may use different property names for your records the
+      store will attempt extract and normalize the errors using the
+      serializer's `extractErrors` method before the errors get added to
+      the the model. As a result, it is safe for the `InvalidError` to
+      wrap the error payload unaltered.
+
+      @class InvalidError
+      @namespace DS
+    */
+    function ember$data$lib$adapters$errors$$InvalidError(errors) {
+      if (!Ember.isArray(errors)) {
+        Ember.deprecate("`InvalidError` expects json-api formatted errors.", false, { id: "ds.errors.invalid-error-expects-json-api-format", until: "2.0.0" });
+        errors = ember$data$lib$adapters$errors$$errorsHashToArray(errors);
+      }
+      ember$data$lib$adapters$errors$$AdapterError.call(this, errors, "The adapter rejected the commit because it was invalid");
+    }
+
+    ember$data$lib$adapters$errors$$InvalidError.prototype = ember$data$lib$system$object$polyfills$$create(ember$data$lib$adapters$errors$$AdapterError.prototype);
+
+    /**
+      @class TimeoutError
+      @namespace DS
+    */
+    function ember$data$lib$adapters$errors$$TimeoutError() {
+      ember$data$lib$adapters$errors$$AdapterError.call(this, null, "The adapter operation timed out");
+    }
+
+    ember$data$lib$adapters$errors$$TimeoutError.prototype = ember$data$lib$system$object$polyfills$$create(ember$data$lib$adapters$errors$$AdapterError.prototype);
+
+    /**
+      @class AbortError
+      @namespace DS
+    */
+    function ember$data$lib$adapters$errors$$AbortError() {
+      ember$data$lib$adapters$errors$$AdapterError.call(this, null, "The adapter operation was aborted");
+    }
+
+    ember$data$lib$adapters$errors$$AbortError.prototype = ember$data$lib$system$object$polyfills$$create(ember$data$lib$adapters$errors$$AdapterError.prototype);
+
+    /**
+      @private
+    */
+    function ember$data$lib$adapters$errors$$errorsHashToArray(errors) {
+      var out = [];
+
+      if (Ember.isPresent(errors)) {
+        ember$data$lib$adapters$errors$$forEach.call(ember$data$lib$system$object$polyfills$$keysFunc(errors), function (key) {
+          var messages = Ember.makeArray(errors[key]);
+          for (var i = 0; i < messages.length; i++) {
+            out.push({
+              title: "Invalid Attribute",
+              detail: messages[i],
+              source: {
+                pointer: "/data/attributes/" + key
+              }
+            });
+          }
+        });
+      }
+
+      return out;
+    }
+
+    function ember$data$lib$adapters$errors$$errorsArrayToHash(errors) {
+      var out = {};
+
+      if (Ember.isPresent(errors)) {
+        ember$data$lib$adapters$errors$$forEach.call(errors, function (error) {
+          if (error.source && error.source.pointer) {
+            var key = error.source.pointer.match(ember$data$lib$adapters$errors$$SOURCE_POINTER_REGEXP);
+
+            if (key) {
+              key = key[2];
+              out[key] = out[key] || [];
+              out[key].push(error.detail || error.title);
+            }
+          }
+        });
+      }
+
+      return out;
+    }
 
     var ember$data$lib$system$adapter$$get = Ember.get;
 
@@ -68841,7 +69248,7 @@ define("ember/load-initializers",
       */
       shouldReloadAll: function (store, snapshotRecordArray) {
         var modelName = snapshotRecordArray.type.modelName;
-        Ember.deprecate('The default behavior of shouldReloadAll will change in Ember Data 2.0 to always return false when there is at least one "' + modelName + '" record in the store. If you would like to preserve the current behavior please override shouldReloadAll in your adapter:application and return true.');
+        Ember.deprecate('The default behavior of shouldReloadAll will change in Ember Data 2.0 to always return false when there is at least one "' + modelName + '" record in the store. If you would like to preserve the current behavior please override shouldReloadAll in your adapter:application and return true.', false, { id: 'ds.adapter.should-reload-all-default-behavior', until: '2.0.0' });
         return true;
       },
 
@@ -68859,7 +69266,7 @@ define("ember/load-initializers",
         @return {Boolean}
       */
       shouldBackgroundReloadRecord: function (store, snapshot) {
-        Ember.deprecate('The default behavior of `shouldBackgroundReloadRecord` will change in Ember Data 2.0 to always return true. If you would like to preserve the current behavior please override `shouldBackgroundReloadRecord` in your adapter:application and return false.');
+        Ember.deprecate('The default behavior of `shouldBackgroundReloadRecord` will change in Ember Data 2.0 to always return true. If you would like to preserve the current behavior please override `shouldBackgroundReloadRecord` in your adapter:application and return false.', false, { id: 'ds.adapter.should-background-reload-record-default-behavior', until: '2.0.0' });
         return false;
       },
 
@@ -68882,480 +69289,6 @@ define("ember/load-initializers",
     });
 
     var ember$data$lib$system$adapter$$default = ember$data$lib$system$adapter$$Adapter;
-
-    /**
-      @module ember-data
-    */
-    var ember$data$lib$adapters$fixture$adapter$$get = Ember.get;
-    var ember$data$lib$adapters$fixture$adapter$$fmt = Ember.String.fmt;
-    var ember$data$lib$adapters$fixture$adapter$$indexOf = Ember.ArrayPolyfills.indexOf;
-
-    var ember$data$lib$adapters$fixture$adapter$$counter = 0;
-
-    var ember$data$lib$adapters$fixture$adapter$$default = ember$data$lib$system$adapter$$default.extend({
-      // by default, fixtures are already in normalized form
-      serializer: null,
-      // The fixture adapter does not support coalesceFindRequests
-      coalesceFindRequests: false,
-
-      /**
-        If `simulateRemoteResponse` is `true` the `FixtureAdapter` will
-        wait a number of milliseconds before resolving promises with the
-        fixture values. The wait time can be configured via the `latency`
-        property.
-         @property simulateRemoteResponse
-        @type {Boolean}
-        @default true
-      */
-      simulateRemoteResponse: true,
-
-      /**
-        By default the `FixtureAdapter` will simulate a wait of the
-        `latency` milliseconds before resolving promises with the fixture
-        values. This behavior can be turned off via the
-        `simulateRemoteResponse` property.
-         @property latency
-        @type {Number}
-        @default 50
-      */
-      latency: 50,
-
-      /**
-        Implement this method in order to provide data associated with a type
-         @method fixturesForType
-        @param {DS.Model} typeClass
-        @return {Array}
-      */
-      fixturesForType: function (typeClass) {
-        if (typeClass.FIXTURES) {
-          var fixtures = Ember.A(typeClass.FIXTURES);
-          return fixtures.map(function (fixture) {
-            var fixtureIdType = typeof fixture.id;
-            if (fixtureIdType !== "number" && fixtureIdType !== "string") {
-              throw new Error(ember$data$lib$adapters$fixture$adapter$$fmt("the id property must be defined as a number or string for fixture %@", [fixture]));
-            }
-            fixture.id = fixture.id + "";
-            return fixture;
-          });
-        }
-        return null;
-      },
-
-      /**
-        Implement this method in order to query fixtures data
-         @method queryFixtures
-        @param {Array} fixtures
-        @param {Object} query
-        @param {DS.Model} typeClass
-        @return {(Promise|Array)}
-      */
-      queryFixtures: function (fixtures, query, typeClass) {
-        Ember.assert("Not implemented: You must override the DS.FixtureAdapter::queryFixtures method to support querying the fixture store.");
-      },
-
-      /**
-        @method updateFixtures
-        @param {DS.Model} typeClass
-        @param {Array} fixture
-      */
-      updateFixtures: function (typeClass, fixture) {
-        if (!typeClass.FIXTURES) {
-          typeClass.FIXTURES = [];
-        }
-
-        var fixtures = typeClass.FIXTURES;
-
-        this.deleteLoadedFixture(typeClass, fixture);
-
-        fixtures.push(fixture);
-      },
-
-      /**
-        Implement this method in order to provide json for CRUD methods
-         @method mockJSON
-        @param {DS.Store} store
-        @param {DS.Model} typeClass
-        @param {DS.Snapshot} snapshot
-      */
-      mockJSON: function (store, typeClass, snapshot) {
-        return store.serializerFor(snapshot.modelName).serialize(snapshot, { includeId: true });
-      },
-
-      /**
-        @method generateIdForRecord
-        @param {DS.Store} store
-        @return {String} id
-      */
-      generateIdForRecord: function (store) {
-        return "fixture-" + ember$data$lib$adapters$fixture$adapter$$counter++;
-      },
-
-      /**
-        @method find
-        @param {DS.Store} store
-        @param {DS.Model} typeClass
-        @param {String} id
-        @param {DS.Snapshot} snapshot
-        @return {Promise} promise
-      */
-      find: function (store, typeClass, id, snapshot) {
-        var fixtures = this.fixturesForType(typeClass);
-        var fixture;
-
-        Ember.assert("Unable to find fixtures for model type " + typeClass.toString() + ". If you're defining your fixtures using `Model.FIXTURES = ...`, please change it to `Model.reopenClass({ FIXTURES: ... })`.", fixtures);
-
-        if (fixtures) {
-          fixture = Ember.A(fixtures).findBy("id", id);
-        }
-
-        if (fixture) {
-          return this.simulateRemoteCall(function () {
-            return fixture;
-          }, this);
-        }
-      },
-
-      /**
-        @method findMany
-        @param {DS.Store} store
-        @param {DS.Model} typeClass
-        @param {Array} ids
-        @param {Array} snapshots
-        @return {Promise} promise
-      */
-      findMany: function (store, typeClass, ids, snapshots) {
-        var fixtures = this.fixturesForType(typeClass);
-
-        Ember.assert("Unable to find fixtures for model type " + typeClass.toString(), fixtures);
-
-        if (fixtures) {
-          fixtures = fixtures.filter(function (item) {
-            return ember$data$lib$adapters$fixture$adapter$$indexOf.call(ids, item.id) !== -1;
-          });
-        }
-
-        if (fixtures) {
-          return this.simulateRemoteCall(function () {
-            return fixtures;
-          }, this);
-        }
-      },
-
-      /**
-        @private
-        @method findAll
-        @param {DS.Store} store
-        @param {DS.Model} typeClass
-        @return {Promise} promise
-      */
-      findAll: function (store, typeClass) {
-        var fixtures = this.fixturesForType(typeClass);
-
-        Ember.assert("Unable to find fixtures for model type " + typeClass.toString(), fixtures);
-
-        return this.simulateRemoteCall(function () {
-          return fixtures;
-        }, this);
-      },
-
-      /**
-        @private
-        @method findQuery
-        @param {DS.Store} store
-        @param {DS.Model} typeClass
-        @param {Object} query
-        @param {DS.AdapterPopulatedRecordArray} array
-        @return {Promise} promise
-      */
-      findQuery: function (store, typeClass, query, array) {
-        var fixtures = this.fixturesForType(typeClass);
-
-        Ember.assert("Unable to find fixtures for model type " + typeClass.toString(), fixtures);
-
-        fixtures = this.queryFixtures(fixtures, query, typeClass);
-
-        if (fixtures) {
-          return this.simulateRemoteCall(function () {
-            return fixtures;
-          }, this);
-        }
-      },
-
-      /**
-        @method createRecord
-        @param {DS.Store} store
-        @param {DS.Model} typeClass
-        @param {DS.Snapshot} snapshot
-        @return {Promise} promise
-      */
-      createRecord: function (store, typeClass, snapshot) {
-        var fixture = this.mockJSON(store, typeClass, snapshot);
-
-        this.updateFixtures(typeClass, fixture);
-
-        return this.simulateRemoteCall(function () {
-          return fixture;
-        }, this);
-      },
-
-      /**
-        @method updateRecord
-        @param {DS.Store} store
-        @param {DS.Model} typeClass
-        @param {DS.Snapshot} snapshot
-        @return {Promise} promise
-      */
-      updateRecord: function (store, typeClass, snapshot) {
-        var fixture = this.mockJSON(store, typeClass, snapshot);
-
-        this.updateFixtures(typeClass, fixture);
-
-        return this.simulateRemoteCall(function () {
-          return fixture;
-        }, this);
-      },
-
-      /**
-        @method deleteRecord
-        @param {DS.Store} store
-        @param {DS.Model} typeClass
-        @param {DS.Snapshot} snapshot
-        @return {Promise} promise
-      */
-      deleteRecord: function (store, typeClass, snapshot) {
-        this.deleteLoadedFixture(typeClass, snapshot);
-
-        return this.simulateRemoteCall(function () {
-          // no payload in a deletion
-          return null;
-        });
-      },
-
-      /*
-        @method deleteLoadedFixture
-        @private
-        @param typeClass
-        @param snapshot
-      */
-      deleteLoadedFixture: function (typeClass, snapshot) {
-        var existingFixture = this.findExistingFixture(typeClass, snapshot);
-
-        if (existingFixture) {
-          var index = ember$data$lib$adapters$fixture$adapter$$indexOf.call(typeClass.FIXTURES, existingFixture);
-          typeClass.FIXTURES.splice(index, 1);
-          return true;
-        }
-      },
-
-      /*
-        @method findExistingFixture
-        @private
-        @param typeClass
-        @param snapshot
-      */
-      findExistingFixture: function (typeClass, snapshot) {
-        var fixtures = this.fixturesForType(typeClass);
-        var id = snapshot.id;
-
-        return this.findFixtureById(fixtures, id);
-      },
-
-      /*
-        @method findFixtureById
-        @private
-        @param fixtures
-        @param id
-      */
-      findFixtureById: function (fixtures, id) {
-        return Ember.A(fixtures).find(function (r) {
-          if ("" + ember$data$lib$adapters$fixture$adapter$$get(r, "id") === "" + id) {
-            return true;
-          } else {
-            return false;
-          }
-        });
-      },
-
-      /*
-        @method simulateRemoteCall
-        @private
-        @param callback
-        @param context
-      */
-      simulateRemoteCall: function (callback, context) {
-        var adapter = this;
-
-        return new Ember.RSVP.Promise(function (resolve) {
-          var value = Ember.copy(callback.call(context), true);
-          if (ember$data$lib$adapters$fixture$adapter$$get(adapter, "simulateRemoteResponse")) {
-            // Schedule with setTimeout
-            Ember.run.later(function () {
-              resolve(value);
-            }, ember$data$lib$adapters$fixture$adapter$$get(adapter, "latency"));
-          } else {
-            // Asynchronous, but at the of the runloop with zero latency
-            Ember.run.schedule("actions", null, function () {
-              resolve(value);
-            });
-          }
-        }, "DS: FixtureAdapter#simulateRemoteCall");
-      }
-    });
-
-    var ember$data$lib$system$object$polyfills$$keysFunc = Object.keys || Ember.keys;
-    var ember$data$lib$system$object$polyfills$$create = Object.create || Ember.create;
-
-    var ember$data$lib$adapters$errors$$EmberError = Ember.Error;
-
-    var ember$data$lib$adapters$errors$$forEach = Ember.ArrayPolyfills.forEach;
-    var ember$data$lib$adapters$errors$$SOURCE_POINTER_REGEXP = /data\/(attributes|relationships)\/(.*)/;/**
-      @class AdapterError
-      @namespace DS
-    */
-    function ember$data$lib$adapters$errors$$AdapterError(errors, message) {
-      message = message || "Adapter operation failed";
-
-      ember$data$lib$adapters$errors$$EmberError.call(this, message);
-
-      this.errors = errors || [{
-        title: "Adapter Error",
-        detail: message
-      }];
-    }
-
-    ember$data$lib$adapters$errors$$AdapterError.prototype = ember$data$lib$system$object$polyfills$$create(ember$data$lib$adapters$errors$$EmberError.prototype);
-
-    /**
-      A `DS.InvalidError` is used by an adapter to signal the external API
-      was unable to process a request because the content was not
-      semantically correct or meaningful per the API. Usually this means a
-      record failed some form of server side validation. When a promise
-      from an adapter is rejected with a `DS.InvalidError` the record will
-      transition to the `invalid` state and the errors will be set to the
-      `errors` property on the record.
-
-      For Ember Data to correctly map errors to their corresponding
-      properties on the model, Ember Data expects each error to be
-      a valid json-api error object with a `source/pointer` that matches
-      the property name. For example if you had a Post model that
-      looked like this.
-
-      ```app/models/post.js
-      import DS from 'ember-data';
-
-      export default DS.Model.extend({
-        title: DS.attr('string'),
-        content: DS.attr('string')
-      });
-      ```
-
-      To show an error from the server related to the `title` and
-      `content` properties your adapter could return a promise that
-      rejects with a `DS.InvalidError` object that looks like this:
-
-      ```app/adapters/post.js
-      import Ember from 'ember';
-      import DS from 'ember-data';
-
-      export default DS.RESTAdapter.extend({
-        updateRecord: function() {
-          // Fictional adapter that always rejects
-          return Ember.RSVP.reject(new DS.InvalidError([
-            {
-              detail: 'Must be unique',
-              source: { pointer: 'data/attributes/title' }
-            },
-            {
-              detail: 'Must not be blank',
-              source: { pointer: 'data/attributes/content'}
-            }
-          ]));
-        }
-      });
-      ```
-
-      Your backend may use different property names for your records the
-      store will attempt extract and normalize the errors using the
-      serializer's `extractErrors` method before the errors get added to
-      the the model. As a result, it is safe for the `InvalidError` to
-      wrap the error payload unaltered.
-
-      @class InvalidError
-      @namespace DS
-    */
-    function ember$data$lib$adapters$errors$$InvalidError(errors) {
-      if (!Ember.isArray(errors)) {
-        Ember.deprecate("`InvalidError` expects json-api formatted errors.");
-        errors = ember$data$lib$adapters$errors$$errorsHashToArray(errors);
-      }
-      ember$data$lib$adapters$errors$$AdapterError.call(this, errors, "The adapter rejected the commit because it was invalid");
-    }
-
-    ember$data$lib$adapters$errors$$InvalidError.prototype = ember$data$lib$system$object$polyfills$$create(ember$data$lib$adapters$errors$$AdapterError.prototype);
-
-    /**
-      @class TimeoutError
-      @namespace DS
-    */
-    function ember$data$lib$adapters$errors$$TimeoutError() {
-      ember$data$lib$adapters$errors$$AdapterError.call(this, null, "The adapter operation timed out");
-    }
-
-    ember$data$lib$adapters$errors$$TimeoutError.prototype = ember$data$lib$system$object$polyfills$$create(ember$data$lib$adapters$errors$$AdapterError.prototype);
-
-    /**
-      @class AbortError
-      @namespace DS
-    */
-    function ember$data$lib$adapters$errors$$AbortError() {
-      ember$data$lib$adapters$errors$$AdapterError.call(this, null, "The adapter operation was aborted");
-    }
-
-    ember$data$lib$adapters$errors$$AbortError.prototype = ember$data$lib$system$object$polyfills$$create(ember$data$lib$adapters$errors$$AdapterError.prototype);
-
-    /**
-      @private
-    */
-    function ember$data$lib$adapters$errors$$errorsHashToArray(errors) {
-      var out = [];
-
-      if (Ember.isPresent(errors)) {
-        ember$data$lib$adapters$errors$$forEach.call(ember$data$lib$system$object$polyfills$$keysFunc(errors), function (key) {
-          var messages = Ember.makeArray(errors[key]);
-          for (var i = 0; i < messages.length; i++) {
-            out.push({
-              title: "Invalid Attribute",
-              detail: messages[i],
-              source: {
-                pointer: "data/attributes/" + key
-              }
-            });
-          }
-        });
-      }
-
-      return out;
-    }
-
-    function ember$data$lib$adapters$errors$$errorsArrayToHash(errors) {
-      var out = {};
-
-      if (Ember.isPresent(errors)) {
-        ember$data$lib$adapters$errors$$forEach.call(errors, function (error) {
-          if (error.source && error.source.pointer) {
-            var key = error.source.pointer.match(ember$data$lib$adapters$errors$$SOURCE_POINTER_REGEXP);
-
-            if (key) {
-              key = key[2];
-              out[key] = out[key] || [];
-              out[key].push(error.detail || error.title);
-            }
-          }
-        });
-      }
-
-      return out;
-    }
     var ember$data$lib$system$map$$Map = Ember.Map;
     var ember$data$lib$system$map$$MapWithDefault = Ember.MapWithDefault;
 
@@ -69492,7 +69425,10 @@ define("ember/load-initializers",
        */
       urlForFindRecord: function (id, modelName, snapshot) {
         if (this.urlForFind !== ember$data$lib$adapters$build$url$mixin$$urlForFind) {
-          Ember.deprecate('BuildURLMixin#urlForFind has been deprecated and renamed to `urlForFindRecord`.');
+          Ember.deprecate('BuildURLMixin#urlForFind has been deprecated and renamed to `urlForFindRecord`.', false, {
+            id: 'ds.adapter.url-for-find-deprecated',
+            until: '2.0.0'
+          });
           return this.urlForFind(id, modelName, snapshot);
         }
         return this._buildURL(modelName, id);
@@ -69524,7 +69460,10 @@ define("ember/load-initializers",
        */
       urlForQuery: function (query, modelName) {
         if (this.urlForFindQuery !== ember$data$lib$adapters$build$url$mixin$$urlForFindQuery) {
-          Ember.deprecate('BuildURLMixin#urlForFindQuery has been deprecated and renamed to `urlForQuery`.');
+          Ember.deprecate('BuildURLMixin#urlForFindQuery has been deprecated and renamed to `urlForQuery`.', false, {
+            id: 'ds.adapter.url-for-find-query-deprecated',
+            until: '2.0.0'
+          });
           return this.urlForFindQuery(query, modelName);
         }
         return this._buildURL(modelName);
@@ -69661,12 +69600,19 @@ define("ember/load-initializers",
     });
 
     function ember$data$lib$adapters$build$url$mixin$$urlForFind(id, modelName, snapshot) {
-      Ember.deprecate('BuildURLMixin#urlForFind has been deprecated and renamed to `urlForFindRecord`.');
+      Ember.deprecate('BuildURLMixin#urlForFind has been deprecated and renamed to `urlForFindRecord`.', false, {
+        id: 'ds.adapter.url-for-find-deprecated',
+        until: '2.0.0'
+      });
+
       return this._buildURL(modelName, id);
     }
 
     function ember$data$lib$adapters$build$url$mixin$$urlForFindQuery(query, modelName) {
-      Ember.deprecate('BuildURLMixin#urlForFindQuery has been deprecated and renamed to `urlForQuery`.');
+      Ember.deprecate('BuildURLMixin#urlForFindQuery has been deprecated and renamed to `urlForQuery`.', false, {
+        id: 'ds.adapter.url-for-find-query-deprecated',
+        until: '2.0.0'
+      });
       return this._buildURL(modelName);
     }
 
@@ -69985,7 +69931,10 @@ define("ember/load-initializers",
         @deprecated Use [findRecord](#method_findRecord) instead
       */
       find: function (store, type, id, snapshot) {
-        Ember.deprecate("RestAdapter#find has been deprecated and renamed to `findRecord`.");
+        Ember.deprecate("RestAdapter#find has been deprecated and renamed to `findRecord`.", false, {
+          id: "ds.adapter.find-renamed-to-find-record",
+          until: "2.0.0"
+        });
         return this.ajax(this.buildURL(type.modelName, id, snapshot, "find"), "GET");
       },
 
@@ -70005,7 +69954,10 @@ define("ember/load-initializers",
       findRecord: function (store, type, id, snapshot) {
         var find = ember$data$lib$adapters$rest$adapter$$RestAdapter.prototype.find;
         if (find !== this.find) {
-          Ember.deprecate("RestAdapter#find has been deprecated and renamed to `findRecord`.");
+          Ember.deprecate("RestAdapter#find has been deprecated and renamed to `findRecord`.", false, {
+            id: "ds.adapter.find-renamed-to-find-record",
+            until: "2.0.0"
+          });
           return this.find(store, type, id, snapshot);
         }
         return this.ajax(this.buildURL(type.modelName, id, snapshot, "findRecord"), "GET");
@@ -70051,7 +70003,10 @@ define("ember/load-initializers",
         @deprecated Use [query](#method_query) instead
       */
       findQuery: function (store, type, query) {
-        Ember.deprecate("RestAdapter#findQuery has been deprecated and renamed to `query`.");
+        Ember.deprecate("RestAdapter#findQuery has been deprecated and renamed to `query`.", false, {
+          id: "ds.adapter.find-query-renamed-to-query",
+          until: "2.0.0"
+        });
         var url = this.buildURL(type.modelName, null, null, "findQuery", query);
 
         if (this.sortQueryParams) {
@@ -70078,11 +70033,39 @@ define("ember/load-initializers",
       query: function (store, type, query) {
         var findQuery = ember$data$lib$adapters$rest$adapter$$RestAdapter.prototype.findQuery;
         if (findQuery !== this.findQuery) {
-          Ember.deprecate("RestAdapter#findQuery has been deprecated and renamed to `query`.");
+          Ember.deprecate("RestAdapter#findQuery has been deprecated and renamed to `query`.", false, {
+            id: "ds.adapter.find-query-renamed-to-query",
+            until: "2.0.0"
+          });
           return this.findQuery(store, type, query);
         }
 
         var url = this.buildURL(type.modelName, null, null, "query", query);
+
+        if (this.sortQueryParams) {
+          query = this.sortQueryParams(query);
+        }
+
+        return this.ajax(url, "GET", { data: query });
+      },
+
+      /**
+        Called by the store in order to fetch a JSON object for
+        the record that matches a particular query.
+         The `queryRecord` method makes an Ajax (HTTP GET) request to a URL
+        computed by `buildURL`, and returns a promise for the resulting
+        payload.
+         The `query` argument is a simple JavaScript object that will be passed directly
+        to the server as parameters.
+         @private
+        @method queryRecord
+        @param {DS.Store} store
+        @param {DS.Model} type
+        @param {Object} query
+        @return {Promise} promise
+      */
+      queryRecord: function (store, type, query) {
+        var url = this.buildURL(type.modelName, null, null, "queryRecord", query);
 
         if (this.sortQueryParams) {
           query = this.sortQueryParams(query);
@@ -70439,7 +70422,10 @@ define("ember/load-initializers",
             var response = undefined;
 
             if (adapter.ajaxSuccess) {
-              Ember.deprecate("`ajaxSuccess` has been deprecated. Use `isSuccess`, `isInvalid` or `handleResponse` instead.");
+              Ember.deprecate("`ajaxSuccess` has been deprecated. Use `isSuccess`, `isInvalid` or `handleResponse` instead.", false, {
+                id: "ds.adapter.ajax-success-deprecated",
+                until: "2.0.0"
+              });
               response = adapter.ajaxSuccess(jqXHR, payload);
             }
 
@@ -70458,7 +70444,10 @@ define("ember/load-initializers",
             var error = undefined;
 
             if (adapter.ajaxError) {
-              Ember.deprecate("`ajaxError` has been deprecated. Use `isSuccess`, `isInvalid` or `handleResponse` instead.");
+              Ember.deprecate("`ajaxError` has been deprecated. Use `isSuccess`, `isInvalid` or `handleResponse` instead.", false, {
+                id: "ds.adapter.ajax-error-deprecated",
+                until: "2.0.0"
+              });
               error = adapter.ajaxError(jqXHR, textStatus, errorThrown);
             }
 
@@ -70585,93 +70574,24 @@ define("ember/load-initializers",
       Ember.defineProperty(ember$data$lib$adapters$rest$adapter$$RestAdapter.prototype, "maxUrlLength", {
         enumerable: false,
         get: function () {
-          Ember.deprecate("maxUrlLength has been deprecated (wrong casing). You should use maxURLLength instead.");
+          Ember.deprecate("maxUrlLength has been deprecated (wrong casing). You should use maxURLLength instead.", false, {
+            id: "ds.adapter.max-url-length-deprecated-case",
+            until: "2.0.0"
+          });
           return this.maxURLLength;
         },
 
         set: function (value) {
-          Ember.deprecate("maxUrlLength has been deprecated (wrong casing). You should use maxURLLength instead.");
+          Ember.deprecate("maxUrlLength has been deprecated (wrong casing). You should use maxURLLength instead.", false, {
+            id: "ds.adapter.max-url-length-deprecated-case",
+            until: "2.0.0"
+          });
           ember$data$lib$adapters$rest$adapter$$set(this, "maxURLLength", value);
         }
       });
     }
 
     var ember$data$lib$adapters$rest$adapter$$default = ember$data$lib$adapters$rest$adapter$$RestAdapter;
-
-    var ember$data$lib$adapters$json$api$adapter$$default = ember$data$lib$adapters$rest$adapter$$default.extend({
-      defaultSerializer: '-json-api',
-
-      /**
-        @method ajaxOptions
-        @private
-        @param {String} url
-        @param {String} type The request type GET, POST, PUT, DELETE etc.
-        @param {Object} options
-        @return {Object}
-      */
-      ajaxOptions: function (url, type, options) {
-        var hash = this._super.apply(this, arguments);
-
-        if (hash.contentType) {
-          hash.contentType = 'application/vnd.api+json';
-        }
-
-        var beforeSend = hash.beforeSend;
-        hash.beforeSend = function (xhr) {
-          xhr.setRequestHeader('Accept', 'application/vnd.api+json');
-          if (beforeSend) {
-            beforeSend(xhr);
-          }
-        };
-
-        return hash;
-      },
-
-      /**
-        @method findMany
-        @param {DS.Store} store
-        @param {DS.Model} type
-        @param {Array} ids
-        @param {Array} snapshots
-        @return {Promise} promise
-      */
-      findMany: function (store, type, ids, snapshots) {
-        var url = this.buildURL(type.modelName, ids, snapshots, 'findMany');
-        return this.ajax(url, 'GET', { data: { filter: { id: ids.join(',') } } });
-      },
-
-      /**
-        @method pathForType
-        @param {String} modelName
-        @return {String} path
-      **/
-      pathForType: function (modelName) {
-        var dasherized = Ember.String.dasherize(modelName);
-        return Ember.String.pluralize(dasherized);
-      },
-
-      // TODO: Remove this once we have a better way to override HTTP verbs.
-      /**
-        @method updateRecord
-        @param {DS.Store} store
-        @param {DS.Model} type
-        @param {DS.Snapshot} snapshot
-        @return {Promise} promise
-      */
-      updateRecord: function (store, type, snapshot) {
-        var data = {};
-        var serializer = store.serializerFor(type.modelName);
-
-        serializer.serializeIntoHash(data, type, snapshot, { includeId: true });
-
-        var id = snapshot.id;
-        var url = this.buildURL(type.modelName, id, snapshot, 'updateRecord');
-
-        return this.ajax(url, 'PATCH', { data: data });
-      }
-    });
-
-    var ember$lib$main$$default = Ember;
 
     var ember$inflector$lib$lib$system$inflector$$capitalize = ember$lib$main$$default.String.capitalize;
 
@@ -71116,12 +71036,13 @@ define("ember/load-initializers",
       module["exports"] = ember$inflector$lib$lib$system$inflector$$default;
     }
 
+    var activemodel$adapter$lib$system$active$model$adapter$$_Ember$String = ember$lib$main$$default.String;
+    var activemodel$adapter$lib$system$active$model$adapter$$decamelize = activemodel$adapter$lib$system$active$model$adapter$$_Ember$String.decamelize;
+    var activemodel$adapter$lib$system$active$model$adapter$$underscore = activemodel$adapter$lib$system$active$model$adapter$$_Ember$String.underscore;
+
     /**
       @module ember-data
     */
-
-    var activemodel$adapter$lib$system$active$model$adapter$$decamelize = Ember.String.decamelize;
-    var activemodel$adapter$lib$system$active$model$adapter$$underscore = Ember.String.underscore;
 
     /**
       The ActiveModelAdapter is a subclass of the RESTAdapter designed to integrate
@@ -71215,7 +71136,7 @@ define("ember/load-initializers",
     **/
 
     var activemodel$adapter$lib$system$active$model$adapter$$ActiveModelAdapter = ember$data$lib$adapters$rest$adapter$$default.extend({
-      defaultSerializer: "-active-model",
+      defaultSerializer: '-active-model',
       /**
         The ActiveModelAdapter overrides the `pathForType` method to build
         underscored URLs by decamelizing and pluralizing the object type name.
@@ -71786,14 +71707,24 @@ define("ember/load-initializers",
           var _normalize = this.normalize(primaryModelClass, payload);
 
           var data = _normalize.data;
+          var included = _normalize.included;
 
           documentHash.data = data;
+          if (included) {
+            documentHash.included = included;
+          }
         } else {
           documentHash.data = payload.map(function (item) {
             var _normalize2 = _this.normalize(primaryModelClass, item);
 
             var data = _normalize2.data;
+            var included = _normalize2.included;
 
+            if (included) {
+              var _documentHash$included;
+
+              (_documentHash$included = documentHash.included).push.apply(_documentHash$included, included);
+            }
             return data;
           });
         }
@@ -72707,7 +72638,13 @@ define("ember/load-initializers",
         @return {Object} json The deserialized payload
       */
       extractSingle: function (store, typeClass, payload, id, requestType) {
-        Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$JSONSerializer.prototype.normalizePayload);
+        if (!this.get("didDeprecateNormalizePayload")) {
+          this.set("didDeprecateNormalizePayload", true);
+          Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$JSONSerializer.prototype.normalizePayload, {
+            id: "ds.serializer.normalize-payload-deprecated",
+            until: "2.0.0"
+          });
+        }
         var normalizedPayload = this.normalizePayload(payload);
         return this.normalize(typeClass, normalizedPayload);
       },
@@ -72735,7 +72672,13 @@ define("ember/load-initializers",
         @return {Array} array An array of deserialized objects
       */
       extractArray: function (store, typeClass, arrayPayload, id, requestType) {
-        Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$JSONSerializer.prototype.normalizePayload);
+        if (!this.get("didDeprecateNormalizePayload")) {
+          this.set("didDeprecateNormalizePayload", true);
+          Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$JSONSerializer.prototype.normalizePayload, {
+            id: "ds.serializer.normalize-payload-deprecated",
+            until: "2.0.0"
+          });
+        }
         var normalizedPayload = this.normalizePayload(arrayPayload);
         var serializer = this;
 
@@ -73056,10 +72999,12 @@ define("ember/load-initializers",
     };
 
     var ember$data$lib$system$model$errors$$get = Ember.get;
+    var ember$data$lib$system$model$errors$$set = Ember.set;
     var ember$data$lib$system$model$errors$$isEmpty = Ember.isEmpty;
     var ember$data$lib$system$model$errors$$map = Ember.ArrayPolyfills.map;
+    var ember$data$lib$system$model$errors$$makeArray = Ember.makeArray;
 
-    var ember$data$lib$system$model$errors$$default = Ember.Object.extend(Ember.Enumerable, Ember.Evented, {
+    var ember$data$lib$system$model$errors$$default = Ember.ArrayProxy.extend(Ember.Evented, {
       /**
         Register with target handler
          @method registerHandlers
@@ -73142,20 +73087,11 @@ define("ember/load-initializers",
       },
 
       /**
-        @method nextObject
-        @private
-      */
-      nextObject: function (index, previousObject, context) {
-        return ember$data$lib$system$model$errors$$get(this, 'content').objectAt(index);
-      },
-
-      /**
         Total number of errors.
          @property length
         @type {Number}
         @readOnly
       */
-      length: Ember.computed.oneWay('content.length').readOnly(),
 
       /**
         @property isEmpty
@@ -73181,11 +73117,10 @@ define("ember/load-initializers",
         var wasEmpty = ember$data$lib$system$model$errors$$get(this, 'isEmpty');
 
         messages = this._findOrCreateMessages(attribute, messages);
-        ember$data$lib$system$model$errors$$get(this, 'content').addObjects(messages);
+        this.addObjects(messages);
         ember$data$lib$system$model$errors$$get(this, 'errorsByAttributeName').get(attribute).addObjects(messages);
 
         this.notifyPropertyChange(attribute);
-        this.enumerableContentDidChange();
 
         if (wasEmpty && !ember$data$lib$system$model$errors$$get(this, 'isEmpty')) {
           this.trigger('becameInvalid');
@@ -73199,7 +73134,7 @@ define("ember/load-initializers",
       _findOrCreateMessages: function (attribute, messages) {
         var errors = this.errorsFor(attribute);
 
-        return ember$data$lib$system$model$errors$$map.call(Ember.makeArray(messages), function (message) {
+        return ember$data$lib$system$model$errors$$map.call(ember$data$lib$system$model$errors$$makeArray(messages), function (message) {
           return errors.findBy('message', message) || {
             attribute: attribute,
             message: message
@@ -73240,12 +73175,11 @@ define("ember/load-initializers",
           return;
         }
 
-        var content = ember$data$lib$system$model$errors$$get(this, 'content').rejectBy('attribute', attribute);
-        ember$data$lib$system$model$errors$$get(this, 'content').setObjects(content);
+        var content = this.rejectBy('attribute', attribute);
+        ember$data$lib$system$model$errors$$set(this, 'content', content);
         ember$data$lib$system$model$errors$$get(this, 'errorsByAttributeName')["delete"](attribute);
 
         this.notifyPropertyChange(attribute);
-        this.enumerableContentDidChange();
 
         if (ember$data$lib$system$model$errors$$get(this, 'isEmpty')) {
           this.trigger('becameValid');
@@ -73274,9 +73208,19 @@ define("ember/load-initializers",
           return;
         }
 
-        ember$data$lib$system$model$errors$$get(this, 'content').clear();
-        ember$data$lib$system$model$errors$$get(this, 'errorsByAttributeName').clear();
-        this.enumerableContentDidChange();
+        var errorsByAttributeName = ember$data$lib$system$model$errors$$get(this, 'errorsByAttributeName');
+        var attributes = Ember.A();
+
+        errorsByAttributeName.forEach(function (_, attribute) {
+          attributes.push(attribute);
+        });
+
+        errorsByAttributeName.clear();
+        attributes.forEach(function (attribute) {
+          this.notifyPropertyChange(attribute);
+        }, this);
+
+        this._super();
 
         this.trigger('becameValid');
       },
@@ -73305,6 +73249,63 @@ define("ember/load-initializers",
       }
     });
 
+    var ember$new$computed$lib$utils$can$use$new$syntax$$supportsSetterGetter;
+
+    try {
+      ember$lib$main$$default.computed({
+        set: function () {},
+        get: function () {}
+      });
+      ember$new$computed$lib$utils$can$use$new$syntax$$supportsSetterGetter = true;
+    } catch (e) {
+      ember$new$computed$lib$utils$can$use$new$syntax$$supportsSetterGetter = false;
+    }
+
+    var ember$new$computed$lib$utils$can$use$new$syntax$$default = ember$new$computed$lib$utils$can$use$new$syntax$$supportsSetterGetter;
+    var ember$new$computed$lib$main$$default = ember$new$computed$lib$main$$newComputed;
+
+    var ember$new$computed$lib$main$$computed = ember$lib$main$$default.computed;
+
+    function ember$new$computed$lib$main$$newComputed() {
+      var polyfillArguments = [];
+      var config = arguments[arguments.length - 1];
+
+      if (typeof config === 'function' || ember$new$computed$lib$utils$can$use$new$syntax$$default) {
+        return ember$new$computed$lib$main$$computed.apply(undefined, arguments);
+      }
+
+      for (var i = 0, l = arguments.length - 1; i < l; i++) {
+        polyfillArguments.push(arguments[i]);
+      }
+
+      var func;
+      if (config.set) {
+        func = function (key, value) {
+          if (arguments.length > 1) {
+            return config.set.call(this, key, value);
+          } else {
+            return config.get.call(this, key);
+          }
+        };
+      } else {
+        func = function (key) {
+          return config.get.call(this, key);
+        };
+      }
+
+      polyfillArguments.push(func);
+
+      return ember$new$computed$lib$main$$computed.apply(undefined, polyfillArguments);
+    }
+
+    var ember$new$computed$lib$main$$getKeys = Object.keys || ember$lib$main$$default.keys;
+    var ember$new$computed$lib$main$$computedKeys = ember$new$computed$lib$main$$getKeys(ember$new$computed$lib$main$$computed);
+
+    for (var ember$new$computed$lib$main$$i = 0, ember$new$computed$lib$main$$l = ember$new$computed$lib$main$$computedKeys.length; ember$new$computed$lib$main$$i < ember$new$computed$lib$main$$l; ember$new$computed$lib$main$$i++) {
+      ember$new$computed$lib$main$$newComputed[ember$new$computed$lib$main$$computedKeys[ember$new$computed$lib$main$$i]] = ember$new$computed$lib$main$$computed[ember$new$computed$lib$main$$computedKeys[ember$new$computed$lib$main$$i]];
+    }
+    var ember$data$lib$system$model$model$$errorDeprecationShown = false;
+
     /**
       @module ember-data
     */
@@ -73312,6 +73313,8 @@ define("ember/load-initializers",
     var ember$data$lib$system$model$model$$get = Ember.get;
     var ember$data$lib$system$model$model$$forEach = Ember.ArrayPolyfills.forEach;
     var ember$data$lib$system$model$model$$indexOf = Ember.ArrayPolyfills.indexOf;
+    var ember$data$lib$system$model$model$$merge = Ember.merge;
+    var ember$data$lib$system$model$model$$copy = Ember.copy;
 
     function ember$data$lib$system$model$model$$intersection(array1, array2) {
       var result = [];
@@ -73412,9 +73415,28 @@ define("ember/load-initializers",
         @deprecated
       */
       isDirty: Ember.computed("currentState.isDirty", function () {
-        Ember.deprecate("DS.Model#isDirty has been deprecated please use hasDirtyAttributes instead");
+        Ember.deprecate("DS.Model#isDirty has been deprecated please use hasDirtyAttributes instead", false, {
+          id: "ds.model.is-dirty-deprecated",
+          until: "2.0.0"
+        });
         return this.get("currentState.isDirty");
       }),
+
+      /**
+        @property error
+        @type {Boolean}
+        @deprecated
+      */
+      error: ember$new$computed$lib$main$$default("adapterError", {
+        get: function () {
+          if (!ember$data$lib$system$model$model$$errorDeprecationShown) {
+            Ember.deprecate("DS.Model#error has been deprecated please use adapterError instead");
+            ember$data$lib$system$model$model$$errorDeprecationShown = true;
+          }
+          return Ember.get(this, "adapterError");
+        }
+      }),
+
       /**
         If this property is `true` the record is in the `dirty` state. The
         record has local changes that have not yet been saved by the
@@ -73646,6 +73668,14 @@ define("ember/load-initializers",
       }).readOnly(),
 
       /**
+        This property holds the `DS.AdapterError` object with which
+        last adapter operation was rejected.
+         @property adapterError
+        @type {DS.AdapterError}
+      */
+      adapterError: null,
+
+      /**
         Create a JSON representation of the record, using the serialization
         strategy of the store's adapter.
         `serialize` takes an optional hash as a parameter, currently
@@ -73856,7 +73886,9 @@ define("ember/load-initializers",
       */
       changedAttributes: function () {
         var oldData = ember$data$lib$system$model$model$$get(this._internalModel, "_data");
-        var newData = ember$data$lib$system$model$model$$get(this._internalModel, "_attributes");
+        var currentData = ember$data$lib$system$model$model$$get(this._internalModel, "_attributes");
+        var inFlightData = ember$data$lib$system$model$model$$get(this._internalModel, "_inFlightAttributes");
+        var newData = ember$data$lib$system$model$model$$merge(ember$data$lib$system$model$model$$copy(inFlightData), currentData);
         var diffData = ember$data$lib$system$object$polyfills$$create(null);
 
         var newDataKeys = ember$data$lib$system$object$polyfills$$keysFunc(newData);
@@ -73901,7 +73933,10 @@ define("ember/load-initializers",
         @deprecated Use `rollbackAttributes()` instead
       */
       rollback: function () {
-        Ember.deprecate("Using model.rollback() has been deprecated. Use model.rollbackAttributes() to discard any unsaved changes to a model.");
+        Ember.deprecate("Using model.rollback() has been deprecated. Use model.rollbackAttributes() to discard any unsaved changes to a model.", false, {
+          id: "ds.model.rollback-deprecated",
+          until: "2.0.0"
+        });
         this.rollbackAttributes();
       },
 
@@ -74122,7 +74157,10 @@ define("ember/load-initializers",
         }
         return normalizedResponse;
       } else {
-        Ember.deprecate('Your custom serializer uses the old version of the Serializer API, with `extract` hooks. Please upgrade your serializers to the new Serializer API using `normalizeResponse` hooks instead.');
+        Ember.deprecate('Your custom serializer uses the old version of the Serializer API, with `extract` hooks. Please upgrade your serializers to the new Serializer API using `normalizeResponse` hooks instead.', false, {
+          id: 'ds.serializer.extract-hooks-deprecated',
+          until: '2.0.0'
+        });
         var serializerPayload = serializer.extract(store, modelClass, payload, id, requestType);
         return ember$data$lib$system$store$serializer$response$$_normalizeSerializerPayload(modelClass, serializerPayload);
       }
@@ -74520,7 +74558,10 @@ define("ember/load-initializers",
         this.normalizeUsingDeclaredMapping(typeClass, hash);
 
         if (this.normalizeHash && this.normalizeHash[prop]) {
-          Ember.deprecate("`RESTSerializer.normalizeHash` has been deprecated. Please use `serializer.normalize` to modify the payload of single resources.");
+          Ember.deprecate("`RESTSerializer.normalizeHash` has been deprecated. Please use `serializer.normalize` to modify the payload of single resources.", false, {
+            id: "ds.serializer.normalize-hash-deprecated",
+            until: "2.0.0"
+          });
           this.normalizeHash[prop](hash);
         }
 
@@ -74621,7 +74662,9 @@ define("ember/load-initializers",
 
           var typeName = this.modelNameFromPayloadKey(modelName);
           if (!store.modelFactoryFor(typeName)) {
-            Ember.warn(this.warnMessageNoModelForKey(modelName, typeName), false);
+            Ember.warn(this.warnMessageNoModelForKey(modelName, typeName), false, {
+              id: "ds.serializer.model-for-key-missing"
+            });
             continue;
           }
 
@@ -74768,7 +74811,10 @@ define("ember/load-initializers",
         @return {Object} the primary response to the original request
       */
       extractSingle: function (store, primaryTypeClass, rawPayload, recordId) {
-        Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$default.prototype.normalizePayload);
+        Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$default.prototype.normalizePayload, {
+          id: "ds.serializer.normalize-payload-deprecated",
+          until: "2.0.0"
+        });
         var payload = this.normalizePayload(rawPayload);
         var primaryRecord;
 
@@ -74776,7 +74822,9 @@ define("ember/load-initializers",
           var modelName = this.modelNameFromPayloadKey(prop);
 
           if (!store.modelFactoryFor(modelName)) {
-            Ember.warn(this.warnMessageNoModelForKey(prop, modelName), false);
+            Ember.warn(this.warnMessageNoModelForKey(prop, modelName), false, {
+              id: "ds.serializer.model-for-key-missing"
+            });
             continue;
           }
           var isPrimary = this.isPrimaryType(store, modelName, primaryTypeClass);
@@ -74908,7 +74956,10 @@ define("ember/load-initializers",
           to the original query.
       */
       extractArray: function (store, primaryTypeClass, rawPayload) {
-        Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$default.prototype.normalizePayload);
+        Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$default.prototype.normalizePayload, {
+          id: "ds.serializer.normalize-payload-deprecated",
+          until: "2.0.0"
+        });
         var payload = this.normalizePayload(rawPayload);
         var primaryArray;
 
@@ -74923,7 +74974,9 @@ define("ember/load-initializers",
 
           var typeName = this.modelNameFromPayloadKey(modelName);
           if (!store.modelFactoryFor(typeName)) {
-            Ember.warn(this.warnMessageNoModelForKey(prop, typeName), false);
+            Ember.warn(this.warnMessageNoModelForKey(prop, typeName), false, {
+              id: "ds.serializer.model-for-key-missing"
+            });
             continue;
           }
           var type = store.modelFor(typeName);
@@ -74987,13 +75040,18 @@ define("ember/load-initializers",
           return;
         }
 
-        Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$default.prototype.normalizePayload);
+        Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$default.prototype.normalizePayload, {
+          id: "ds.serializer.normalize-payload-deprecated",
+          until: "2.0.0"
+        });
         var payload = this.normalizePayload(rawPayload);
 
         for (var prop in payload) {
           var modelName = this.modelNameFromPayloadKey(prop);
           if (!store.modelFactoryFor(modelName)) {
-            Ember.warn(this.warnMessageNoModelForKey(prop, modelName), false);
+            Ember.warn(this.warnMessageNoModelForKey(prop, modelName), false, {
+              id: "ds.serializer.model-for-key-missing"
+            });
             continue;
           }
           var typeClass = store.modelFor(modelName);
@@ -75254,7 +75312,10 @@ define("ember/load-initializers",
         @deprecated
       */
       typeForRoot: function (modelName) {
-        Ember.deprecate("typeForRoot is deprecated. Use modelNameFromPayloadKey instead.");
+        Ember.deprecate("typeForRoot is deprecated. Use modelNameFromPayloadKey instead.", false, {
+          id: "ds.serializer.type-for-root-deprecated",
+          until: "2.0.0"
+        });
         return this.modelNameFromPayloadKey(modelName);
       },
 
@@ -75299,7 +75360,10 @@ define("ember/load-initializers",
     */
     function ember$data$lib$serializers$rest$serializer$$_newNormalize(modelClass, resourceHash, prop) {
       if (this.normalizeHash && this.normalizeHash[prop]) {
-        Ember.deprecate("`RESTSerializer.normalizeHash` has been deprecated. Please use `serializer.normalize` to modify the payload of single resources.");
+        Ember.deprecate("`RESTSerializer.normalizeHash` has been deprecated. Please use `serializer.normalize` to modify the payload of single resources.", false, {
+          id: "ds.serializer.normalize-hash-deprecated",
+          until: "2.0.0"
+        });
         this.normalizeHash[prop](resourceHash);
       }
     }
@@ -75315,13 +75379,18 @@ define("ember/load-initializers",
         included: []
       };
 
-      Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$default.prototype.normalizePayload);
+      Ember.deprecate("`serializer.normalizePayload` has been deprecated. Please use `serializer.normalizeResponse` with the new Serializer API to modify the payload.", this.normalizePayload === ember$data$lib$serializers$json$serializer$$default.prototype.normalizePayload, {
+        id: "ds.serializer.normalize-payload-deprecated",
+        until: "2.0.0"
+      });
       var payload = this.normalizePayload(rawPayload);
 
       for (var prop in payload) {
         var modelName = this.modelNameFromPayloadKey(prop);
         if (!store.modelFactoryFor(modelName)) {
-          Ember.warn(this.warnMessageNoModelForKey(prop, modelName), false);
+          Ember.warn(this.warnMessageNoModelForKey(prop, modelName), false, {
+            id: "ds.serializer.model-for-key-missing"
+          });
           continue;
         }
         var type = store.modelFor(modelName);
@@ -75347,15 +75416,17 @@ define("ember/load-initializers",
 
       ember$data$lib$system$store$serializer$response$$pushPayload(store, documentHash);
     }
+
     /**
       @module ember-data
-    */
+     */
 
-    var activemodel$adapter$lib$system$active$model$serializer$$forEach = Ember.ArrayPolyfills.forEach;
-    var activemodel$adapter$lib$system$active$model$serializer$$camelize = Ember.String.camelize;
-    var activemodel$adapter$lib$system$active$model$serializer$$classify = Ember.String.classify;
-    var activemodel$adapter$lib$system$active$model$serializer$$decamelize = Ember.String.decamelize;
-    var activemodel$adapter$lib$system$active$model$serializer$$underscore = Ember.String.underscore;
+    var activemodel$adapter$lib$system$active$model$serializer$$_Ember$String = ember$lib$main$$default.String;
+    var activemodel$adapter$lib$system$active$model$serializer$$singularize = activemodel$adapter$lib$system$active$model$serializer$$_Ember$String.singularize;
+    var activemodel$adapter$lib$system$active$model$serializer$$classify = activemodel$adapter$lib$system$active$model$serializer$$_Ember$String.classify;
+    var activemodel$adapter$lib$system$active$model$serializer$$decamelize = activemodel$adapter$lib$system$active$model$serializer$$_Ember$String.decamelize;
+    var activemodel$adapter$lib$system$active$model$serializer$$camelize = activemodel$adapter$lib$system$active$model$serializer$$_Ember$String.camelize;
+    var activemodel$adapter$lib$system$active$model$serializer$$underscore = activemodel$adapter$lib$system$active$model$serializer$$_Ember$String.underscore;
 
     /**
       The ActiveModelSerializer is a subclass of the RESTSerializer designed to integrate
@@ -75467,10 +75538,10 @@ define("ember/load-initializers",
       */
       keyForRelationship: function (relationshipModelName, kind) {
         var key = activemodel$adapter$lib$system$active$model$serializer$$decamelize(relationshipModelName);
-        if (kind === "belongsTo") {
-          return key + "_id";
-        } else if (kind === "hasMany") {
-          return ember$inflector$lib$lib$system$string$$singularize(key) + "_ids";
+        if (kind === 'belongsTo') {
+          return key + '_id';
+        } else if (kind === 'hasMany') {
+          return activemodel$adapter$lib$system$active$model$serializer$$singularize(key) + '_ids';
         } else {
           return key;
         }
@@ -75491,7 +75562,7 @@ define("ember/load-initializers",
       /*
         Does not serialize hasMany relationships by default.
       */
-      serializeHasMany: Ember.K,
+      serializeHasMany: ember$lib$main$$default.K,
 
       /**
        Underscores the JSON root keys when serializing.
@@ -75513,14 +75584,12 @@ define("ember/load-initializers",
       serializePolymorphicType: function (snapshot, json, relationship) {
         var key = relationship.key;
         var belongsTo = snapshot.belongsTo(key);
-        var jsonKey = activemodel$adapter$lib$system$active$model$serializer$$underscore(key + "_type");
+        var jsonKey = activemodel$adapter$lib$system$active$model$serializer$$underscore(key + '_type');
 
-        if (Ember.isNone(belongsTo)) {
+        if (ember$lib$main$$default.isNone(belongsTo)) {
           json[jsonKey] = null;
         } else {
-          json[jsonKey] = activemodel$adapter$lib$system$active$model$serializer$$classify(belongsTo.modelName).replace(/(\/)([a-z])/g, function (match, separator, chr) {
-            return match.toUpperCase();
-          }).replace("/", "::");
+          json[jsonKey] = activemodel$adapter$lib$system$active$model$serializer$$classify(belongsTo.modelName).replace('/', '::');
         }
       },
 
@@ -75606,18 +75675,18 @@ define("ember/load-initializers",
           typeClass.eachRelationship(function (key, relationship) {
             var payloadKey, payload;
             if (relationship.options.polymorphic) {
-              payloadKey = this.keyForAttribute(key, "deserialize");
+              payloadKey = this.keyForAttribute(key, 'deserialize');
               payload = hash[payloadKey];
               if (payload && payload.type) {
                 payload.type = this.modelNameFromPayloadKey(payload.type);
-              } else if (payload && relationship.kind === "hasMany") {
-                var self = this;
-                activemodel$adapter$lib$system$active$model$serializer$$forEach.call(payload, function (single) {
-                  single.type = self.modelNameFromPayloadKey(single.type);
-                });
+              } else if (payload && relationship.kind === 'hasMany') {
+                for (var i = 0, len = payload.length; i < len; i++) {
+                  var single = payload[i];
+                  single.type = this.modelNameFromPayloadKey(single.type);
+                }
               }
             } else {
-              payloadKey = this.keyForRelationship(key, relationship.kind, "deserialize");
+              payloadKey = this.keyForRelationship(key, relationship.kind, 'deserialize');
               if (!hash.hasOwnProperty(payloadKey)) {
                 return;
               }
@@ -75632,13 +75701,67 @@ define("ember/load-initializers",
           }, this);
         }
       },
+
+      extractRelationships: function (modelClass, resourceHash) {
+        modelClass.eachRelationship(function (key, relationshipMeta) {
+          var relationshipKey = this.keyForRelationship(key, relationshipMeta.kind, 'deserialize');
+
+          // prefer the format the AMS gem expects, e.g.:
+          // relationship: {id: id, type: type}
+          if (relationshipMeta.options.polymorphic) {
+            activemodel$adapter$lib$system$active$model$serializer$$extractPolymorphicRelationships(key, relationshipMeta, resourceHash, relationshipKey);
+          }
+          // If the preferred format is not found, use {relationship_name_id, relationship_name_type}
+          if (resourceHash.hasOwnProperty(relationshipKey) && typeof resourceHash[relationshipKey] !== 'object') {
+            var polymorphicTypeKey = this.keyForRelationship(key) + '_type';
+            if (resourceHash[polymorphicTypeKey] && relationshipMeta.options.polymorphic) {
+              var id = resourceHash[relationshipKey];
+              var type = resourceHash[polymorphicTypeKey];
+              delete resourceHash[polymorphicTypeKey];
+              delete resourceHash[relationshipKey];
+              resourceHash[relationshipKey] = { id: id, type: type };
+            }
+          }
+        }, this);
+        return this._super.apply(this, arguments);
+      },
+
       modelNameFromPayloadKey: function (key) {
-        var convertedFromRubyModule = activemodel$adapter$lib$system$active$model$serializer$$camelize(ember$inflector$lib$lib$system$string$$singularize(key)).replace(/(^|\:)([A-Z])/g, function (match, separator, chr) {
-          return match.toLowerCase();
-        }).replace("::", "/");
+        var convertedFromRubyModule = activemodel$adapter$lib$system$active$model$serializer$$singularize(key.replace('::', '/'));
         return ember$data$lib$system$normalize$model$name$$default(convertedFromRubyModule);
       }
     });
+
+    function activemodel$adapter$lib$system$active$model$serializer$$extractPolymorphicRelationships(key, relationshipMeta, resourceHash, relationshipKey) {
+      var polymorphicKey = activemodel$adapter$lib$system$active$model$serializer$$decamelize(key);
+      if (polymorphicKey in resourceHash && typeof resourceHash[polymorphicKey] === 'object') {
+        if (relationshipMeta.kind === 'belongsTo') {
+          var hash = resourceHash[polymorphicKey];
+          var id = hash.id;
+          var type = hash.type;
+
+          resourceHash[relationshipKey] = { id: id, type: type };
+          // otherwise hasMany
+        } else {
+          var hashes = resourceHash[polymorphicKey];
+
+          if (!hashes) {
+            return;
+          }
+
+          // TODO: replace this with map when ActiveModelAdapter branches for Ember Data 2.0
+          var array = [];
+          for (var i = 0, _length = hashes.length; i < _length; i++) {
+            var hash = hashes[i];
+            var id = hash.id;
+            var type = hash.type;
+
+            array.push({ id: id, type: type });
+          }
+          resourceHash[relationshipKey] = array;
+        }
+      }
+    }
 
     var activemodel$adapter$lib$system$active$model$serializer$$default = activemodel$adapter$lib$system$active$model$serializer$$ActiveModelSerializer;
     function ember$data$lib$system$container$proxy$$ContainerProxy(container) {
@@ -75667,7 +75790,10 @@ define("ember/load-initializers",
 
     ember$data$lib$system$container$proxy$$ContainerProxy.prototype.registerDeprecation = function (deprecated, valid) {
       var preLookupCallback = function () {
-        Ember.deprecate("You tried to look up '" + deprecated + "', " + "but this has been deprecated in favor of '" + valid + "'.", false);
+        Ember.deprecate('You tried to look up \'' + deprecated + '\', but this has been deprecated in favor of \'' + valid + '\'.', false, {
+          id: 'ds.store.deprecated-lookup',
+          until: '2.0.0'
+        });
       };
 
       return this.registerAlias(deprecated, valid, preLookupCallback);
@@ -75678,8 +75804,8 @@ define("ember/load-initializers",
 
       for (i = proxyPairs.length; i > 0; i--) {
         proxyPair = proxyPairs[i - 1];
-        deprecated = proxyPair["deprecated"];
-        valid = proxyPair["valid"];
+        deprecated = proxyPair['deprecated'];
+        valid = proxyPair['valid'];
 
         this.registerDeprecation(deprecated, valid);
       }
@@ -75694,8 +75820,401 @@ define("ember/load-initializers",
       registry.register("serializer:-active-model", activemodel$adapter$lib$system$active$model$serializer$$default.extend({ isNewSerializerAPI: true }));
       registry.register("adapter:-active-model", activemodel$adapter$lib$system$active$model$adapter$$default);
     }
+
+    /**
+      @module ember-data
+    */
+    var ember$data$lib$adapters$fixture$adapter$$get = Ember.get;
+    var ember$data$lib$adapters$fixture$adapter$$fmt = Ember.String.fmt;
+    var ember$data$lib$adapters$fixture$adapter$$indexOf = Ember.ArrayPolyfills.indexOf;
+
+    var ember$data$lib$adapters$fixture$adapter$$counter = 0;
+
+    var ember$data$lib$adapters$fixture$adapter$$default = ember$data$lib$system$adapter$$default.extend({
+      // by default, fixtures are already in normalized form
+      serializer: null,
+      // The fixture adapter does not support coalesceFindRequests
+      coalesceFindRequests: false,
+
+      /**
+        If `simulateRemoteResponse` is `true` the `FixtureAdapter` will
+        wait a number of milliseconds before resolving promises with the
+        fixture values. The wait time can be configured via the `latency`
+        property.
+         @property simulateRemoteResponse
+        @type {Boolean}
+        @default true
+      */
+      simulateRemoteResponse: true,
+
+      /**
+        By default the `FixtureAdapter` will simulate a wait of the
+        `latency` milliseconds before resolving promises with the fixture
+        values. This behavior can be turned off via the
+        `simulateRemoteResponse` property.
+         @property latency
+        @type {Number}
+        @default 50
+      */
+      latency: 50,
+
+      /**
+        Implement this method in order to provide data associated with a type
+         @method fixturesForType
+        @param {DS.Model} typeClass
+        @return {Array}
+      */
+      fixturesForType: function (typeClass) {
+        if (typeClass.FIXTURES) {
+          var fixtures = Ember.A(typeClass.FIXTURES);
+          return fixtures.map(function (fixture) {
+            var fixtureIdType = typeof fixture.id;
+            if (fixtureIdType !== "number" && fixtureIdType !== "string") {
+              throw new Error(ember$data$lib$adapters$fixture$adapter$$fmt("the id property must be defined as a number or string for fixture %@", [fixture]));
+            }
+            fixture.id = fixture.id + "";
+            return fixture;
+          });
+        }
+        return null;
+      },
+
+      /**
+        Implement this method in order to query fixtures data
+         @method queryFixtures
+        @param {Array} fixtures
+        @param {Object} query
+        @param {DS.Model} typeClass
+        @return {(Promise|Array)}
+      */
+      queryFixtures: function (fixtures, query, typeClass) {
+        Ember.assert("Not implemented: You must override the DS.FixtureAdapter::queryFixtures method to support querying the fixture store.");
+      },
+
+      /**
+        @method updateFixtures
+        @param {DS.Model} typeClass
+        @param {Array} fixture
+      */
+      updateFixtures: function (typeClass, fixture) {
+        if (!typeClass.FIXTURES) {
+          typeClass.FIXTURES = [];
+        }
+
+        var fixtures = typeClass.FIXTURES;
+
+        this.deleteLoadedFixture(typeClass, fixture);
+
+        fixtures.push(fixture);
+      },
+
+      /**
+        Implement this method in order to provide json for CRUD methods
+         @method mockJSON
+        @param {DS.Store} store
+        @param {DS.Model} typeClass
+        @param {DS.Snapshot} snapshot
+      */
+      mockJSON: function (store, typeClass, snapshot) {
+        return store.serializerFor(snapshot.modelName).serialize(snapshot, { includeId: true });
+      },
+
+      /**
+        @method generateIdForRecord
+        @param {DS.Store} store
+        @return {String} id
+      */
+      generateIdForRecord: function (store) {
+        return "fixture-" + ember$data$lib$adapters$fixture$adapter$$counter++;
+      },
+
+      /**
+        @method find
+        @param {DS.Store} store
+        @param {DS.Model} typeClass
+        @param {String} id
+        @param {DS.Snapshot} snapshot
+        @return {Promise} promise
+      */
+      find: function (store, typeClass, id, snapshot) {
+        var fixtures = this.fixturesForType(typeClass);
+        var fixture;
+
+        Ember.assert("Unable to find fixtures for model type " + typeClass.toString() + ". If you're defining your fixtures using `Model.FIXTURES = ...`, please change it to `Model.reopenClass({ FIXTURES: ... })`.", fixtures);
+
+        if (fixtures) {
+          fixture = Ember.A(fixtures).findBy("id", id);
+        }
+
+        if (fixture) {
+          return this.simulateRemoteCall(function () {
+            return fixture;
+          }, this);
+        }
+      },
+
+      /**
+        @method findMany
+        @param {DS.Store} store
+        @param {DS.Model} typeClass
+        @param {Array} ids
+        @param {Array} snapshots
+        @return {Promise} promise
+      */
+      findMany: function (store, typeClass, ids, snapshots) {
+        var fixtures = this.fixturesForType(typeClass);
+
+        Ember.assert("Unable to find fixtures for model type " + typeClass.toString(), fixtures);
+
+        if (fixtures) {
+          fixtures = fixtures.filter(function (item) {
+            return ember$data$lib$adapters$fixture$adapter$$indexOf.call(ids, item.id) !== -1;
+          });
+        }
+
+        if (fixtures) {
+          return this.simulateRemoteCall(function () {
+            return fixtures;
+          }, this);
+        }
+      },
+
+      /**
+        @private
+        @method findAll
+        @param {DS.Store} store
+        @param {DS.Model} typeClass
+        @return {Promise} promise
+      */
+      findAll: function (store, typeClass) {
+        var fixtures = this.fixturesForType(typeClass);
+
+        Ember.assert("Unable to find fixtures for model type " + typeClass.toString(), fixtures);
+
+        return this.simulateRemoteCall(function () {
+          return fixtures;
+        }, this);
+      },
+
+      /**
+        @private
+        @method findQuery
+        @param {DS.Store} store
+        @param {DS.Model} typeClass
+        @param {Object} query
+        @param {DS.AdapterPopulatedRecordArray} array
+        @return {Promise} promise
+      */
+      findQuery: function (store, typeClass, query, array) {
+        var fixtures = this.fixturesForType(typeClass);
+
+        Ember.assert("Unable to find fixtures for model type " + typeClass.toString(), fixtures);
+
+        fixtures = this.queryFixtures(fixtures, query, typeClass);
+
+        if (fixtures) {
+          return this.simulateRemoteCall(function () {
+            return fixtures;
+          }, this);
+        }
+      },
+
+      /**
+        @method createRecord
+        @param {DS.Store} store
+        @param {DS.Model} typeClass
+        @param {DS.Snapshot} snapshot
+        @return {Promise} promise
+      */
+      createRecord: function (store, typeClass, snapshot) {
+        var fixture = this.mockJSON(store, typeClass, snapshot);
+
+        this.updateFixtures(typeClass, fixture);
+
+        return this.simulateRemoteCall(function () {
+          return fixture;
+        }, this);
+      },
+
+      /**
+        @method updateRecord
+        @param {DS.Store} store
+        @param {DS.Model} typeClass
+        @param {DS.Snapshot} snapshot
+        @return {Promise} promise
+      */
+      updateRecord: function (store, typeClass, snapshot) {
+        var fixture = this.mockJSON(store, typeClass, snapshot);
+
+        this.updateFixtures(typeClass, fixture);
+
+        return this.simulateRemoteCall(function () {
+          return fixture;
+        }, this);
+      },
+
+      /**
+        @method deleteRecord
+        @param {DS.Store} store
+        @param {DS.Model} typeClass
+        @param {DS.Snapshot} snapshot
+        @return {Promise} promise
+      */
+      deleteRecord: function (store, typeClass, snapshot) {
+        this.deleteLoadedFixture(typeClass, snapshot);
+
+        return this.simulateRemoteCall(function () {
+          // no payload in a deletion
+          return null;
+        });
+      },
+
+      /*
+        @method deleteLoadedFixture
+        @private
+        @param typeClass
+        @param snapshot
+      */
+      deleteLoadedFixture: function (typeClass, snapshot) {
+        var existingFixture = this.findExistingFixture(typeClass, snapshot);
+
+        if (existingFixture) {
+          var index = ember$data$lib$adapters$fixture$adapter$$indexOf.call(typeClass.FIXTURES, existingFixture);
+          typeClass.FIXTURES.splice(index, 1);
+          return true;
+        }
+      },
+
+      /*
+        @method findExistingFixture
+        @private
+        @param typeClass
+        @param snapshot
+      */
+      findExistingFixture: function (typeClass, snapshot) {
+        var fixtures = this.fixturesForType(typeClass);
+        var id = snapshot.id;
+
+        return this.findFixtureById(fixtures, id);
+      },
+
+      /*
+        @method findFixtureById
+        @private
+        @param fixtures
+        @param id
+      */
+      findFixtureById: function (fixtures, id) {
+        return Ember.A(fixtures).find(function (r) {
+          if ("" + ember$data$lib$adapters$fixture$adapter$$get(r, "id") === "" + id) {
+            return true;
+          } else {
+            return false;
+          }
+        });
+      },
+
+      /*
+        @method simulateRemoteCall
+        @private
+        @param callback
+        @param context
+      */
+      simulateRemoteCall: function (callback, context) {
+        var adapter = this;
+
+        return new Ember.RSVP.Promise(function (resolve) {
+          var value = Ember.copy(callback.call(context), true);
+          if (ember$data$lib$adapters$fixture$adapter$$get(adapter, "simulateRemoteResponse")) {
+            // Schedule with setTimeout
+            Ember.run.later(function () {
+              resolve(value);
+            }, ember$data$lib$adapters$fixture$adapter$$get(adapter, "latency"));
+          } else {
+            // Asynchronous, but at the of the runloop with zero latency
+            Ember.run.schedule("actions", null, function () {
+              resolve(value);
+            });
+          }
+        }, "DS: FixtureAdapter#simulateRemoteCall");
+      }
+    });
+
+    var ember$data$lib$adapters$json$api$adapter$$default = ember$data$lib$adapters$rest$adapter$$default.extend({
+      defaultSerializer: '-json-api',
+
+      /**
+        @method ajaxOptions
+        @private
+        @param {String} url
+        @param {String} type The request type GET, POST, PUT, DELETE etc.
+        @param {Object} options
+        @return {Object}
+      */
+      ajaxOptions: function (url, type, options) {
+        var hash = this._super.apply(this, arguments);
+
+        if (hash.contentType) {
+          hash.contentType = 'application/vnd.api+json';
+        }
+
+        var beforeSend = hash.beforeSend;
+        hash.beforeSend = function (xhr) {
+          xhr.setRequestHeader('Accept', 'application/vnd.api+json');
+          if (beforeSend) {
+            beforeSend(xhr);
+          }
+        };
+
+        return hash;
+      },
+
+      /**
+        @method findMany
+        @param {DS.Store} store
+        @param {DS.Model} type
+        @param {Array} ids
+        @param {Array} snapshots
+        @return {Promise} promise
+      */
+      findMany: function (store, type, ids, snapshots) {
+        var url = this.buildURL(type.modelName, ids, snapshots, 'findMany');
+        return this.ajax(url, 'GET', { data: { filter: { id: ids.join(',') } } });
+      },
+
+      /**
+        @method pathForType
+        @param {String} modelName
+        @return {String} path
+      **/
+      pathForType: function (modelName) {
+        var dasherized = Ember.String.dasherize(modelName);
+        return Ember.String.pluralize(dasherized);
+      },
+
+      // TODO: Remove this once we have a better way to override HTTP verbs.
+      /**
+        @method updateRecord
+        @param {DS.Store} store
+        @param {DS.Model} type
+        @param {DS.Snapshot} snapshot
+        @return {Promise} promise
+      */
+      updateRecord: function (store, type, snapshot) {
+        var data = {};
+        var serializer = store.serializerFor(type.modelName);
+
+        serializer.serializeIntoHash(data, type, snapshot, { includeId: true });
+
+        var id = snapshot.id;
+        var url = this.buildURL(type.modelName, id, snapshot, 'updateRecord');
+
+        return this.ajax(url, 'PATCH', { data: data });
+      }
+    });
+
     var ember$data$lib$core$$DS = Ember.Namespace.create({
-      VERSION: '1.13.5'
+      VERSION: '1.13.7'
     });
 
     if (Ember.libraries) {
@@ -75739,7 +76258,10 @@ define("ember/load-initializers",
       }
 
       if (serializer === null || serializer === undefined) {
-        Ember.deprecate('Ember Data 2.0 will no longer support adapters with a null serializer property. Please define `defaultSerializer: "-default"` your adapter and make sure the `serializer` property is not null.');
+        Ember.deprecate('Ember Data 2.0 will no longer support adapters with a null serializer property. Please define `defaultSerializer: "-default"` your adapter and make sure the `serializer` property is not null.', false, {
+          id: 'ds.adapter.null-serializer-property',
+          until: '2.0.0'
+        });
         serializer = {
           extract: function (store, type, payload) {
             return payload;
@@ -75757,7 +76279,10 @@ define("ember/load-initializers",
       var snapshot = internalModel.createSnapshot(options);
       var promise;
       if (!adapter.findRecord) {
-        Ember.deprecate("Adapter#find has been deprecated and renamed to `findRecord`.");
+        Ember.deprecate("Adapter#find has been deprecated and renamed to `findRecord`.", false, {
+          id: "ds.adapter.find-renamed-to-find-record",
+          until: "2.0.0"
+        });
         promise = adapter.find(store, typeClass, id, snapshot);
       } else {
         promise = adapter.findRecord(store, typeClass, id, snapshot);
@@ -75893,7 +76418,10 @@ define("ember/load-initializers",
       var promise;
 
       if (!adapter.query) {
-        Ember.deprecate("Adapter#findQuery has been deprecated and renamed to `query`.");
+        Ember.deprecate("Adapter#findQuery has been deprecated and renamed to `query`.", false, {
+          id: "ds.adapter.find-query-renamed-to-query",
+          until: "2.0.0"
+        });
         promise = adapter.findQuery(store, typeClass, query, recordArray);
       } else {
         promise = adapter.query(store, typeClass, query, recordArray);
@@ -75940,14 +76468,51 @@ define("ember/load-initializers",
       }, null, "DS: Extract payload of queryRecord " + typeClass);
     }
     function ember$data$lib$system$snapshot$record$array$$SnapshotRecordArray(recordArray, meta, adapterOptions) {
+      /**
+        An array of snapshots
+        @private
+        @property _snapshots
+        @type {Array}
+      */
       this._snapshots = null;
+      /**
+        An array of records
+        @private
+        @property _recordArray
+        @type {Array}
+      */
       this._recordArray = recordArray;
+      /**
+        Number of records in the array
+        @property length
+        @type {Number}
+      */
       this.length = recordArray.get('length');
+      /**
+        The type of the underlying records for the snapshots in the array, as a DS.Model
+        @property type
+        @type {DS.Model}
+      */
       this.type = recordArray.get('type');
+      /**
+        Meta object
+        @property meta
+        @type {Object}
+      */
       this.meta = meta;
+      /**
+        A hash of adapter options
+        @property adapterOptions
+        @type {Object}
+      */
       this.adapterOptions = adapterOptions;
     }
 
+    /**
+      Get snapshots of the underlying record array
+      @method snapshots
+      @return {Array} Array of snapshots
+    */
     ember$data$lib$system$snapshot$record$array$$SnapshotRecordArray.prototype.snapshots = function () {
       if (this._snapshots) {
         return this._snapshots;
@@ -76180,9 +76745,9 @@ define("ember/load-initializers",
         manager.updateFilter(this, ember$data$lib$system$record$arrays$filtered$record$array$$get(this, "type"), ember$data$lib$system$record$arrays$filtered$record$array$$get(this, "filterFunction"));
       },
 
-      updateFilter: Ember.observer(function () {
+      updateFilter: Ember.observer("filterFunction", function () {
         Ember.run.once(this, this._updateFilter);
-      }, "filterFunction")
+      })
     });
 
     var ember$data$lib$system$clone$null$$default = ember$data$lib$system$clone$null$$cloneNull;
@@ -76643,7 +77208,10 @@ define("ember/load-initializers",
 
       instanceFor: function (key) {
         if (key === 'adapter:-rest') {
-          ember$lib$main$$default.deprecate('You are currently using the default DS.RESTAdapter adapter. For Ember 2.0 the default adapter will be DS.JSONAPIAdapter. If you would like to continue using DS.RESTAdapter please create an application adapter that extends DS.RESTAdapter.');
+          ember$lib$main$$default.deprecate('You are currently using the default DS.RESTAdapter adapter. For Ember 2.0 the default adapter will be DS.JSONAPIAdapter. If you would like to continue using DS.RESTAdapter please create an application adapter that extends DS.RESTAdapter.', false, {
+            id: 'ds.adapter.default-adapter-changing-to-json-api',
+            until: '2.0.0'
+          });
         }
 
         var cache = this._cache;
@@ -77043,6 +77611,7 @@ define("ember/load-initializers",
 
         rolledBack: function (internalModel) {
           internalModel.clearErrorMessages();
+          internalModel.transitionTo('loaded.saved');
           internalModel.triggerLater('ready');
         },
 
@@ -77663,13 +78232,15 @@ define("ember/load-initializers",
         this.willSync = true;
         var self = this;
         this.store._backburner.join(function () {
-          self.store._backburner.schedule("syncRelationships", self, self.flushCanonical);
+          self.store._backburner.schedule('syncRelationships', self, self.flushCanonical);
         });
       },
 
       updateLink: function (link) {
-        Ember.warn("You have pushed a record of type '" + this.record.type.modelName + "' with '" + this.key + "' as a link, but the association is not an async relationship.", this.isAsync);
-        Ember.assert("You have pushed a record of type '" + this.record.type.modelName + "' with '" + this.key + "' as a link, but the value of that link is not a string.", typeof link === "string" || link === null);
+        Ember.warn('You have pushed a record of type \'' + this.record.type.modelName + '\' with \'' + this.key + '\' as a link, but the association is not an async relationship.', this.isAsync, {
+          id: 'ds.store.push-link-for-sync-relationship'
+        });
+        Ember.assert('You have pushed a record of type \'' + this.record.type.modelName + '\' with \'' + this.key + '\' as a link, but the value of that link is not a string.', typeof link === 'string' || link === null);
         if (link !== this.link) {
           this.link = link;
           this.linkPromise = null;
@@ -77938,7 +78509,10 @@ define("ember/load-initializers",
         @deprecated Use `addObject()` instead
       */
       addRecord: function (record) {
-        Ember.deprecate('Using manyArray.addRecord() has been deprecated. You should use manyArray.addObject() instead.');
+        Ember.deprecate('Using manyArray.addRecord() has been deprecated. You should use manyArray.addObject() instead.', false, {
+          id: 'ds.many-array.add-record-deprecated',
+          until: '2.0.0'
+        });
         this.addObject(record);
       },
 
@@ -77948,7 +78522,10 @@ define("ember/load-initializers",
         @deprecated Use `removeObject()` instead
       */
       removeRecord: function (record) {
-        Ember.deprecate('Using manyArray.removeRecord() has been deprecated. You should use manyArray.removeObject() instead.');
+        Ember.deprecate('Using manyArray.removeRecord() has been deprecated. You should use manyArray.removeObject() instead.', false, {
+          id: 'ds.many-array.remove-record-deprecated',
+          until: '2.0.0'
+        });
         this.removeObject(record);
       }
     });
@@ -78434,7 +79011,10 @@ define("ember/load-initializers",
             // again.
             if (callDeprecate) {
               callDeprecate = false;
-              Ember.deprecate('Usage of `snapshot.constructor` is deprecated, use `snapshot.type` instead.');
+              Ember.deprecate('Usage of `snapshot.constructor` is deprecated, use `snapshot.type` instead.', false, {
+                id: 'ds.snapshot.constructor-deprecator',
+                until: '2.0.0'
+              });
               callDeprecate = true;
             }
 
@@ -78719,7 +79299,10 @@ define("ember/load-initializers",
         @deprecated Use [attr](#method_attr), [belongsTo](#method_belongsTo) or [hasMany](#method_hasMany) instead
       */
       get: function (keyName) {
-        Ember.deprecate('Using DS.Snapshot.get() is deprecated. Use .attr(), .belongsTo() or .hasMany() instead.');
+        Ember.deprecate('Using DS.Snapshot.get() is deprecated. Use .attr(), .belongsTo() or .hasMany() instead.', false, {
+          id: 'ds.snapshot.get-deprecated',
+          until: '2.0.0'
+        });
 
         if (keyName === 'id') {
           return this.id;
@@ -78765,7 +79348,10 @@ define("ember/load-initializers",
         @private
       */
       _createSnapshot: function () {
-        Ember.deprecate('You called _createSnapshot on what\'s already a DS.Snapshot. You shouldn\'t manually create snapshots in your adapter since the store passes snapshots to adapters by default.');
+        Ember.deprecate('You called _createSnapshot on what\'s already a DS.Snapshot. You shouldn\'t manually create snapshots in your adapter since the store passes snapshots to adapters by default.', false, {
+          id: 'ds.snapshot.create-snapshot-on-snapshot',
+          until: '2.0.0'
+        });
         return this;
       }
     };
@@ -78773,7 +79359,10 @@ define("ember/load-initializers",
     Ember.defineProperty(ember$data$lib$system$snapshot$$Snapshot.prototype, 'typeKey', {
       enumerable: false,
       get: function () {
-        Ember.deprecate('Snapshot.typeKey is deprecated. Use snapshot.modelName instead.');
+        Ember.deprecate('Snapshot.typeKey is deprecated. Use snapshot.modelName instead.', false, {
+          id: 'ds.snapshot.type-key-deprecated',
+          until: '2.0.0'
+        });
         return this.modelName;
       },
       set: function () {
@@ -78886,7 +79475,7 @@ define("ember/load-initializers",
           _internalModel: this,
           currentState: ember$data$lib$system$model$internal$model$$get(this, "currentState"),
           isError: this.isError,
-          error: this.error
+          adapterError: this.error
         });
         this._triggerDeferredTriggers();
       },
@@ -79348,17 +79937,19 @@ define("ember/load-initializers",
         if (this.record) {
           this.record.setProperties({
             isError: true,
-            error: error
+            adapterError: error
           });
         }
       },
 
       didCleanError: function () {
+        this.error = null;
         this.isError = false;
+
         if (this.record) {
           this.record.setProperties({
             isError: false,
-            error: null
+            adapterError: null
           });
         }
       },
@@ -79933,13 +80524,19 @@ define("ember/load-initializers",
         Ember.assert("Passing classes to store methods has been removed. Please pass a dasherized string instead of " + Ember.inspect(modelName), typeof modelName === "string");
 
         if (arguments.length === 1) {
-          Ember.deprecate("Using store.find(type) has been deprecated. Use store.findAll(type) to retrieve all records for a given type.");
+          Ember.deprecate("Using store.find(type) has been deprecated. Use store.findAll(type) to retrieve all records for a given type.", false, {
+            id: "ds.store.find-with-type-deprecated",
+            until: "2.0.0"
+          });
           return this.findAll(modelName);
         }
 
         // We are passed a query instead of an id.
         if (Ember.typeOf(id) === "object") {
-          Ember.deprecate("Calling store.find() with a query object is deprecated. Use store.query() instead.");
+          Ember.deprecate("Calling store.find() with a query object is deprecated. Use store.query() instead.", false, {
+            id: "ds.store.find-with-type-deprecated",
+            until: "2.0.0"
+          });
           return this.query(modelName, id);
         }
         var options = ember$data$lib$system$store$$deprecatePreload(preload, this.modelFor(modelName), "find");
@@ -79958,7 +80555,10 @@ define("ember/load-initializers",
       fetchById: function (modelName, id, preload) {
         Ember.assert("Passing classes to store methods has been removed. Please pass a dasherized string instead of " + Ember.inspect(modelName), typeof modelName === "string");
         var options = ember$data$lib$system$store$$deprecatePreload(preload, this.modelFor(modelName), "fetchById");
-        Ember.deprecate("Using store.fetchById(type, id) has been deprecated. Use store.findRecord(type, id, { reload: true }) to reload a record for a given type.");
+        Ember.deprecate("Using store.fetchById(type, id) has been deprecated. Use store.findRecord(type, id, { reload: true }) to reload a record for a given type.", false, {
+          id: "ds.store.fetch-by-id-deprecated",
+          until: "2.0.0"
+        });
         if (this.hasRecordForId(modelName, id)) {
           return this.peekRecord(modelName, id).reload();
         } else {
@@ -79975,7 +80575,10 @@ define("ember/load-initializers",
         @return {Promise} promise
       */
       fetchAll: function (modelName) {
-        Ember.deprecate("Using store.fetchAll(type) has been deprecated. Use store.findAll(type, { reload: true }) to retrieve all records for a given type.");
+        Ember.deprecate("Using store.fetchAll(type) has been deprecated. Use store.findAll(type, { reload: true }) to retrieve all records for a given type.", false, {
+          id: "ds.store.fetch-all-deprecated",
+          until: "2.0.0"
+        });
         return this.findAll(modelName, { reload: true });
       },
 
@@ -79989,7 +80592,10 @@ define("ember/load-initializers",
       */
       fetch: function (modelName, id, preload) {
         Ember.assert("Passing classes to store methods has been removed. Please pass a dasherized string instead of " + Ember.inspect(modelName), typeof modelName === "string");
-        Ember.deprecate("Using store.fetch() has been deprecated. Use store.findRecord for fetching individual records or store.findAll for collections");
+        Ember.deprecate("Using store.fetch() has been deprecated. Use store.findRecord for fetching individual records or store.findAll for collections", false, {
+          id: "ds.store.fetch-deprecated",
+          until: "2.0.0"
+        });
         return this.findRecord(modelName, id, { reload: true, preload: preload });
       },
 
@@ -80003,7 +80609,10 @@ define("ember/load-initializers",
         @return {Promise} promise
       */
       findById: function (modelName, id, preload) {
-        Ember.deprecate("Using store.findById() has been deprecated. Use store.findRecord() to return a record for a given type and id combination.");
+        Ember.deprecate("Using store.findById() has been deprecated. Use store.findRecord() to return a record for a given type and id combination.", false, {
+          id: "ds.store.find-by-id-deprecated",
+          until: "2.0.0"
+        });
         var options = ember$data$lib$system$store$$deprecatePreload(preload, this.modelFor(modelName), "findById");
         return this.findRecord(modelName, id, options);
       },
@@ -80216,7 +80825,9 @@ define("ember/load-initializers",
               return resolvedRecords.contains(record);
             });
             if (missingRecords.length) {
-              Ember.warn("Ember Data expected to find records with the following ids in the adapter response but they were missing: " + Ember.inspect(Ember.A(missingRecords).mapBy("id")), false);
+              Ember.warn("Ember Data expected to find records with the following ids in the adapter response but they were missing: " + Ember.inspect(Ember.A(missingRecords).mapBy("id")), false, {
+                id: "ds.store.missing-records-from-adapter"
+              });
             }
             rejectRecords(missingRecords);
           };
@@ -80289,7 +80900,10 @@ define("ember/load-initializers",
         @return {DS.Model|null} record
       */
       getById: function (modelName, id) {
-        Ember.deprecate("Using store.getById() has been deprecated. Use store.peekRecord to get a record by a given type and ID without triggering a fetch.");
+        Ember.deprecate("Using store.getById() has been deprecated. Use store.peekRecord to get a record by a given type and ID without triggering a fetch.", false, {
+          id: "ds.store.get-by-id-deprecated",
+          until: "2.0.0"
+        });
         return this.peekRecord(modelName, id);
       },
 
@@ -80441,21 +81055,27 @@ define("ember/load-initializers",
          Exposing queries this way seems preferable to creating an abstract query
         language for all server-side queries, and then require all adapters to
         implement them.
+         ---
+         If you do something like this:
+         ```javascript
+        store.query('person', { page: 1 });
+        ```
          The call made to the server, using a Rails backend, will look something like this:
          ```
         Started GET "/api/v1/person?page=1"
         Processing by Api::V1::PersonsController#index as HTML
-        Parameters: {"page"=>"1"}
+        Parameters: { "page"=>"1" }
         ```
+         ---
          If you do something like this:
          ```javascript
-        store.query('person', {ids: [1, 2, 3]});
+        store.query('person', { ids: [1, 2, 3] });
         ```
          The call to the server, using a Rails backend, will look something like this:
          ```
         Started GET "/api/v1/person?ids%5B%5D=1&ids%5B%5D=2&ids%5B%5D=3"
         Processing by Api::V1::PersonsController#index as HTML
-        Parameters: {"ids"=>["1", "2", "3"]}
+        Parameters: { "ids" => ["1", "2", "3"] }
         ```
          This method returns a promise, which is resolved with a `RecordArray`
         once the server returns.
@@ -80519,7 +81139,10 @@ define("ember/load-initializers",
         @deprecated Use `store.query instead`
       */
       findQuery: function (modelName, query) {
-        Ember.deprecate("store#findQuery is deprecated. You should use store#query instead.");
+        Ember.deprecate("store#findQuery is deprecated. You should use store#query instead.", false, {
+          id: "ds.store.find-query-deprecated",
+          until: "2.0.0"
+        });
         return this.query(modelName, query);
       },
 
@@ -80607,7 +81230,10 @@ define("ember/load-initializers",
         @return {DS.RecordArray}
       */
       all: function (modelName) {
-        Ember.deprecate("Using store.all() has been deprecated. Use store.peekAll() to get all records by a given type without triggering a fetch.");
+        Ember.deprecate("Using store.all() has been deprecated. Use store.peekAll() to get all records by a given type without triggering a fetch.", false, {
+          id: "ds.store.all-renamed-deprecated",
+          until: "2.0.0"
+        });
         return this.peekAll(modelName);
       },
 
@@ -80725,7 +81351,9 @@ define("ember/load-initializers",
 
         if (!Ember.ENV.ENABLE_DS_FILTER) {
           Ember.deprecate("The filter API will be moved into a plugin soon. To enable store.filter using an environment flag, or to use an alternative, you can visit the ember-data-filter addon page", false, {
-            url: "https://github.com/ember-data/ember-data-filter"
+            url: "https://github.com/ember-data/ember-data-filter",
+            id: "ds.store.filter-deprecated",
+            until: "2.0.0"
           });
         }
 
@@ -80785,7 +81413,10 @@ define("ember/load-initializers",
         @deprecated
       */
       metadataFor: function (modelName) {
-        Ember.deprecate("`store.metadataFor()` has been deprecated. You can use `.get('meta')` on relationships and arrays returned from `store.query()`.");
+        Ember.deprecate("`store.metadataFor()` has been deprecated. You can use `.get('meta')` on relationships and arrays returned from `store.query()`.", false, {
+          id: "ds.store.metadata-for-deprecated",
+          until: "2.0.0"
+        });
         return this._metadataFor(modelName);
       },
 
@@ -80810,7 +81441,10 @@ define("ember/load-initializers",
         @deprecated
       */
       setMetadataFor: function (modelName, metadata) {
-        Ember.deprecate("`store.setMetadataFor()` has been deprecated. Please return meta from your serializer's `extractMeta` hook.");
+        Ember.deprecate("`store.setMetadataFor()` has been deprecated. Please return meta from your serializer's `extractMeta` hook.", false, {
+          id: "ds.store.set-metadata-for-deprecated",
+          until: "2.0.0"
+        });
         this._setMetadataFor(modelName, metadata);
       },
 
@@ -81083,7 +81717,10 @@ define("ember/load-initializers",
             enumerable: true,
             configurable: false,
             get: function () {
-              Ember.deprecate("Usage of `typeKey` has been deprecated and will be removed in Ember Data 1.0. It has been replaced by `modelName` on the model class.");
+              Ember.deprecate("Usage of `typeKey` has been deprecated and will be removed in Ember Data 2.0. It has been replaced by `modelName` on the model class.", false, {
+                id: "ds.model.type-key-replace-by-model-name",
+                until: "2.0.0"
+              });
               var typeKey = this.modelName;
               if (typeKey) {
                 typeKey = Ember.String.camelize(this.modelName);
@@ -81168,7 +81805,10 @@ define("ember/load-initializers",
         if (Ember.typeOf(modelNameArg) === "object" && Ember.typeOf(dataArg) === "undefined") {
           data = modelNameArg;
         } else {
-          Ember.deprecate("store.push(type, data) has been deprecated. Please provide a JSON-API document object as the first and only argument to store.push.");
+          Ember.deprecate("store.push(type, data) has been deprecated. Please provide a JSON-API document object as the first and only argument to store.push.", false, {
+            id: "ds.store.push-with-type-and-data-deprecated",
+            until: "2.0.0"
+          });
           Ember.assert("Expected an object as `data` in a call to `push` for " + modelNameArg + " , but was " + Ember.typeOf(dataArg), Ember.typeOf(dataArg) === "object");
           Ember.assert("You must include an `id` for " + modelNameArg + " in an object passed to `push`", dataArg.id != null && dataArg.id !== "");
           data = ember$data$lib$system$store$serializer$response$$_normalizeSerializerPayload(this.modelFor(modelNameArg), dataArg);
@@ -81196,10 +81836,15 @@ define("ember/load-initializers",
         return internalModel.getRecord();
       },
 
+      _hasModelFor: function (type) {
+        return this.container.lookupFactory("model:" + type);
+      },
+
       _pushInternalModel: function (data) {
         var modelName = data.type;
-        Ember.assert("Expected an object as `data` in a call to `push` for " + modelName + " , but was " + Ember.typeOf(data), Ember.typeOf(data) === "object");
-        Ember.assert("You must include an `id` for " + modelName + " in an object passed to `push`", data.id != null && data.id !== "");
+        Ember.assert("Expected an object as 'data' in a call to 'push' for " + modelName + ", but was " + Ember.typeOf(data), Ember.typeOf(data) === "object");
+        Ember.assert("You must include an 'id' for " + modelName + " in an object passed to 'push'", data.id != null && data.id !== "");
+        Ember.assert("You tried to push data with a type '" + modelName + "' but no model could be found with that name.", this._hasModelFor(modelName));
 
         var type = this.modelFor(modelName);
         var filter = Ember.ArrayPolyfills.filter;
@@ -81212,7 +81857,7 @@ define("ember/load-initializers",
             return !(key === "id" || key === "links" || ember$data$lib$system$store$$get(type, "fields").has(key) || key.match(/Type$/));
           })) + ". Make sure they've been defined in your model.", filter.call(ember$data$lib$system$object$polyfills$$keysFunc(data), function (key) {
             return !(key === "id" || key === "links" || ember$data$lib$system$store$$get(type, "fields").has(key) || key.match(/Type$/));
-          }).length === 0);
+          }).length === 0, { id: "ds.store.unknown-keys-in-payload" });
         }
 
         // Actually load the record into the store.
@@ -81336,7 +81981,10 @@ define("ember/load-initializers",
       */
       update: function (modelName, data) {
         Ember.assert("Passing classes to store methods has been removed. Please pass a dasherized string instead of " + Ember.inspect(modelName), typeof modelName === "string");
-        Ember.deprecate("Using store.update() has been deprecated since store.push() now handles partial updates. You should use store.push() instead.");
+        Ember.deprecate("Using store.update() has been deprecated since store.push() now handles partial updates. You should use store.push() instead.", false, {
+          id: "ds.store.update-deprecated",
+          until: "2.0.0"
+        });
         return this.push(modelName, data);
       },
 
@@ -81351,7 +81999,10 @@ define("ember/load-initializers",
       */
       pushMany: function (modelName, datas) {
         Ember.assert("Passing classes to store methods has been removed. Please pass a dasherized string instead of " + Ember.inspect(modelName), typeof modelName === "string");
-        Ember.deprecate("Using store.pushMany() has been deprecated since store.push() now handles multiple items. You should use store.push() instead.");
+        Ember.deprecate("Using store.pushMany() has been deprecated since store.push() now handles multiple items. You should use store.push() instead.", false, {
+          id: "ds.store.push-many-deprecated",
+          until: "2.0.0"
+        });
         var length = datas.length;
         var result = new Array(length);
 
@@ -81370,7 +82021,10 @@ define("ember/load-initializers",
       */
       metaForType: function (modelName, metadata) {
         Ember.assert("Passing classes to store methods has been removed. Please pass a dasherized string instead of " + Ember.inspect(modelName), typeof modelName === "string");
-        Ember.deprecate("Using store.metaForType() has been deprecated. Use store.setMetadataFor() to set metadata for a specific type.");
+        Ember.deprecate("Using store.metaForType() has been deprecated. Use store.setMetadataFor() to set metadata for a specific type.", false, {
+          id: "ds.store.meta-for-type-deprecated",
+          until: "2.0.0"
+        });
         this.setMetadataFor(modelName, metadata);
       },
 
@@ -81422,7 +82076,10 @@ define("ember/load-initializers",
         @deprecated Use [unloadRecord](#method_unloadRecord) instead
       */
       dematerializeRecord: function (record) {
-        Ember.deprecate("Using store.dematerializeRecord() has been deprecated since it was intended for private use only. You should use store.unloadRecord() instead.");
+        Ember.deprecate("Using store.dematerializeRecord() has been deprecated since it was intended for private use only. You should use store.unloadRecord() instead.", false, {
+          id: "ds.store.dematerialize-record-deprecated",
+          until: "2.0.0"
+        });
         this._dematerializeRecord(record);
       },
 
@@ -81469,12 +82126,11 @@ define("ember/load-initializers",
       adapterFor: function (modelOrClass) {
         var modelName;
 
-        Ember.deprecate("Passing classes to store methods has been removed. Please pass a dasherized string instead of " + Ember.inspect(modelName), typeof modelOrClass === "string");
-
-        if (typeof modelOrClass !== "string") {
-          modelName = modelOrClass.modelName;
-        } else {
+        if (typeof modelOrClass === "string") {
           modelName = modelOrClass;
+        } else {
+          Ember.deprecate("Passing classes to store methods has been removed. Please pass a dasherized string instead of " + Ember.inspect(modelName), false, { id: "ds.store.passing-classes-deprecated", until: "2.0.0" });
+          modelName = modelOrClass.modelName;
         }
 
         return this.lookupAdapter(modelName);
@@ -81508,11 +82164,11 @@ define("ember/load-initializers",
       serializerFor: function (modelOrClass) {
         var modelName;
 
-        Ember.deprecate("Passing classes to store methods has been removed. Please pass a dasherized string instead of " + Ember.inspect(modelOrClass), typeof modelOrClass === "string");
-        if (typeof modelOrClass !== "string") {
-          modelName = modelOrClass.modelName;
-        } else {
+        if (typeof modelOrClass === "string") {
           modelName = modelOrClass;
+        } else {
+          Ember.deprecate("Passing classes to store methods has been removed. Please pass a dasherized string instead of " + Ember.inspect(modelName), false, { id: "ds.store.passing-classes-deprecated", until: "2.0.0" });
+          modelName = modelOrClass.modelName;
         }
 
         var fallbacks = ["application", this.adapterFor(modelName).get("defaultSerializer"), "-default"];
@@ -81711,7 +82367,10 @@ define("ember/load-initializers",
         }
 
         if (preloadDetected) {
-          Ember.deprecate("Passing a preload argument to `store." + methodName + "` is deprecated. Please move it to the preload key on the " + methodName + " `options` argument.");
+          Ember.deprecate("Passing a preload argument to `store." + methodName + "` is deprecated. Please move it to the preload key on the " + methodName + " `options` argument.", false, {
+            id: "ds.store.preload-outside-options",
+            until: "2.0.0"
+          });
           var preload = preloadOrOptions;
           return {
             preload: preload
@@ -81934,7 +82593,22 @@ define("ember/load-initializers",
       },
 
       /**
-       @method keyForAttribute
+       `keyForAttribute` can be used to define rules for how to convert an
+       attribute name in your model to a key in your JSON.
+       By default `JSONAPISerializer` follows the format used on the examples of
+       http://jsonapi.org/format and uses dashes as the word separator in the JSON
+       attribute keys.
+        This behaviour can be easily customized by extending this method.
+        Example
+        ```app/serializers/application.js
+       import DS from 'ember-data';
+        export default DS.JSONAPISerializer.extend({
+         keyForAttribute: function(attr, method) {
+           return Ember.String.dasherize(attr).toUpperCase();
+         }
+       });
+       ```
+        @method keyForAttribute
        @param {String} key
        @param {String} method
        @return {String} normalized key
@@ -81944,6 +82618,21 @@ define("ember/load-initializers",
       },
 
       /**
+       `keyForRelationship` can be used to define a custom key when
+       serializing and deserializing relationship properties.
+       By default `JSONAPISerializer` follows the format used on the examples of
+       http://jsonapi.org/format and uses dashes as word separators in
+       relationship properties.
+        This behaviour can be easily customized by extending this method.
+        Example
+         ```app/serializers/post.js
+        import DS from 'ember-data';
+         export default DS.JSONAPISerializer.extend({
+          keyForRelationship: function(key, relationship, method) {
+            return Ember.String.underscore(key);
+          }
+        });
+        ```
        @method keyForRelationship
        @param {String} key
        @param {String} typeClass
@@ -82073,7 +82762,7 @@ define("ember/load-initializers",
       @param {Object} [application] an application namespace
     */
     function ember$data$lib$initializers$store$$initializeStore(registry, application) {
-      Ember.deprecate("Specifying a custom Store for Ember Data on your global namespace as `App.Store` " + "has been deprecated. Please use `App.ApplicationStore` instead.", !(application && application.Store));
+      Ember.deprecate("Specifying a custom Store for Ember Data on your global namespace as `App.Store` " + "has been deprecated. Please use `App.ApplicationStore` instead.", !(application && application.Store), { id: "ds.initializer.specifying-custom-store-on-global-namespace-deprecated", until: "2.0.0" });
 
       registry.optionsForType("serializer", { singleton: false });
       registry.optionsForType("adapter", { singleton: false });
@@ -82092,7 +82781,10 @@ define("ember/load-initializers",
 
       var store;
       if (registry.has("store:main")) {
-        Ember.deprecate("Registering a custom store as `store:main` or defining a store in app/store.js has been deprecated. Please move you store to `service:store` or define your custom store in `app/services/store.js`");
+        Ember.deprecate("Registering a custom store as `store:main` or defining a store in app/store.js has been deprecated. Please move you store to `service:store` or define your custom store in `app/services/store.js`", false, {
+          id: "ds.initializer.custom-store-as-store-main-deprecated",
+          until: "2.0.0"
+        });
         store = registry.lookup("store:main");
       } else {
         var storeMainProxy = new ember$data$lib$system$container$proxy$$default(registry);
@@ -82100,7 +82792,10 @@ define("ember/load-initializers",
       }
 
       if (registry.has("store:application")) {
-        Ember.deprecate("Registering a custom store as `store:application` or defining a store in app/stores/application.js has been deprecated. Please move you store to `service:store` or define your custom store in `app/services/store.js`");
+        Ember.deprecate("Registering a custom store as `store:main` or defining a store in app/store.js has been deprecated. Please move you store to `service:store` or define your custom store in `app/services/store.js`", false, {
+          id: "ds.initializer.custom-store-as-store-main-deprecated",
+          until: "2.0.0"
+        });
         store = registry.lookup("store:application");
       } else {
         var storeApplicationProxy = new ember$data$lib$system$container$proxy$$default(registry);
@@ -82281,61 +82976,6 @@ define("ember/load-initializers",
       registry.injection('controller', 'store', 'service:store');
       registry.injection('route', 'store', 'service:store');
       registry.injection('data-adapter', 'store', 'service:store');
-    }
-    var ember$new$computed$lib$utils$can$use$new$syntax$$supportsSetterGetter;
-
-    try {
-      ember$lib$main$$default.computed({
-        set: function () {},
-        get: function () {}
-      });
-      ember$new$computed$lib$utils$can$use$new$syntax$$supportsSetterGetter = true;
-    } catch (e) {
-      ember$new$computed$lib$utils$can$use$new$syntax$$supportsSetterGetter = false;
-    }
-
-    var ember$new$computed$lib$utils$can$use$new$syntax$$default = ember$new$computed$lib$utils$can$use$new$syntax$$supportsSetterGetter;
-    var ember$new$computed$lib$main$$default = ember$new$computed$lib$main$$newComputed;
-
-    var ember$new$computed$lib$main$$computed = ember$lib$main$$default.computed;
-
-    function ember$new$computed$lib$main$$newComputed() {
-      var polyfillArguments = [];
-      var config = arguments[arguments.length - 1];
-
-      if (typeof config === 'function' || ember$new$computed$lib$utils$can$use$new$syntax$$default) {
-        return ember$new$computed$lib$main$$computed.apply(undefined, arguments);
-      }
-
-      for (var i = 0, l = arguments.length - 1; i < l; i++) {
-        polyfillArguments.push(arguments[i]);
-      }
-
-      var func;
-      if (config.set) {
-        func = function (key, value) {
-          if (arguments.length > 1) {
-            return config.set.call(this, key, value);
-          } else {
-            return config.get.call(this, key);
-          }
-        };
-      } else {
-        func = function (key) {
-          return config.get.call(this, key);
-        };
-      }
-
-      polyfillArguments.push(func);
-
-      return ember$new$computed$lib$main$$computed.apply(undefined, polyfillArguments);
-    }
-
-    var ember$new$computed$lib$main$$getKeys = Object.keys || ember$lib$main$$default.keys;
-    var ember$new$computed$lib$main$$computedKeys = ember$new$computed$lib$main$$getKeys(ember$new$computed$lib$main$$computed);
-
-    for (var ember$new$computed$lib$main$$i = 0, ember$new$computed$lib$main$$l = ember$new$computed$lib$main$$computedKeys.length; ember$new$computed$lib$main$$i < ember$new$computed$lib$main$$l; ember$new$computed$lib$main$$i++) {
-      ember$new$computed$lib$main$$newComputed[ember$new$computed$lib$main$$computedKeys[ember$new$computed$lib$main$$i]] = ember$new$computed$lib$main$$computed[ember$new$computed$lib$main$$computedKeys[ember$new$computed$lib$main$$i]];
     }
     var ember$data$lib$system$model$attributes$$default = ember$data$lib$system$model$attributes$$attr;
 
@@ -83314,7 +83954,7 @@ define("ember/load-initializers",
           key = this.keyForAttribute(attr, 'serialize');
           hasMany = snapshot.hasMany(attr);
 
-          Ember.warn('The embedded relationship \'' + key + '\' is undefined for \'' + snapshot.modelName + '\' with id \'' + snapshot.id + '\'. Please include it in your original payload.', Ember.typeOf(hasMany) !== 'undefined');
+          Ember.warn('The embedded relationship \'' + key + '\' is undefined for \'' + snapshot.modelName + '\' with id \'' + snapshot.id + '\'. Please include it in your original payload.', Ember.typeOf(hasMany) !== 'undefined', { id: 'ds.serializer.embedded-relationship-undefined' });
 
           json[key] = Ember.A(hasMany).map(function (embeddedSnapshot) {
             var embeddedJson = embeddedSnapshot.record.serialize({ includeId: true });
@@ -83746,11 +84386,23 @@ define("ember/load-initializers",
 
       return ember$new$computed$lib$main$$default({
         get: function (key) {
-          Ember.warn("You provided a serialize option on the \"" + key + "\" property in the \"" + this._internalModel.modelName + "\" class, this belongs in the serializer. See DS.Serializer and it's implementations http://emberjs.com/api/data/classes/DS.Serializer.html", !opts.hasOwnProperty("serialize"));
-          Ember.warn("You provided an embedded option on the \"" + key + "\" property in the \"" + this._internalModel.modelName + "\" class, this belongs in the serializer. See DS.EmbeddedRecordsMixin http://emberjs.com/api/data/classes/DS.EmbeddedRecordsMixin.html", !opts.hasOwnProperty("embedded"));
+          if (opts.hasOwnProperty("serialize")) {
+            Ember.warn("You provided a serialize option on the \"" + key + "\" property in the \"" + this._internalModel.modelName + "\" class, this belongs in the serializer. See DS.Serializer and it's implementations http://emberjs.com/api/data/classes/DS.Serializer.html", false, {
+              id: "ds.model.serialize-option-in-belongs-to"
+            });
+          }
+
+          if (opts.hasOwnProperty("embedded")) {
+            Ember.warn("You provided an embedded option on the \"" + key + "\" property in the \"" + this._internalModel.modelName + "\" class, this belongs in the serializer. See DS.EmbeddedRecordsMixin http://emberjs.com/api/data/classes/DS.EmbeddedRecordsMixin.html", false, {
+              id: "ds.model.embedded-option-in-belongs-to"
+            });
+          }
 
           if (meta.shouldWarnAsync) {
-            Ember.deprecate("In Ember Data 2.0, relationships will be asynchronous by default. You must set `" + key + ": DS.belongsTo('" + modelName + "', { async: false })` if you wish for a relationship remain synchronous.");
+            Ember.deprecate("In Ember Data 2.0, relationships will be asynchronous by default. You must set `" + key + ": DS.belongsTo('" + modelName + "', { async: false })` if you wish for a relationship remain synchronous.", false, {
+              id: "ds.model.relationship-changing-to-asynchrounous-by-default",
+              until: "2.0.0"
+            });
             meta.shouldWarnAsycn = false;
           }
 
@@ -83926,7 +84578,10 @@ define("ember/load-initializers",
       return ember$new$computed$lib$main$$default({
         get: function (key) {
           if (meta.shouldWarnAsync) {
-            Ember.deprecate("In Ember Data 2.0, relationships will be asynchronous by default. You must set `" + key + ": DS.hasMany('" + type + "', { async: false })` if you wish for a relationship remain synchronous.");
+            Ember.deprecate("In Ember Data 2.0, relationships will be asynchronous by default. You must set `" + key + ": DS.hasMany('" + type + "', { async: false })` if you wish for a relationship remain synchronous.", false, {
+              id: "ds.model.relationship-changing-to-asynchrounous-by-default",
+              until: "2.0.0"
+            });
             meta.shouldWarnAsync = false;
           }
           var relationship = this._internalModel._relationships.get(key);
@@ -84198,8 +84853,6 @@ define("ember/load-initializers",
 
         var inverseName, inverseKind, inverse;
 
-        Ember.warn("Detected a reflexive relationship by the name of '" + name + "' without an inverse option. Look at http://emberjs.com/guides/models/defining-models/#toc_reflexive-relation for how to explicitly specify inverses.", options.inverse || propertyMeta.type !== propertyMeta.parentType.modelName);
-
         //If inverse is specified manually, return the inverse
         if (options.inverse) {
           inverseName = options.inverse;
@@ -84210,6 +84863,12 @@ define("ember/load-initializers",
           inverseKind = inverse.kind;
         } else {
           //No inverse was specified manually, we need to use a heuristic to guess one
+          if (propertyMeta.type === propertyMeta.parentType.modelName) {
+            Ember.warn("Detected a reflexive relationship by the name of '" + name + "' without an inverse option. Look at http://emberjs.com/guides/models/defining-models/#toc_reflexive-relation for how to explicitly specify inverses.", false, {
+              id: "ds.model.reflexive-relationship-without-inverse"
+            });
+          }
+
           var possibleRelationships = findPossibleInverses(this, inverseType);
 
           if (possibleRelationships.length === 0) {
@@ -84631,7 +85290,9 @@ define("ember/load-initializers",
         get: function () {
           if (ember$data$lib$main$$_ActiveModelSerializer === activemodel$adapter$lib$system$active$model$adapter$$default) {
             Ember.deprecate("The ActiveModelAdapter has been moved into a plugin. It will not be bundled with Ember Data in 2.0", false, {
-              url: "https://github.com/ember-data/active-model-adapter"
+              url: "https://github.com/ember-data/active-model-adapter",
+              id: "ds.adapter.active-model-adapter-deprecated",
+              until: "2.0.0"
             });
           }
           return ember$data$lib$main$$_ActiveModelAdapter;
@@ -84644,7 +85305,9 @@ define("ember/load-initializers",
         get: function () {
           if (ember$data$lib$main$$_ActiveModelSerializer === activemodel$adapter$lib$system$active$model$serializer$$default) {
             Ember.deprecate("The ActiveModelSerializer has been moved into a plugin. It will not be bundled with Ember Data in 2.0", false, {
-              url: "https://github.com/ember-data/active-model-adapter"
+              url: "https://github.com/ember-data/active-model-adapter",
+              id: "ds.serializer.active-model-serializer-deprecated",
+              until: "2.0.0"
             });
           }
           return ember$data$lib$main$$_ActiveModelSerializer;
@@ -84681,7 +85344,10 @@ define("ember/load-initializers",
       Ember.defineProperty(ember$data$lib$core$$default, "FixtureAdapter", {
         get: function () {
           if (ember$data$lib$main$$_FixtureAdapter === ember$data$lib$adapters$fixture$adapter$$default) {
-            Ember.deprecate("DS.FixtureAdapter has been deprecated and moved into an unsupported addon: https://github.com/emberjs/ember-data-fixture-adapter/tree/master");
+            Ember.deprecate("DS.FixtureAdapter has been deprecated and moved into an unsupported addon: https://github.com/emberjs/ember-data-fixture-adapter/tree/master", false, {
+              id: "ds.adapter.fixture-adapter-deprecated",
+              until: "2.0.0"
+            });
           }
           return ember$data$lib$main$$_FixtureAdapter;
         },
@@ -84698,6 +85364,1306 @@ define("ember/load-initializers",
     var ember$data$lib$main$$default = ember$data$lib$core$$default;
 }).call(this);
 
+
+;/*global Ember*/
+/*global DS*/
+'use strict';
+
+DS.IndexedDBMigration = Ember.Object.extend({
+  /**
+   * This mostly a placeholder, given this value is defined by the adapter.
+   *
+   * @var databaseName
+   */
+  databaseName: "_default",
+
+  /**
+   * Whenever the version is incremented, IndexedDB will run the update code
+   * and update the schema. It's is defined in the adapter and changed by it
+   * here.
+   *
+   * @var databaseName
+   */
+  version: 1,
+
+  /**
+   * This is run the first time the adapter is initialized (when page opens).
+   * It basically checks if the schema needs to be updated, and then runs the
+   * proper migrations.
+   *
+   * @method migrate
+   */
+  migrate: function() {
+    var _this = this;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      var connection = indexedDB.open(_this.databaseName, _this.version);
+      connection.onsuccess = function() {
+        var result = this.result;
+
+        Em.run(function() {
+          result.close();
+          resolve();
+        });
+      }
+
+      connection.onupgradeneeded = function(event) {
+        Em.run(function() {
+          _this.set('memoizedOpenDatabaseForUpgrade', event.target.result);
+          _this.runMigrations();
+          _this.set('memoizedOpenDatabaseForUpgrade', null);
+        });
+      }
+
+      connection.onerror = function(e) {
+        Em.run(function() {
+          console.log('Failure connecting to IndexedDB database ' + _this.databaseName);
+          reject(e);
+        })
+      }
+    });
+  },
+
+
+  /**
+   * This is a method that can be used inside a migration, such as:
+   *
+   *     App.ApplicationAdapter = DS.IndexedDBAdapter.extend({
+   *       databaseName: 'some_database_name'
+   *       version: 1,
+   *       migrations: function() {
+   *         this.addModel('person');
+   *         this.addModel('phone');
+   *       }
+   *     });
+   *
+   * In this case, the code will create the schema for App.Person and
+   * App.Phone automatically.
+   *
+   * @method addModel
+   * @param string modelName
+   */
+  addModel: function(modelName, opts) {
+    var db = this.memoizedOpenDatabaseForUpgrade,
+        opts = opts || {},
+        _this = this;
+
+    Em.run(function() {
+      if (!db.objectStoreNames.contains(modelName)) {
+        var keyOpts = { keyPath: "id" },
+            objectStore;
+
+        if (opts.autoIncrement) {
+          keyOpts["autoIncrement"] = opts.autoIncrement;
+        }
+
+        if (opts.keyPath) {
+          keyOpts["keyPath"] = opts.keyPath;
+        }
+        objectStore = db.createObjectStore(modelName, keyOpts);
+      }
+    });
+
+    //objectStore.createIndex("name", "name", { unique: false });
+    //objectStore.createIndex("email", "email", { unique: true });
+  },
+
+  /**
+   * Runs the migrations.
+   *
+   * @method runMigrations
+   * @private
+   */
+  runMigrations: function() {
+    this.migrations.call(this);
+  },
+
+  /**
+   * Deprecated
+   */
+  currentDbVersion: function() {
+    var instance = indexedDB.open(this.databaseName),
+        version;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      instance.onsuccess = function(event) {
+        var result = this.result;
+        Em.run(function() {
+          result.close();
+          resolve(event.target.result.version);
+        });
+      }
+      instance.onerror = function(event) {
+        var result = this.result;
+        Em.run(function() {
+          result.close();
+          reject(event);
+        });
+      }
+    });
+  },
+
+  memoizedOpenDatabaseForUpgrade: null,
+});
+
+;DS.IndexedDBSerializer = DS.JSONSerializer.extend({
+  serializeHasMany: function(record, json, relationship) {
+    var key = relationship.key,
+        relationshipType = DS.RelationshipChange.determineRelationshipType(record.constructor, relationship);
+
+    if (relationshipType === 'manyToNone' ||
+        relationshipType === 'manyToMany' ||
+        relationshipType === 'manyToOne') {
+      json[key] = record.get(key).mapBy('id');
+    // TODO support for polymorphic manyToNone and manyToMany relationships
+    }
+  },
+  /**
+   * Extracts whatever was returned from the adapter.
+   *
+   * If the adapter returns relationships in an embedded way, such as follows:
+   *
+   * ```js
+   * {
+   *   "id": 1,
+   *   "title": "Rails Rambo",
+   *
+   *   "_embedded": {
+   *     "comment": [{
+   *       "id": 1,
+   *       "comment_title": "FIRST"
+   *     }, {
+   *       "id": 2,
+   *       "comment_title": "Rails is unagi"
+   *     }]
+   *   }
+   * }
+   *
+   * this method will create separated JSON for each resource and then push
+   * them individually to the Store.
+   *
+   * In the end, only the main resource will remain, containing the ids of its
+   * relationships. Given the relations are already in the Store, we will
+   * return a JSON with the main resource alone. The Store will sort out the
+   * associations by itself.
+   *
+   * @method extractSingle
+   * @private
+   * @param {DS.Store} store the returned store
+   * @param {DS.Model} type the type/model
+   * @param {Object} payload returned JSON
+   */
+  extractSingle: function(store, type, payload) {
+    if (payload && payload._embedded) {
+      for (var relation in payload._embedded) {
+        var typeName = Ember.String.singularize(relation),
+            embeddedPayload = payload._embedded[relation];
+
+        if (embeddedPayload) {
+          if (Object.prototype.toString.call(embeddedPayload) === '[object Array]') {
+            store.pushMany(typeName, embeddedPayload);
+          } else {
+            store.push(typeName, embeddedPayload);
+          }
+        }
+      }
+
+      delete payload._embedded;
+    }
+
+    return this.normalize(type, payload);
+  },
+
+  /**
+   * This is exactly the same as extractSingle, but used in an array.
+   *
+   * @method extractSingle
+   * @private
+   * @param {DS.Store} store the returned store
+   * @param {DS.Model} type the type/model
+   * @param {Array} payload returned JSONs
+   */
+  extractArray: function(store, type, payload) {
+    var serializer = this;
+
+    return payload.map(function(record) {
+      var extracted = serializer.extractSingle(store, type, record);
+      return serializer.normalize(type, record);
+    });
+  }
+});
+
+;/*global Ember*/
+/*global DS*/
+'use strict';
+
+/**
+ * SmartSearch allows the adapter to make queries that are broader and that
+ * will, in most business cases, yield more relevant results.
+ *
+ * It has a drawback, though: less performant queries. It shouldn't be a problem
+ * for smaller data stores.
+ */
+DS.IndexedDBSmartSearch = Ember.Object.extend({
+
+  field:       null,
+  queryString: null,
+  record:      null,
+  type:        null,
+
+  /**
+   * The entrypoint. It tries to match the current query field against the
+   * record. See below each query explained.
+   *
+   * == Search ==
+   *
+   *     store.findQuery('person', {search: "rao"})
+   *
+   * This will will search for any field that has the string rao, such as
+   * "Rambo".
+   *
+   * == Search ==
+   *
+   *     store.findQuery('person', {createdAt: "32 days ago"})
+   *
+   * Given `createdAt` field has a transform type `date`, it will returns only
+   * records that match the 32nd day ago.
+   *
+   * If the fields doesn't have the `date` transform, nothing is queried.
+   *
+   * Besides `x days ago`, `today` and `yesterday` are also accepted.
+   */
+  isMatch: function() {
+    var record      = this.get('record'),
+        type        = this.get('type'),
+        field       = this.get('field'),
+        queryString = this.get('queryString'),
+        fieldType   = this.fieldType(field),
+        queryType;
+
+    if (fieldType === "search") {
+      queryType = 'searchField';
+    } else if (fieldType === "date") {
+      queryType = 'dateField';
+    } else {
+      queryType = 'regularField';
+    }
+
+    return this[queryType](type, record, field, queryString);
+  },
+
+  /**
+   * Searches for string in any field. Consider the following query:
+   *
+   *     store.findQuery('person', {search: "rmbo"})
+   *
+   * This would match a field such as `{name: "Rambo"}`.
+   *
+   * @method searchField
+   */
+  searchField: function(type, record, field, queryString) {
+    var isMatch;
+
+    for (var queriedField in record) {
+      var isSearchField = this.get('fieldSearchCriteria')(queriedField, type),
+          fieldValue = record[queriedField];
+
+      if (!isSearchField)
+        continue;
+
+      if (!queryString || queryString == " ") { return false; }
+
+      if (Object.prototype.toString.call(queryString).match("RegExp")) {
+        isMatch = isMatch || new RegExp(queryString).test(fieldValue);
+      } else {
+        isMatch = isMatch || (fieldValue === queryString);
+
+        var str,
+            strArray = [];
+
+        for (var i = 0, len = queryString.length; i < len; i++) {
+          strArray.push(queryString[i]);
+        }
+
+        str = new RegExp(strArray.join(".*"), "i");
+        isMatch = isMatch || new RegExp(str).test(fieldValue);
+      }
+    }
+
+    return isMatch;
+  },
+
+  dateField: function(type, record, field, queryString) {
+    var rawValue = record[field],
+        date = (new Date(Date.parse(rawValue))),
+        targetDate = new Date(),
+        match;
+
+    var IsMatchToDate = function(targetDate) {
+      var year   = targetDate.getFullYear(),
+          month  = targetDate.getMonth(),
+          day    = targetDate.getDate(),
+          hour   = targetDate.getHours(),
+          minute = targetDate.getMinutes();
+
+      if (date.getFullYear() == year &&
+          date.getMonth()    == month &&
+          date.getDate()     == day) {
+        return true;
+      }
+    }
+
+    if (queryString === "today") {
+      if (IsMatchToDate(targetDate)) {
+        return true;
+      }
+    } else if (queryString === "yesterday") {
+      targetDate.setDate(targetDate.getDate() - 1);
+      if (IsMatchToDate(targetDate)) {
+        return true;
+      }
+    } else if (match = queryString.match(/([0-9]{1,}) days ago/i)) {
+      targetDate.setDate(targetDate.getDate() - match[1]);
+      if (IsMatchToDate(targetDate)) {
+        return true;
+      }
+    }
+
+    return false;
+  },
+
+  regularField: function(type, record, field, queryString) {
+    var queriedField = record[field];
+
+    if (Object.prototype.toString.call(queryString).match("RegExp")) {
+      return new RegExp(queryString).test(queriedField);
+    } else {
+      return (queriedField === queryString);
+    }
+  },
+
+  fieldType: function(fieldName) {
+    if (fieldName === "search") {
+      return "search";
+    } else {
+      var type = this.get('type'),
+          transform;
+
+      type.eachTransformedAttribute(function(name, type) {
+        if (name == fieldName) {
+          transform = type;
+        }
+      });
+
+      return transform;
+    }
+  }
+});
+
+;/*global Ember*/
+/*global DS*/
+'use strict';
+
+DS.IndexedDBAdapter = DS.Adapter.extend({
+  databaseName: 'IDBAdapter',
+
+  /**
+   * IndexedDB requires that the database is initialized and have a defined
+   * schema. It's not like localStorage, where you just store things. You have
+   * to define beforehand what Object Stores you want (e.g User, Post etc).
+   *
+   * Whenever we initialize the adapter, we call the DS.IndexedDBMigration
+   * object to do its thing, which is to initialize the database.
+   *
+   * @method init
+   */
+  init: function() {
+    this.set('migration', this.get('migration').create());
+    this.get('migration').set('databaseName', this.databaseName);
+    this.get('migration').set('migrations', this.get('migrations'));
+    this.get('migration').set('version', this.get('version'));
+
+    if (!this.get('smartSearch')) {
+      this.set('smartSearch', false);
+    }
+
+    this.get('migration').migrate();
+  },
+
+  /**
+   * Defines the migration object.
+   *
+   * @method migration
+   * @private
+   */
+  migration: DS.IndexedDBMigration.extend(),
+
+  defaultEmptyReturn: function() {
+    return {id: null};
+  },
+  /**
+   * This methods is used by the store to retrieve one record by ID.
+   *
+   * @method serialize
+   * @param {DS.Store} store
+   * @param {DS.Model} type
+   * @param {Object|String|Integer|null} id
+   * @param {Object|null} opts
+   */
+  find: function (store, type, id, opts) {
+    var adapter = this,
+        allowRecursive = true;
+
+    /**
+     * In the case where there are relationships, this method is called again
+     * for each relation. Given the relations have references to the main
+     * object, we use allowRecursive to avoid going further into infinite
+     * recursiveness.
+     */
+    if (opts && typeof opts.allowRecursive !== 'undefined') {
+      allowRecursive = opts.allowRecursive;
+    }
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      var modelName = type.typeKey,
+          connection, transaction, objectStore, findRequest;
+
+      adapter.openDatabase().then(function(db) {
+        transaction = db.transaction(modelName);
+        objectStore = transaction.objectStore(modelName);
+
+        findRequest = objectStore.get(id);
+        findRequest.onsuccess = function(event) {
+          var record = this.result;
+
+          Em.run(function() {
+            if (allowRecursive && record) {
+              adapter.loadRelationships(type, record).then(function(finalRecord) {
+                Em.run(function() {
+                  adapter.cleanLostRelationshipsReferences(store, type, finalRecord);
+                  resolve(finalRecord);
+                });
+              });
+            } else {
+              if (!record) {
+                reject();
+              } else {
+                resolve(record);
+              }
+            }
+
+            db.close();
+          });
+        };
+
+        findRequest.onerror = function(event) {
+          console.error("IndexedDB error", event.target.errorCode);
+          Em.run(function() {
+            reject(event.target.result);
+            db.close();
+          });
+        };
+      });
+    });
+  },
+
+  /**
+   * Retrieves many records from the database.
+   *
+   * @method findMany
+   * @private
+   * @param {DS.Store} store
+   * @param {DS.Model} type the model that we're retrieving
+   * @param {Array} ids ids of the records we want to be returned.
+   */
+  findMany: function (store, type, ids) {
+    var adapter = this;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      var modelName = type.typeKey,
+          result = [],
+          connection, transaction, objectStore, findRequest, cursor;
+
+      adapter.openDatabase().then(function(db) {
+        transaction = db.transaction(modelName);
+        objectStore = transaction.objectStore(modelName);
+
+        cursor = objectStore.openCursor();
+        cursor.onsuccess = function(event) {
+          var cursor = event.target.result;
+
+          Em.run(function() {
+            if (cursor) {
+              if (ids.contains(cursor.value.id)) {
+                result.push(cursor.value);
+              }
+              cursor.continue();
+            } else {
+              resolve(result);
+              db.close();
+            }
+          });
+        }
+
+        cursor.onerror = function(event) {
+          Em.run(function() {
+            reject(event.target.result);
+            db.close();
+          });
+        }
+      });
+    });
+  },
+
+  /**
+   * Retrieves many records from the database according to the query.
+   *
+   * For example, we could do:
+   *
+   *     store.findQuery('customer', {name: /rambo|braddock/})
+   *
+   * @method findQuery
+   * @private
+   * @param {DS.Store} store
+   * @param {DS.Model} type the model
+   * @param {Object} query object with fields we want to look for
+   * @param {Array} recordArray
+   */
+  findQuery: function (store, type, query, recordArray) {
+    var adapter = this;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      var modelName = type.typeKey,
+          result = [],
+          connection, transaction, objectStore, findRequest, cursor;
+
+      adapter.openDatabase().then(function(db) {
+        transaction = db.transaction(modelName);
+        objectStore = transaction.objectStore(modelName);
+
+        cursor = objectStore.openCursor();
+        cursor.onsuccess = function(event) {
+          db.close();
+          Em.run(function() {
+            var cursor = event.target.result,
+                isMatch;
+
+            if (cursor) {
+              for (var field in query) {
+                var queryString = query[field];
+
+                /**
+                 * If it was already defined that the current record doesn't match
+                 * the query, leave the search.
+                 */
+                if (typeof isMatch === false) {
+                  break;
+                }
+
+                if (isMatch || typeof isMatch == "undefined") {
+                  isMatch = adapter.findQueryCriteria(field, queryString, cursor.value, type);
+                }
+              }
+
+              if (isMatch === true) {
+                result.push(cursor.value);
+              }
+
+              cursor.continue();
+            } else {
+              if (!result.length) {
+                reject();
+              } else {
+                resolve(result);
+              }
+            }
+          });
+        }
+
+        cursor.onerror = function(event) {
+          if (Ember.testing) {
+            console.error("IndexedDB error", event.target.errorCode);
+          }
+          Em.run(function() {
+            reject(event.target.result);
+            db.close();
+          });
+        }
+      });
+    }).then(function(records) {
+      if (records.get('length')) {
+        return adapter.loadRelationshipsForMany(type, records);
+      } else {
+        return records;
+      }
+    });
+  },
+
+  findQueryCriteria: function(field, queryString, record, type) {
+    var queriedField;
+    /**
+     * If smartSearch is enabled, we pass the responsibility on to
+     * `DS.IndexedDBSmartSearch`. This performs tasks like matching dates and
+     * fulltext search.
+     */
+    if (this.get('smartSearch')) {
+      var smartSearch = DS.IndexedDBSmartSearch.createWithMixins({
+        field: field,
+        queryString: queryString,
+        record: record,
+        type: type,
+        fieldSearchCriteria: this.get('findQuerySearchCriteria')
+      });
+
+      return smartSearch.isMatch();
+    } else {
+      queriedField = record[field];
+      if (Object.prototype.toString.call(queryString).match("RegExp")) {
+        return new RegExp(queryString).test(queriedField);
+      } else {
+        return (queriedField === queryString);
+      }
+    }
+  },
+
+  findQuerySearchCriteria: function(fieldName, type) {
+    return true;
+  },
+
+  /**
+   * Returns all records of a given type.
+   *
+   * @method findAll
+   * @private
+   * @param {DS.Store} store
+   * @param {DS.Model} type
+   */
+  findAll: function (store, type) {
+    var _this = this;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      var modelName = type.typeKey,
+          result = [],
+          connection, transaction, objectStore, findRequest, cursor;
+
+      _this.openDatabase().then(function(db) {
+        transaction = db.transaction(modelName);
+        objectStore = transaction.objectStore(modelName);
+
+        cursor = objectStore.openCursor();
+        cursor.onsuccess = function(event) {
+          Em.run(function() {
+            var cursor = event.target.result;
+
+            if (cursor) {
+              result.push(cursor.value);
+
+              cursor.continue();
+            } else {
+              resolve(result);
+              db.close();
+            }
+          });
+        }
+
+        cursor.onerror = function(event) {
+          if (Ember.testing) {
+            console.error("IndexedDB error", event.target.errorCode);
+          }
+          Em.run(function() {
+            reject(event.target.result);
+            db.close();
+          });
+        }
+      });
+    });
+  },
+
+  /**
+   * Creates a record in the database.
+   *
+   * For example,
+   *
+   * ```js
+   * store.createRecord('user', {name: "Rambo"})
+   * ```
+   *
+   * @method createRecord
+   * @param {DS.Store} store
+   * @param {DS.Model} type
+   * @param {Object} record
+   */
+  createRecord: function (store, type, record) {
+    var _this = this,
+        modelName = type.typeKey;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      var connection, transaction, objectStore, saveRequest, serializedRecord;
+
+      _this.openDatabase().then(function(db) {
+        /**
+         * TODO: saving associations should open an appropriate transaction
+         */
+        transaction = db.transaction(modelName, 'readwrite');
+
+        transaction.onerror = function(event) {
+          Em.run(function() {
+            if (Ember.testing) {
+              console.error('transaction error: ' + event);
+            }
+          });
+        }
+
+        transaction.onabort = function(event) {
+          Em.run(function() {
+            if (Ember.testing) {
+              console.error('transaction aborted: ' + event);
+            }
+          });
+        }
+
+        objectStore = transaction.objectStore(modelName);
+
+        serializedRecord = record.serialize({includeId: !objectStore.autoIncrement});
+        saveRequest = objectStore.add(serializedRecord);
+        saveRequest.onsuccess = function(event) {
+          Em.run(function() {
+            db.close();
+            _this.loadRelationships(type, serializedRecord).then(function(finalRecord) {
+              Em.run(function() {
+                resolve(finalRecord);
+              });
+            });
+          });
+        };
+
+        saveRequest.onerror = function(event) {
+          var result = this.result;
+          Em.run(function() {
+            if (Ember.testing) {
+              console.error('Add request error: ' + result);
+            }
+            reject(result);
+            db.close();
+          });
+        };
+      });
+    });
+  },
+
+  /**
+   *
+   * @method updateRecord
+   * @param {DS.Store} store
+   * @param {DS.Model} type
+   * @param {Object} record
+   */
+  updateRecord: function (store, type, record) {
+    var _this = this,
+        serializedRecord = record.serialize({includeId: true});
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      var modelName = type.typeKey,
+          id = record.id,
+          connection, transaction, objectStore, putRequest;
+
+      _this.openDatabase().then(function(db) {
+        transaction = db.transaction(modelName, "readwrite");
+
+        transaction.onerror = function(event) {
+          Em.run(function() {
+            if (Ember.testing) {
+              console.error('transaction error: ' + event);
+            }
+          });
+        }
+
+        transaction.onabort = function(event) {
+          Em.run(function() {
+            if (Ember.testing) {
+              console.error('transaction aborted: ' + event);
+            }
+          });
+        }
+
+        objectStore = transaction.objectStore(modelName);
+
+        putRequest = objectStore.put(serializedRecord);
+        putRequest.onsuccess = function(event) {
+          Em.run(function() {
+            resolve(serializedRecord);
+            db.close();
+          });
+        };
+
+        putRequest.onerror = function(event) {
+          if (Ember.testing) {
+            console.error("IndexedDB error", event.target.errorCode);
+          }
+          Em.run(function() {
+            reject(event.target.result);
+            db.close();
+          });
+        };
+      });
+    });
+  },
+
+  /**
+   *
+   * @method deleteRecord
+   * @param {DS.Store} store
+   * @param {DS.Model} type
+   * @param {Object} record
+   */
+  deleteRecord: function (store, type, record) {
+    var _this = this;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      var modelName = type.typeKey,
+          serializedRecord = record.serialize({includeId: true}),
+          id = serializedRecord.id,
+          connection, transaction, objectStore, operation;
+
+      _this.openDatabase().then(function(db) {
+        transaction = db.transaction(modelName, "readwrite");
+
+        transaction.onerror = function(event) {
+          Em.run(function() {
+            if (Ember.testing) {
+              console.error('transaction error: ' + event);
+            }
+          });
+        }
+
+        transaction.onabort = function(event) {
+          Em.run(function() {
+            if (Ember.testing) {
+              console.error('transaction aborted: ' + event);
+            }
+          });
+        }
+
+        objectStore = transaction.objectStore(modelName);
+
+        transaction.oncomplete = function(t) {
+          Em.run(function() {
+            resolve(serializedRecord);
+            db.close();
+          });
+        }
+
+        if (objectStore.autoIncrement) {
+          id = parseInt(id);
+        }
+        operation = objectStore.delete(id);
+        operation.onsuccess = function(event) {
+          Em.run(function() {
+            db.close();
+            resolve(serializedRecord);
+          });
+        };
+
+        operation.onerror = function(event) {
+          if (Ember.testing) {
+            console.error("IndexedDB error", event.target.errorCode);
+          }
+          Em.run(function() {
+            db.close();
+            reject(event.target.result);
+          });
+        };
+      });
+    });
+  },
+
+  /**
+   * Generates a random number. You will usually want to implement UUID in your
+   * app and redefine this method.
+   *
+   * @method generateIdForRecord
+   * @private
+   */
+  generateIdForRecord: function() {
+    return Math.random().toString(32).slice(2).substr(0, 5);
+  },
+
+  /**
+   *
+   * @method openDatabase
+   * @private
+   */
+  openDatabase: function() {
+    var _this = this;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      var request = window.indexedDB.open(_this.databaseName);
+
+      request.onsuccess = function(event) {
+        Em.run(function() {
+          resolve(event.target.result);
+        });
+      }
+
+      request.onerror = function(event) {
+        Em.run(function() {
+          throw('Error opening database ' + _this.databaseName);
+          reject(event);
+        });
+      }
+    });
+  },
+
+  /**
+   *
+   * @method modelRelationships
+   * @private
+   * @param {DS.Model} type the record to serialize
+   */
+  modelRelationships: function(type) {
+    return Ember.get(type, 'relationshipNames');
+  },
+
+  /**
+   * This takes a record, then analyzes the model relationships and replaces
+   * ids with the actual values.
+   *
+   * Consider the following JSON is entered:
+   *
+   * ```js
+   * {
+   *   "id": 1,
+   *   "title": "Rails Rambo",
+   *   "comments": [1, 2]
+   * }
+   *
+   * This will return:
+   *
+   * ```js
+   * {
+   *   "id": 1,
+   *   "title": "Rails Rambo",
+   *   "comments": [1, 2]
+   *
+   *   "_embedded": {
+   *     "comment": [{
+   *       "_id": 1,
+   *       "comment_title": "FIRST"
+   *     }, {
+   *       "_id": 2,
+   *       "comment_title": "Rails is unagi"
+   *     }]
+   *   }
+   * }
+   *
+   * This way, whenever a resource returned, its relationships will be also
+   * returned.
+   *
+   * @method loadRelationships
+   * @private
+   * @param {DS.Model} type
+   * @param {Object} record
+   */
+  loadRelationships: function(type, record) {
+    var adapter = this;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      var resultJSON = {},
+          typeKey = type.typeKey,
+          relationships,
+          relationshipPromises = [];
+
+      relationships = adapter.modelRelationships(type).belongsTo;
+      relationships.push.apply(relationships, adapter.modelRelationships(type).hasMany);
+
+      relationships.forEach(function(relationName) {
+        var relationModel = type.typeForRelationship(relationName),
+            relationEmbeddedId = record[relationName],
+            relationProp  = adapter.relationshipProperties(type, relationName),
+            relationType  = relationProp.kind,
+            /**
+             * This is the relationship field.
+             */
+            promise, embedPromise;
+
+        var opts = {allowRecursive: false};
+        /**
+         * embeddedIds are ids of relations that are included in the main
+         * payload, such as:
+         *
+         * {
+         *    cart: {
+         *      id: "s85fb",
+         *      customer: "rld9u"
+         *    }
+         * }
+         *
+         * In this case, cart belongsTo customer and its id is present in the
+         * main payload. We find each of these records and add them to _embedded.
+         */
+        if (relationEmbeddedId) {
+          if (relationType == 'belongsTo' || relationType == 'hasOne') {
+            promise = adapter.find(null, relationModel, relationEmbeddedId, opts)
+          } else if (relationType == 'hasMany') {
+            promise = adapter.findMany(null, relationModel, relationEmbeddedId, opts)
+          }
+
+          embedPromise = new Ember.RSVP.Promise(function(resolve, reject) {
+            promise.then(function(relationRecord) {
+              var finalPayload = adapter.addEmbeddedPayload(record, relationName, relationRecord)
+              resolve(finalPayload);
+            });
+          });
+
+          relationshipPromises.push(embedPromise);
+        }
+      });
+
+      Ember.RSVP.all(relationshipPromises).then(function() {
+        resolve(record);
+      });
+    });
+  },
+
+  /**
+   * Given the following payload,
+   *
+   *   {
+   *      cart: {
+   *        id: "1",
+   *        customer: "2"
+   *      }
+   *   }
+   *
+   * With `relationshipName` being `customer` and `relationshipRecord`
+   *
+   *   {id: "2", name: "Rambo"}
+   *
+   * This method returns the following payload:
+   *
+   *   {
+   *      cart: {
+   *        id: "1",
+   *        customer: "2"
+   *      },
+   *      _embedded: {
+   *        customer: {
+   *          id: "2",
+   *          name: "Rambo"
+   *        }
+   *      }
+   *   }
+   *
+   * which is then treated by the serializer later.
+   *
+   * @method addEmbeddedPayload
+   * @private
+   * @param {Object} payload
+   * @param {String} relationshipName
+   * @param {Object} relationshipRecord
+   */
+  addEmbeddedPayload: function(payload, relationshipName, relationshipRecord) {
+    var objectHasId = (relationshipRecord && relationshipRecord.id),
+        arrayHasIds = (relationshipRecord.length && relationshipRecord.everyBy("id")),
+        isValidRelationship = (objectHasId || arrayHasIds);
+
+    if (isValidRelationship) {
+      if (!payload['_embedded']) {
+        payload['_embedded'] = {}
+      }
+
+      payload['_embedded'][relationshipName] = relationshipRecord;
+      if (relationshipRecord.length) {
+        payload[relationshipName] = relationshipRecord.mapBy('id');
+      } else {
+        payload[relationshipName] = relationshipRecord.id;
+      }
+    }
+
+    if (this.isArray(payload[relationshipName])) {
+      payload[relationshipName] = payload[relationshipName].filter(function(id) {
+        return id;
+      });
+    }
+
+    return payload;
+  },
+
+  isArray: function(value) {
+    return Object.prototype.toString.call(value) === '[object Array]';
+  },
+
+  /**
+   * Same as `loadRelationships`, but for an array of records.
+   *
+   * @method loadRelationshipsForMany
+   * @private
+   * @param {DS.Model} type
+   * @param {Object} recordsArray
+   */
+  loadRelationshipsForMany: function(type, recordsArray) {
+    var adapter = this;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      var recordsWithRelationships = [],
+          recordsToBeLoaded = [],
+          promises = [];
+
+      /**
+       * Some times Ember puts some stuff in arrays. We want to clean it so
+       * we know exactly what to iterate over.
+       */
+      for (var i in recordsArray) {
+        if (recordsArray.hasOwnProperty(i)) {
+          recordsToBeLoaded.push(recordsArray[i]);
+        }
+      }
+
+      var loadNextRecord = function(record) {
+        /**
+         * Removes the first item from recordsToBeLoaded
+         */
+        recordsToBeLoaded = recordsToBeLoaded.slice(1);
+
+        var promise = adapter.loadRelationships(type, record);
+
+        promise.then(function(recordWithRelationships) {
+          recordsWithRelationships.push(recordWithRelationships);
+
+          if (recordsToBeLoaded[0]) {
+            loadNextRecord(recordsToBeLoaded[0]);
+          } else {
+            resolve(recordsWithRelationships);
+          }
+        });
+      }
+
+      /**
+       * We start by the first record
+       */
+      loadNextRecord(recordsToBeLoaded[0]);
+    });
+  },
+
+  /**
+   *
+   * @method relationshipProperties
+   * @private
+   * @param {DS.Model} type
+   * @param {String} relationName
+   */
+  relationshipProperties: function(type, relationName) {
+    var relationships = Ember.get(type, 'relationshipsByName');
+    if (relationName) {
+      return relationships.get(relationName);
+    } else {
+      return relationships;
+    }
+  },
+
+  /**
+   * Some times, a payload has a reference for an association, like `comments`
+   * below, but the actual record doesn't exist anymore.
+   *
+   *   payload = {
+   *     id: "1",
+   *     comments: ["2"],
+   *     _embedded: {
+   *     }
+   *   };
+   *
+   * In this case, we should not return the `comments: ["2"]` relationship to
+   * the serializer.
+   *
+   * @method cleanLostRelationshipsReferences
+   * @private
+   * @param {DS.Model} type
+   * @param {Hash} payload
+   */
+  cleanLostRelationshipsReferences: function(store, type, payload) {
+    var adapter = this;
+
+    Ember.get(type, 'relationshipsByName').forEach(function(relationName, properties) {
+      var NoEmbeddedRelations = function() {
+        return !payload._embedded || !payload._embedded[relationName];
+      }
+
+      var IsLostRelationshipReference = function(id) {
+        if (store.hasRecordForId(properties.type, id)) {
+          return false;
+        } else if(NoEmbeddedRelations()) {
+          delete payload[relationName];
+          return true;
+        }
+      }
+
+      if (adapter.isArray(payload[relationName])) {
+        payload[relationName] = payload[relationName].filter(function(id) {
+          return !IsLostRelationshipReference(id);
+        });
+      } else if (payload[relationName]) {
+        if (IsLostRelationshipReference(payload[relationName])) {
+          payload[relationName] = null;
+        }
+      }
+    });
+  }
+});
+
+;"use strict";function q(a){throw a;}var t=void 0,u=!1;var sjcl={cipher:{},hash:{},keyexchange:{},mode:{},misc:{},codec:{},exception:{corrupt:function(a){this.toString=function(){return"CORRUPT: "+this.message};this.message=a},invalid:function(a){this.toString=function(){return"INVALID: "+this.message};this.message=a},bug:function(a){this.toString=function(){return"BUG: "+this.message};this.message=a},notReady:function(a){this.toString=function(){return"NOT READY: "+this.message};this.message=a}}};
+"undefined"!==typeof module&&module.exports&&(module.exports=sjcl);
+sjcl.cipher.aes=function(a){this.k[0][0][0]||this.D();var b,c,d,e,f=this.k[0][4],g=this.k[1];b=a.length;var h=1;4!==b&&(6!==b&&8!==b)&&q(new sjcl.exception.invalid("invalid aes key size"));this.b=[d=a.slice(0),e=[]];for(a=b;a<4*b+28;a++){c=d[a-1];if(0===a%b||8===b&&4===a%b)c=f[c>>>24]<<24^f[c>>16&255]<<16^f[c>>8&255]<<8^f[c&255],0===a%b&&(c=c<<8^c>>>24^h<<24,h=h<<1^283*(h>>7));d[a]=d[a-b]^c}for(b=0;a;b++,a--)c=d[b&3?a:a-4],e[b]=4>=a||4>b?c:g[0][f[c>>>24]]^g[1][f[c>>16&255]]^g[2][f[c>>8&255]]^g[3][f[c&
+255]]};
+sjcl.cipher.aes.prototype={encrypt:function(a){return y(this,a,0)},decrypt:function(a){return y(this,a,1)},k:[[[],[],[],[],[]],[[],[],[],[],[]]],D:function(){var a=this.k[0],b=this.k[1],c=a[4],d=b[4],e,f,g,h=[],l=[],k,n,m,p;for(e=0;0x100>e;e++)l[(h[e]=e<<1^283*(e>>7))^e]=e;for(f=g=0;!c[f];f^=k||1,g=l[g]||1){m=g^g<<1^g<<2^g<<3^g<<4;m=m>>8^m&255^99;c[f]=m;d[m]=f;n=h[e=h[k=h[f]]];p=0x1010101*n^0x10001*e^0x101*k^0x1010100*f;n=0x101*h[m]^0x1010100*m;for(e=0;4>e;e++)a[e][f]=n=n<<24^n>>>8,b[e][m]=p=p<<24^p>>>8}for(e=
+0;5>e;e++)a[e]=a[e].slice(0),b[e]=b[e].slice(0)}};
+function y(a,b,c){4!==b.length&&q(new sjcl.exception.invalid("invalid aes block size"));var d=a.b[c],e=b[0]^d[0],f=b[c?3:1]^d[1],g=b[2]^d[2];b=b[c?1:3]^d[3];var h,l,k,n=d.length/4-2,m,p=4,s=[0,0,0,0];h=a.k[c];a=h[0];var r=h[1],v=h[2],w=h[3],x=h[4];for(m=0;m<n;m++)h=a[e>>>24]^r[f>>16&255]^v[g>>8&255]^w[b&255]^d[p],l=a[f>>>24]^r[g>>16&255]^v[b>>8&255]^w[e&255]^d[p+1],k=a[g>>>24]^r[b>>16&255]^v[e>>8&255]^w[f&255]^d[p+2],b=a[b>>>24]^r[e>>16&255]^v[f>>8&255]^w[g&255]^d[p+3],p+=4,e=h,f=l,g=k;for(m=0;4>
+m;m++)s[c?3&-m:m]=x[e>>>24]<<24^x[f>>16&255]<<16^x[g>>8&255]<<8^x[b&255]^d[p++],h=e,e=f,f=g,g=b,b=h;return s}
+sjcl.bitArray={bitSlice:function(a,b,c){a=sjcl.bitArray.P(a.slice(b/32),32-(b&31)).slice(1);return c===t?a:sjcl.bitArray.clamp(a,c-b)},extract:function(a,b,c){var d=Math.floor(-b-c&31);return((b+c-1^b)&-32?a[b/32|0]<<32-d^a[b/32+1|0]>>>d:a[b/32|0]>>>d)&(1<<c)-1},concat:function(a,b){if(0===a.length||0===b.length)return a.concat(b);var c=a[a.length-1],d=sjcl.bitArray.getPartial(c);return 32===d?a.concat(b):sjcl.bitArray.P(b,d,c|0,a.slice(0,a.length-1))},bitLength:function(a){var b=a.length;return 0===
+b?0:32*(b-1)+sjcl.bitArray.getPartial(a[b-1])},clamp:function(a,b){if(32*a.length<b)return a;a=a.slice(0,Math.ceil(b/32));var c=a.length;b&=31;0<c&&b&&(a[c-1]=sjcl.bitArray.partial(b,a[c-1]&2147483648>>b-1,1));return a},partial:function(a,b,c){return 32===a?b:(c?b|0:b<<32-a)+0x10000000000*a},getPartial:function(a){return Math.round(a/0x10000000000)||32},equal:function(a,b){if(sjcl.bitArray.bitLength(a)!==sjcl.bitArray.bitLength(b))return u;var c=0,d;for(d=0;d<a.length;d++)c|=a[d]^b[d];return 0===
+c},P:function(a,b,c,d){var e;e=0;for(d===t&&(d=[]);32<=b;b-=32)d.push(c),c=0;if(0===b)return d.concat(a);for(e=0;e<a.length;e++)d.push(c|a[e]>>>b),c=a[e]<<32-b;e=a.length?a[a.length-1]:0;a=sjcl.bitArray.getPartial(e);d.push(sjcl.bitArray.partial(b+a&31,32<b+a?c:d.pop(),1));return d},l:function(a,b){return[a[0]^b[0],a[1]^b[1],a[2]^b[2],a[3]^b[3]]}};
+sjcl.codec.utf8String={fromBits:function(a){var b="",c=sjcl.bitArray.bitLength(a),d,e;for(d=0;d<c/8;d++)0===(d&3)&&(e=a[d/4]),b+=String.fromCharCode(e>>>24),e<<=8;return decodeURIComponent(escape(b))},toBits:function(a){a=unescape(encodeURIComponent(a));var b=[],c,d=0;for(c=0;c<a.length;c++)d=d<<8|a.charCodeAt(c),3===(c&3)&&(b.push(d),d=0);c&3&&b.push(sjcl.bitArray.partial(8*(c&3),d));return b}};
+sjcl.codec.hex={fromBits:function(a){var b="",c;for(c=0;c<a.length;c++)b+=((a[c]|0)+0xf00000000000).toString(16).substr(4);return b.substr(0,sjcl.bitArray.bitLength(a)/4)},toBits:function(a){var b,c=[],d;a=a.replace(/\s|0x/g,"");d=a.length;a+="00000000";for(b=0;b<a.length;b+=8)c.push(parseInt(a.substr(b,8),16)^0);return sjcl.bitArray.clamp(c,4*d)}};
+sjcl.codec.base64={J:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",fromBits:function(a,b,c){var d="",e=0,f=sjcl.codec.base64.J,g=0,h=sjcl.bitArray.bitLength(a);c&&(f=f.substr(0,62)+"-_");for(c=0;6*d.length<h;)d+=f.charAt((g^a[c]>>>e)>>>26),6>e?(g=a[c]<<6-e,e+=26,c++):(g<<=6,e-=6);for(;d.length&3&&!b;)d+="=";return d},toBits:function(a,b){a=a.replace(/\s|=/g,"");var c=[],d,e=0,f=sjcl.codec.base64.J,g=0,h;b&&(f=f.substr(0,62)+"-_");for(d=0;d<a.length;d++)h=f.indexOf(a.charAt(d)),
+0>h&&q(new sjcl.exception.invalid("this isn't base64!")),26<e?(e-=26,c.push(g^h>>>e),g=h<<32-e):(e+=6,g^=h<<32-e);e&56&&c.push(sjcl.bitArray.partial(e&56,g,1));return c}};sjcl.codec.base64url={fromBits:function(a){return sjcl.codec.base64.fromBits(a,1,1)},toBits:function(a){return sjcl.codec.base64.toBits(a,1)}};sjcl.hash.sha256=function(a){this.b[0]||this.D();a?(this.r=a.r.slice(0),this.o=a.o.slice(0),this.h=a.h):this.reset()};sjcl.hash.sha256.hash=function(a){return(new sjcl.hash.sha256).update(a).finalize()};
+sjcl.hash.sha256.prototype={blockSize:512,reset:function(){this.r=this.N.slice(0);this.o=[];this.h=0;return this},update:function(a){"string"===typeof a&&(a=sjcl.codec.utf8String.toBits(a));var b,c=this.o=sjcl.bitArray.concat(this.o,a);b=this.h;a=this.h=b+sjcl.bitArray.bitLength(a);for(b=512+b&-512;b<=a;b+=512)z(this,c.splice(0,16));return this},finalize:function(){var a,b=this.o,c=this.r,b=sjcl.bitArray.concat(b,[sjcl.bitArray.partial(1,1)]);for(a=b.length+2;a&15;a++)b.push(0);b.push(Math.floor(this.h/
+4294967296));for(b.push(this.h|0);b.length;)z(this,b.splice(0,16));this.reset();return c},N:[],b:[],D:function(){function a(a){return 0x100000000*(a-Math.floor(a))|0}var b=0,c=2,d;a:for(;64>b;c++){for(d=2;d*d<=c;d++)if(0===c%d)continue a;8>b&&(this.N[b]=a(Math.pow(c,0.5)));this.b[b]=a(Math.pow(c,1/3));b++}}};
+function z(a,b){var c,d,e,f=b.slice(0),g=a.r,h=a.b,l=g[0],k=g[1],n=g[2],m=g[3],p=g[4],s=g[5],r=g[6],v=g[7];for(c=0;64>c;c++)16>c?d=f[c]:(d=f[c+1&15],e=f[c+14&15],d=f[c&15]=(d>>>7^d>>>18^d>>>3^d<<25^d<<14)+(e>>>17^e>>>19^e>>>10^e<<15^e<<13)+f[c&15]+f[c+9&15]|0),d=d+v+(p>>>6^p>>>11^p>>>25^p<<26^p<<21^p<<7)+(r^p&(s^r))+h[c],v=r,r=s,s=p,p=m+d|0,m=n,n=k,k=l,l=d+(k&n^m&(k^n))+(k>>>2^k>>>13^k>>>22^k<<30^k<<19^k<<10)|0;g[0]=g[0]+l|0;g[1]=g[1]+k|0;g[2]=g[2]+n|0;g[3]=g[3]+m|0;g[4]=g[4]+p|0;g[5]=g[5]+s|0;g[6]=
+g[6]+r|0;g[7]=g[7]+v|0}
+sjcl.mode.ccm={name:"ccm",encrypt:function(a,b,c,d,e){var f,g=b.slice(0),h=sjcl.bitArray,l=h.bitLength(c)/8,k=h.bitLength(g)/8;e=e||64;d=d||[];7>l&&q(new sjcl.exception.invalid("ccm: iv must be at least 7 bytes"));for(f=2;4>f&&k>>>8*f;f++);f<15-l&&(f=15-l);c=h.clamp(c,8*(15-f));b=sjcl.mode.ccm.L(a,b,c,d,e,f);g=sjcl.mode.ccm.p(a,g,c,b,e,f);return h.concat(g.data,g.tag)},decrypt:function(a,b,c,d,e){e=e||64;d=d||[];var f=sjcl.bitArray,g=f.bitLength(c)/8,h=f.bitLength(b),l=f.clamp(b,h-e),k=f.bitSlice(b,
+h-e),h=(h-e)/8;7>g&&q(new sjcl.exception.invalid("ccm: iv must be at least 7 bytes"));for(b=2;4>b&&h>>>8*b;b++);b<15-g&&(b=15-g);c=f.clamp(c,8*(15-b));l=sjcl.mode.ccm.p(a,l,c,k,e,b);a=sjcl.mode.ccm.L(a,l.data,c,d,e,b);f.equal(l.tag,a)||q(new sjcl.exception.corrupt("ccm: tag doesn't match"));return l.data},L:function(a,b,c,d,e,f){var g=[],h=sjcl.bitArray,l=h.l;e/=8;(e%2||4>e||16<e)&&q(new sjcl.exception.invalid("ccm: invalid tag length"));(0xffffffff<d.length||0xffffffff<b.length)&&q(new sjcl.exception.bug("ccm: can't deal with 4GiB or more data"));
+f=[h.partial(8,(d.length?64:0)|e-2<<2|f-1)];f=h.concat(f,c);f[3]|=h.bitLength(b)/8;f=a.encrypt(f);if(d.length){c=h.bitLength(d)/8;65279>=c?g=[h.partial(16,c)]:0xffffffff>=c&&(g=h.concat([h.partial(16,65534)],[c]));g=h.concat(g,d);for(d=0;d<g.length;d+=4)f=a.encrypt(l(f,g.slice(d,d+4).concat([0,0,0])))}for(d=0;d<b.length;d+=4)f=a.encrypt(l(f,b.slice(d,d+4).concat([0,0,0])));return h.clamp(f,8*e)},p:function(a,b,c,d,e,f){var g,h=sjcl.bitArray;g=h.l;var l=b.length,k=h.bitLength(b);c=h.concat([h.partial(8,
+f-1)],c).concat([0,0,0]).slice(0,4);d=h.bitSlice(g(d,a.encrypt(c)),0,e);if(!l)return{tag:d,data:[]};for(g=0;g<l;g+=4)c[3]++,e=a.encrypt(c),b[g]^=e[0],b[g+1]^=e[1],b[g+2]^=e[2],b[g+3]^=e[3];return{tag:d,data:h.clamp(b,k)}}};
+sjcl.mode.ocb2={name:"ocb2",encrypt:function(a,b,c,d,e,f){128!==sjcl.bitArray.bitLength(c)&&q(new sjcl.exception.invalid("ocb iv must be 128 bits"));var g,h=sjcl.mode.ocb2.H,l=sjcl.bitArray,k=l.l,n=[0,0,0,0];c=h(a.encrypt(c));var m,p=[];d=d||[];e=e||64;for(g=0;g+4<b.length;g+=4)m=b.slice(g,g+4),n=k(n,m),p=p.concat(k(c,a.encrypt(k(c,m)))),c=h(c);m=b.slice(g);b=l.bitLength(m);g=a.encrypt(k(c,[0,0,0,b]));m=l.clamp(k(m.concat([0,0,0]),g),b);n=k(n,k(m.concat([0,0,0]),g));n=a.encrypt(k(n,k(c,h(c))));d.length&&
+(n=k(n,f?d:sjcl.mode.ocb2.pmac(a,d)));return p.concat(l.concat(m,l.clamp(n,e)))},decrypt:function(a,b,c,d,e,f){128!==sjcl.bitArray.bitLength(c)&&q(new sjcl.exception.invalid("ocb iv must be 128 bits"));e=e||64;var g=sjcl.mode.ocb2.H,h=sjcl.bitArray,l=h.l,k=[0,0,0,0],n=g(a.encrypt(c)),m,p,s=sjcl.bitArray.bitLength(b)-e,r=[];d=d||[];for(c=0;c+4<s/32;c+=4)m=l(n,a.decrypt(l(n,b.slice(c,c+4)))),k=l(k,m),r=r.concat(m),n=g(n);p=s-32*c;m=a.encrypt(l(n,[0,0,0,p]));m=l(m,h.clamp(b.slice(c),p).concat([0,0,0]));
+k=l(k,m);k=a.encrypt(l(k,l(n,g(n))));d.length&&(k=l(k,f?d:sjcl.mode.ocb2.pmac(a,d)));h.equal(h.clamp(k,e),h.bitSlice(b,s))||q(new sjcl.exception.corrupt("ocb: tag doesn't match"));return r.concat(h.clamp(m,p))},pmac:function(a,b){var c,d=sjcl.mode.ocb2.H,e=sjcl.bitArray,f=e.l,g=[0,0,0,0],h=a.encrypt([0,0,0,0]),h=f(h,d(d(h)));for(c=0;c+4<b.length;c+=4)h=d(h),g=f(g,a.encrypt(f(h,b.slice(c,c+4))));c=b.slice(c);128>e.bitLength(c)&&(h=f(h,d(h)),c=e.concat(c,[-2147483648,0,0,0]));g=f(g,c);return a.encrypt(f(d(f(h,
+d(h))),g))},H:function(a){return[a[0]<<1^a[1]>>>31,a[1]<<1^a[2]>>>31,a[2]<<1^a[3]>>>31,a[3]<<1^135*(a[0]>>>31)]}};
+sjcl.mode.gcm={name:"gcm",encrypt:function(a,b,c,d,e){var f=b.slice(0);b=sjcl.bitArray;d=d||[];a=sjcl.mode.gcm.p(!0,a,f,d,c,e||128);return b.concat(a.data,a.tag)},decrypt:function(a,b,c,d,e){var f=b.slice(0),g=sjcl.bitArray,h=g.bitLength(f);e=e||128;d=d||[];e<=h?(b=g.bitSlice(f,h-e),f=g.bitSlice(f,0,h-e)):(b=f,f=[]);a=sjcl.mode.gcm.p(u,a,f,d,c,e);g.equal(a.tag,b)||q(new sjcl.exception.corrupt("gcm: tag doesn't match"));return a.data},Z:function(a,b){var c,d,e,f,g,h=sjcl.bitArray.l;e=[0,0,0,0];f=b.slice(0);
+for(c=0;128>c;c++){(d=0!==(a[Math.floor(c/32)]&1<<31-c%32))&&(e=h(e,f));g=0!==(f[3]&1);for(d=3;0<d;d--)f[d]=f[d]>>>1|(f[d-1]&1)<<31;f[0]>>>=1;g&&(f[0]^=-0x1f000000)}return e},g:function(a,b,c){var d,e=c.length;b=b.slice(0);for(d=0;d<e;d+=4)b[0]^=0xffffffff&c[d],b[1]^=0xffffffff&c[d+1],b[2]^=0xffffffff&c[d+2],b[3]^=0xffffffff&c[d+3],b=sjcl.mode.gcm.Z(b,a);return b},p:function(a,b,c,d,e,f){var g,h,l,k,n,m,p,s,r=sjcl.bitArray;m=c.length;p=r.bitLength(c);s=r.bitLength(d);h=r.bitLength(e);g=b.encrypt([0,
+0,0,0]);96===h?(e=e.slice(0),e=r.concat(e,[1])):(e=sjcl.mode.gcm.g(g,[0,0,0,0],e),e=sjcl.mode.gcm.g(g,e,[0,0,Math.floor(h/0x100000000),h&0xffffffff]));h=sjcl.mode.gcm.g(g,[0,0,0,0],d);n=e.slice(0);d=h.slice(0);a||(d=sjcl.mode.gcm.g(g,h,c));for(k=0;k<m;k+=4)n[3]++,l=b.encrypt(n),c[k]^=l[0],c[k+1]^=l[1],c[k+2]^=l[2],c[k+3]^=l[3];c=r.clamp(c,p);a&&(d=sjcl.mode.gcm.g(g,h,c));a=[Math.floor(s/0x100000000),s&0xffffffff,Math.floor(p/0x100000000),p&0xffffffff];d=sjcl.mode.gcm.g(g,d,a);l=b.encrypt(e);d[0]^=l[0];
+d[1]^=l[1];d[2]^=l[2];d[3]^=l[3];return{tag:r.bitSlice(d,0,f),data:c}}};sjcl.misc.hmac=function(a,b){this.M=b=b||sjcl.hash.sha256;var c=[[],[]],d,e=b.prototype.blockSize/32;this.n=[new b,new b];a.length>e&&(a=b.hash(a));for(d=0;d<e;d++)c[0][d]=a[d]^909522486,c[1][d]=a[d]^1549556828;this.n[0].update(c[0]);this.n[1].update(c[1]);this.G=new b(this.n[0])};
+sjcl.misc.hmac.prototype.encrypt=sjcl.misc.hmac.prototype.mac=function(a){this.Q&&q(new sjcl.exception.invalid("encrypt on already updated hmac called!"));this.update(a);return this.digest(a)};sjcl.misc.hmac.prototype.reset=function(){this.G=new this.M(this.n[0]);this.Q=u};sjcl.misc.hmac.prototype.update=function(a){this.Q=!0;this.G.update(a)};sjcl.misc.hmac.prototype.digest=function(){var a=this.G.finalize(),a=(new this.M(this.n[1])).update(a).finalize();this.reset();return a};
+sjcl.misc.pbkdf2=function(a,b,c,d,e){c=c||1E3;(0>d||0>c)&&q(sjcl.exception.invalid("invalid params to pbkdf2"));"string"===typeof a&&(a=sjcl.codec.utf8String.toBits(a));"string"===typeof b&&(b=sjcl.codec.utf8String.toBits(b));e=e||sjcl.misc.hmac;a=new e(a);var f,g,h,l,k=[],n=sjcl.bitArray;for(l=1;32*k.length<(d||1);l++){e=f=a.encrypt(n.concat(b,[l]));for(g=1;g<c;g++){f=a.encrypt(f);for(h=0;h<f.length;h++)e[h]^=f[h]}k=k.concat(e)}d&&(k=n.clamp(k,d));return k};
+sjcl.prng=function(a){this.c=[new sjcl.hash.sha256];this.i=[0];this.F=0;this.s={};this.C=0;this.K={};this.O=this.d=this.j=this.W=0;this.b=[0,0,0,0,0,0,0,0];this.f=[0,0,0,0];this.A=t;this.B=a;this.q=u;this.w={progress:{},seeded:{}};this.m=this.V=0;this.t=1;this.u=2;this.S=0x10000;this.I=[0,48,64,96,128,192,0x100,384,512,768,1024];this.T=3E4;this.R=80};
+sjcl.prng.prototype={randomWords:function(a,b){var c=[],d;d=this.isReady(b);var e;d===this.m&&q(new sjcl.exception.notReady("generator isn't seeded"));if(d&this.u){d=!(d&this.t);e=[];var f=0,g;this.O=e[0]=(new Date).valueOf()+this.T;for(g=0;16>g;g++)e.push(0x100000000*Math.random()|0);for(g=0;g<this.c.length&&!(e=e.concat(this.c[g].finalize()),f+=this.i[g],this.i[g]=0,!d&&this.F&1<<g);g++);this.F>=1<<this.c.length&&(this.c.push(new sjcl.hash.sha256),this.i.push(0));this.d-=f;f>this.j&&(this.j=f);this.F++;
+this.b=sjcl.hash.sha256.hash(this.b.concat(e));this.A=new sjcl.cipher.aes(this.b);for(d=0;4>d&&!(this.f[d]=this.f[d]+1|0,this.f[d]);d++);}for(d=0;d<a;d+=4)0===(d+1)%this.S&&A(this),e=B(this),c.push(e[0],e[1],e[2],e[3]);A(this);return c.slice(0,a)},setDefaultParanoia:function(a,b){0===a&&"Setting paranoia=0 will ruin your security; use it only for testing"!==b&&q("Setting paranoia=0 will ruin your security; use it only for testing");this.B=a},addEntropy:function(a,b,c){c=c||"user";var d,e,f=(new Date).valueOf(),
+g=this.s[c],h=this.isReady(),l=0;d=this.K[c];d===t&&(d=this.K[c]=this.W++);g===t&&(g=this.s[c]=0);this.s[c]=(this.s[c]+1)%this.c.length;switch(typeof a){case "number":b===t&&(b=1);this.c[g].update([d,this.C++,1,b,f,1,a|0]);break;case "object":c=Object.prototype.toString.call(a);if("[object Uint32Array]"===c){e=[];for(c=0;c<a.length;c++)e.push(a[c]);a=e}else{"[object Array]"!==c&&(l=1);for(c=0;c<a.length&&!l;c++)"number"!==typeof a[c]&&(l=1)}if(!l){if(b===t)for(c=b=0;c<a.length;c++)for(e=a[c];0<e;)b++,
+e>>>=1;this.c[g].update([d,this.C++,2,b,f,a.length].concat(a))}break;case "string":b===t&&(b=a.length);this.c[g].update([d,this.C++,3,b,f,a.length]);this.c[g].update(a);break;default:l=1}l&&q(new sjcl.exception.bug("random: addEntropy only supports number, array of numbers or string"));this.i[g]+=b;this.d+=b;h===this.m&&(this.isReady()!==this.m&&C("seeded",Math.max(this.j,this.d)),C("progress",this.getProgress()))},isReady:function(a){a=this.I[a!==t?a:this.B];return this.j&&this.j>=a?this.i[0]>this.R&&
+(new Date).valueOf()>this.O?this.u|this.t:this.t:this.d>=a?this.u|this.m:this.m},getProgress:function(a){a=this.I[a?a:this.B];return this.j>=a?1:this.d>a?1:this.d/a},startCollectors:function(){this.q||(this.a={loadTimeCollector:D(this,this.aa),mouseCollector:D(this,this.ba),keyboardCollector:D(this,this.$),accelerometerCollector:D(this,this.U)},window.addEventListener?(window.addEventListener("load",this.a.loadTimeCollector,u),window.addEventListener("mousemove",this.a.mouseCollector,u),window.addEventListener("keypress",
+this.a.keyboardCollector,u),window.addEventListener("devicemotion",this.a.accelerometerCollector,u)):document.attachEvent?(document.attachEvent("onload",this.a.loadTimeCollector),document.attachEvent("onmousemove",this.a.mouseCollector),document.attachEvent("keypress",this.a.keyboardCollector)):q(new sjcl.exception.bug("can't attach event")),this.q=!0)},stopCollectors:function(){this.q&&(window.removeEventListener?(window.removeEventListener("load",this.a.loadTimeCollector,u),window.removeEventListener("mousemove",
+this.a.mouseCollector,u),window.removeEventListener("keypress",this.a.keyboardCollector,u),window.removeEventListener("devicemotion",this.a.accelerometerCollector,u)):document.detachEvent&&(document.detachEvent("onload",this.a.loadTimeCollector),document.detachEvent("onmousemove",this.a.mouseCollector),document.detachEvent("keypress",this.a.keyboardCollector)),this.q=u)},addEventListener:function(a,b){this.w[a][this.V++]=b},removeEventListener:function(a,b){var c,d,e=this.w[a],f=[];for(d in e)e.hasOwnProperty(d)&&
+e[d]===b&&f.push(d);for(c=0;c<f.length;c++)d=f[c],delete e[d]},$:function(){E(1)},ba:function(a){sjcl.random.addEntropy([a.x||a.clientX||a.offsetX||0,a.y||a.clientY||a.offsetY||0],2,"mouse");E(0)},aa:function(){E(2)},U:function(a){a=a.accelerationIncludingGravity.x||a.accelerationIncludingGravity.y||a.accelerationIncludingGravity.z;var b="";window.orientation&&(b=window.orientation);sjcl.random.addEntropy([a,b],3,"accelerometer");E(0)}};
+function C(a,b){var c,d=sjcl.random.w[a],e=[];for(c in d)d.hasOwnProperty(c)&&e.push(d[c]);for(c=0;c<e.length;c++)e[c](b)}function E(a){window&&window.performance&&"function"===typeof window.performance.now?sjcl.random.addEntropy(window.performance.now(),a,"loadtime"):sjcl.random.addEntropy((new Date).valueOf(),a,"loadtime")}function A(a){a.b=B(a).concat(B(a));a.A=new sjcl.cipher.aes(a.b)}function B(a){for(var b=0;4>b&&!(a.f[b]=a.f[b]+1|0,a.f[b]);b++);return a.A.encrypt(a.f)}
+function D(a,b){return function(){b.apply(a,arguments)}}sjcl.random=new sjcl.prng(6);
+a:try{var F,G,H;if("undefined"!==typeof module&&module.exports)G=require("crypto"),F=G.randomBytes(128),sjcl.random.addEntropy(F,1024,"crypto['randomBytes']");else if(window&&Uint32Array){H=new Uint32Array(32);if(window.crypto&&window.crypto.getRandomValues)window.crypto.getRandomValues(H);else if(window.msCrypto&&window.msCrypto.getRandomValues)window.msCrypto.getRandomValues(H);else break a;sjcl.random.addEntropy(H,1024,"crypto['getRandomValues']")}}catch(I){console.log("There was an error collecting entropy from the browser:"),
+console.log(I)}
+sjcl.json={defaults:{v:1,iter:1E3,ks:128,ts:64,mode:"ccm",adata:"",cipher:"aes"},Y:function(a,b,c,d){c=c||{};d=d||{};var e=sjcl.json,f=e.e({iv:sjcl.random.randomWords(4,0)},e.defaults),g;e.e(f,c);c=f.adata;"string"===typeof f.salt&&(f.salt=sjcl.codec.base64.toBits(f.salt));"string"===typeof f.iv&&(f.iv=sjcl.codec.base64.toBits(f.iv));(!sjcl.mode[f.mode]||!sjcl.cipher[f.cipher]||"string"===typeof a&&100>=f.iter||64!==f.ts&&96!==f.ts&&128!==f.ts||128!==f.ks&&192!==f.ks&&0x100!==f.ks||2>f.iv.length||4<
+f.iv.length)&&q(new sjcl.exception.invalid("json encrypt: invalid parameters"));"string"===typeof a?(g=sjcl.misc.cachedPbkdf2(a,f),a=g.key.slice(0,f.ks/32),f.salt=g.salt):sjcl.ecc&&a instanceof sjcl.ecc.elGamal.publicKey&&(g=a.kem(),f.kemtag=g.tag,a=g.key.slice(0,f.ks/32));"string"===typeof b&&(b=sjcl.codec.utf8String.toBits(b));"string"===typeof c&&(c=sjcl.codec.utf8String.toBits(c));g=new sjcl.cipher[f.cipher](a);e.e(d,f);d.key=a;f.ct=sjcl.mode[f.mode].encrypt(g,b,f.iv,c,f.ts);return f},encrypt:function(a,
+b,c,d){var e=sjcl.json,f=e.Y.apply(e,arguments);return e.encode(f)},X:function(a,b,c,d){c=c||{};d=d||{};var e=sjcl.json;b=e.e(e.e(e.e({},e.defaults),b),c,!0);var f;c=b.adata;"string"===typeof b.salt&&(b.salt=sjcl.codec.base64.toBits(b.salt));"string"===typeof b.iv&&(b.iv=sjcl.codec.base64.toBits(b.iv));(!sjcl.mode[b.mode]||!sjcl.cipher[b.cipher]||"string"===typeof a&&100>=b.iter||64!==b.ts&&96!==b.ts&&128!==b.ts||128!==b.ks&&192!==b.ks&&0x100!==b.ks||!b.iv||2>b.iv.length||4<b.iv.length)&&q(new sjcl.exception.invalid("json decrypt: invalid parameters"));
+"string"===typeof a?(f=sjcl.misc.cachedPbkdf2(a,b),a=f.key.slice(0,b.ks/32),b.salt=f.salt):sjcl.ecc&&a instanceof sjcl.ecc.elGamal.secretKey&&(a=a.unkem(sjcl.codec.base64.toBits(b.kemtag)).slice(0,b.ks/32));"string"===typeof c&&(c=sjcl.codec.utf8String.toBits(c));f=new sjcl.cipher[b.cipher](a);c=sjcl.mode[b.mode].decrypt(f,b.ct,b.iv,c,b.ts);e.e(d,b);d.key=a;return sjcl.codec.utf8String.fromBits(c)},decrypt:function(a,b,c,d){var e=sjcl.json;return e.X(a,e.decode(b),c,d)},encode:function(a){var b,c=
+"{",d="";for(b in a)if(a.hasOwnProperty(b))switch(b.match(/^[a-z0-9]+$/i)||q(new sjcl.exception.invalid("json encode: invalid property name")),c+=d+'"'+b+'":',d=",",typeof a[b]){case "number":case "boolean":c+=a[b];break;case "string":c+='"'+escape(a[b])+'"';break;case "object":c+='"'+sjcl.codec.base64.fromBits(a[b],0)+'"';break;default:q(new sjcl.exception.bug("json encode: unsupported type"))}return c+"}"},decode:function(a){a=a.replace(/\s/g,"");a.match(/^\{.*\}$/)||q(new sjcl.exception.invalid("json decode: this isn't json!"));
+a=a.replace(/^\{|\}$/g,"").split(/,/);var b={},c,d;for(c=0;c<a.length;c++)(d=a[c].match(/^(?:(["']?)([a-z][a-z0-9]*)\1):(?:(\d+)|"([a-z0-9+\/%*_.@=\-]*)")$/i))||q(new sjcl.exception.invalid("json decode: this isn't json!")),b[d[2]]=d[3]?parseInt(d[3],10):d[2].match(/^(ct|salt|iv)$/)?sjcl.codec.base64.toBits(d[4]):unescape(d[4]);return b},e:function(a,b,c){a===t&&(a={});if(b===t)return a;for(var d in b)b.hasOwnProperty(d)&&(c&&(a[d]!==t&&a[d]!==b[d])&&q(new sjcl.exception.invalid("required parameter overridden")),
+a[d]=b[d]);return a},ea:function(a,b){var c={},d;for(d in a)a.hasOwnProperty(d)&&a[d]!==b[d]&&(c[d]=a[d]);return c},da:function(a,b){var c={},d;for(d=0;d<b.length;d++)a[b[d]]!==t&&(c[b[d]]=a[b[d]]);return c}};sjcl.encrypt=sjcl.json.encrypt;sjcl.decrypt=sjcl.json.decrypt;sjcl.misc.ca={};
+sjcl.misc.cachedPbkdf2=function(a,b){var c=sjcl.misc.ca,d;b=b||{};d=b.iter||1E3;c=c[a]=c[a]||{};d=c[d]=c[d]||{firstSalt:b.salt&&b.salt.length?b.salt.slice(0):sjcl.random.randomWords(2,0)};c=b.salt===t?d.firstSalt:b.salt;d[c]=d[c]||sjcl.misc.pbkdf2(a,c,b.iter);return{key:d[c].slice(0),salt:c.slice(0)}};
 
 ;define('ember-cli-content-security-policy', ['ember-cli-content-security-policy/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
   'use strict';
