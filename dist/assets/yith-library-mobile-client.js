@@ -9,7 +9,7 @@ define('yith-library-mobile-client/acceptance-tests/main', ['exports', 'ember-cl
 
 
 
-	exports.default = main.default;
+	exports['default'] = main['default'];
 
 });
 define('yith-library-mobile-client/adapters/application', ['exports', 'ember-data'], function (exports, DS) {
