@@ -2,6 +2,7 @@ import Ember from 'ember';
 
 export default Ember.ArrayController.extend({
     auth: Ember.inject.service('auth'),
+    sync: Ember.inject.service('sync'),
     queryParams: ['tag'],
     sortProperties: ['service', 'account'],
     sortAscending: true,
@@ -57,6 +58,7 @@ export default Ember.ArrayController.extend({
     syncFromServer: function () {
         var controller = this,
 	    auth = this.get('auth'),
+            sync = this.get('sync'),
             accessToken = null,
             clientId = null,
             serverBaseUrl = null;
@@ -70,7 +72,7 @@ export default Ember.ArrayController.extend({
             clientId = auth.get('clientId');
             serverBaseUrl = this.settings.getSetting('serverBaseUrl');
 
-            this.syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId)
+            sync.fetchSecrets(accessToken, serverBaseUrl, clientId)
                 .then(function (results) {
                     var msg = [], length;
                     controller.settings.setSetting('lastSync', new Date());
@@ -107,11 +109,12 @@ export default Ember.ArrayController.extend({
 
     logout: function () {
         var self = this,
+            sync = this.get('sync'),
             auth = this.get('auth');
 
         auth.deleteToken();
         this.settings.deleteSetting('lastAccount');
-        this.syncManager.deleteAccount().then(function () {
+        sync.deleteAccount().then(function () {
             self.transitionToRoute('firstTime');
         });
     },

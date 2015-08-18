@@ -4,6 +4,7 @@ export default Ember.ObjectController.extend({
     needs: ['application'],
     step: 0,
     auth: Ember.inject.service('auth'),
+    sync: Ember.inject.service('sync'),
 
     showInstructions: function () {
         return this.get('step') === 0;
@@ -47,7 +48,7 @@ export default Ember.ObjectController.extend({
 
     connectToServer: function () {
         var controller = this,
-            syncManager = this.syncManager,
+            sync = this.get('sync'),
             auth = this.get('auth'),
             clientId = auth.get('clientId'),
             serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
@@ -59,7 +60,7 @@ export default Ember.ObjectController.extend({
             .then(function () {
                 accessToken = auth.get('accessToken');
                 controller.incrementProperty('step');
-                return syncManager.fetchUserInfo(
+                return sync.fetchUserInfo(
                     accessToken, serverBaseUrl, clientId
                 );
             })
@@ -67,7 +68,7 @@ export default Ember.ObjectController.extend({
                 controller.settings.setSetting('lastAccount', user.get('id'));
                 controller.get('controllers.application').set('model', user);
                 controller.incrementProperty('step');
-                return syncManager.fetchSecrets(
+                return sync.fetchSecrets(
                     accessToken, serverBaseUrl, clientId
                 );
             })

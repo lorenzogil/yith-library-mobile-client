@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import snakeCaseToCamelCase from '../utils/snake-case-to-camel-case';
 
-export default Ember.Object.extend({
+export default Ember.Service.extend({
 
     fetchUserInfo: function (accessToken, serverBaseUrl, clientId) {
         var self = this;

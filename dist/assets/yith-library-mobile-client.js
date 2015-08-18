@@ -90,6 +90,7 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
         needs: ['application'],
         step: 0,
         auth: Ember['default'].inject.service('auth'),
+        sync: Ember['default'].inject.service('sync'),
 
         showInstructions: (function () {
             return this.get('step') === 0;
@@ -133,7 +134,7 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
 
         connectToServer: function connectToServer() {
             var controller = this,
-                syncManager = this.syncManager,
+                sync = this.get('sync'),
                 auth = this.get('auth'),
                 clientId = auth.get('clientId'),
                 serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
@@ -144,12 +145,12 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
             auth.authorize(serverBaseUrl).then(function () {
                 accessToken = auth.get('accessToken');
                 controller.incrementProperty('step');
-                return syncManager.fetchUserInfo(accessToken, serverBaseUrl, clientId);
+                return sync.fetchUserInfo(accessToken, serverBaseUrl, clientId);
             }).then(function (user) {
                 controller.settings.setSetting('lastAccount', user.get('id'));
                 controller.get('controllers.application').set('model', user);
                 controller.incrementProperty('step');
-                return syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId);
+                return sync.fetchSecrets(accessToken, serverBaseUrl, clientId);
             }).then(function () {
                 controller.settings.setSetting('lastSync', new Date());
                 controller.incrementProperty('step');
@@ -194,6 +195,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
 
     exports['default'] = Ember['default'].ArrayController.extend({
         auth: Ember['default'].inject.service('auth'),
+        sync: Ember['default'].inject.service('sync'),
         queryParams: ['tag'],
         sortProperties: ['service', 'account'],
         sortAscending: true,
@@ -249,6 +251,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
         syncFromServer: function syncFromServer() {
             var controller = this,
                 auth = this.get('auth'),
+                sync = this.get('sync'),
                 accessToken = null,
                 clientId = null,
                 serverBaseUrl = null;
@@ -262,7 +265,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
                 clientId = auth.get('clientId');
                 serverBaseUrl = this.settings.getSetting('serverBaseUrl');
 
-                this.syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId).then(function (results) {
+                sync.fetchSecrets(accessToken, serverBaseUrl, clientId).then(function (results) {
                     var msg = [],
                         length;
                     controller.settings.setSetting('lastSync', new Date());
@@ -298,11 +301,12 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
 
         logout: function logout() {
             var self = this,
+                sync = this.get('sync'),
                 auth = this.get('auth');
 
             auth.deleteToken();
             this.settings.deleteSetting('lastAccount');
-            this.syncManager.deleteAccount().then(function () {
+            sync.deleteAccount().then(function () {
                 self.transitionToRoute('firstTime');
             });
         },
@@ -519,22 +523,6 @@ define('yith-library-mobile-client/initializers/settings', ['exports', 'yith-lib
 
             application.inject('route', 'settings', 'settings:main');
             application.inject('controller', 'settings', 'settings:main');
-        }
-    };
-
-});
-define('yith-library-mobile-client/initializers/syncmanager', ['exports', 'yith-library-mobile-client/utils/syncmanager'], function (exports, SyncManager) {
-
-    'use strict';
-
-    exports['default'] = {
-        name: 'syncManager',
-
-        initialize: function initialize(container, application) {
-            application.register('syncmanager:main', SyncManager['default']);
-
-            application.inject('controller', 'syncManager', 'syncmanager:main');
-            application.inject('syncmanager', 'store', 'store:main');
         }
     };
 
@@ -988,6 +976,202 @@ define('yith-library-mobile-client/services/auth', ['exports', 'ember', 'yith-li
 
         checkResponse: function checkResponse(params, state) {
             return params.accessToken && params.state === state;
+        }
+
+    });
+
+});
+define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-library-mobile-client/utils/snake-case-to-camel-case'], function (exports, Ember, snakeCaseToCamelCase) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Service.extend({
+
+        fetchUserInfo: function fetchUserInfo(accessToken, serverBaseUrl, clientId) {
+            var self = this;
+
+            return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
+                Ember['default'].$.ajax({
+                    url: serverBaseUrl + '/user?client_id=' + clientId,
+                    type: 'GET',
+                    crossDomain: true,
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken
+                    }
+                }).done(function (data /*, textStatus, jqXHR*/) {
+                    resolve(data);
+                });
+            }).then(function (data) {
+                return self.updateAccountStore(data);
+            });
+        },
+
+        /* Convert all the keys of the record to be in camelCase
+           instead of snake_case */
+        convertRecord: function convertRecord(record) {
+            var newRecord = {},
+                key = null,
+                newKey = null;
+            for (key in record) {
+                if (record.hasOwnProperty(key)) {
+                    newKey = snakeCaseToCamelCase['default'](key);
+                    newRecord[newKey] = record[key];
+                }
+            }
+            return newRecord;
+        },
+
+        updateAccountStore: function updateAccountStore(rawData) {
+            var self = this;
+
+            return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
+                var data = self.convertRecord(rawData);
+                self.store.findById('account', data.id).then(function (existingRecord) {
+                    // update account
+                    existingRecord.set('email', data.email);
+                    existingRecord.set('firstName', data.firstName);
+                    existingRecord.set('lastName', data.lastName);
+                    existingRecord.set('screenName', data.screenName);
+                    resolve(existingRecord);
+                }, function () {
+                    // create account
+                    // because we try to find it, it is already in the store
+                    // but the record is empty.
+                    var newRecord = self.store.recordForId('account', data.id);
+                    newRecord.loadedData();
+                    newRecord.setProperties({
+                        email: data.email,
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                        screenName: data.screenName
+                    });
+                    resolve(newRecord);
+                });
+            }).then(function (record) {
+                return record.save();
+            });
+        },
+
+        fetchSecrets: function fetchSecrets(accessToken, serverBaseUrl, clientId) {
+            var self = this;
+
+            return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
+                Ember['default'].$.ajax({
+                    url: serverBaseUrl + '/passwords?client_id=' + clientId,
+                    type: 'GET',
+                    crossDomain: true,
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken
+                    }
+                }).done(function (data /*, textStatus, jqXHR*/) {
+                    resolve(data);
+                });
+            }).then(function (data) {
+                return self.updateSecretsStore(data);
+            });
+        },
+
+        updateSecretsStore: function updateSecretsStore(data) {
+            var self = this,
+                promises = {
+                secrets: this.store.find('secret'),
+                tags: this.store.find('tag')
+            };
+            return Ember['default'].RSVP.hash(promises).then(function (results) {
+                var secretsPromise = Ember['default'].RSVP.all(self.updateSecrets(results.secrets, data.passwords)),
+                    tagsPromise = Ember['default'].RSVP.all(self.updateTags(results.tags, data.passwords));
+                return Ember['default'].RSVP.hash({
+                    secrets: secretsPromise,
+                    tags: tagsPromise
+                });
+            });
+        },
+
+        updateSecrets: function updateSecrets(existingRecords, passwords) {
+            var self = this,
+                result = [];
+            passwords.forEach(function (password) {
+                var existingRecord = existingRecords.findBy('id', password.id);
+                if (existingRecord !== undefined) {
+                    result.push(self.updateSecret(existingRecord, password));
+                } else {
+                    result.push(self.createSecret(password));
+                }
+            });
+            return result;
+        },
+
+        createSecret: function createSecret(data) {
+            return this.store.createRecord('secret', {
+                id: data.id,
+                service: data.service,
+                account: data.account,
+                secret: data.secret,
+                notes: data.notes,
+                tags: data.tags.join(' ')
+            }).save();
+        },
+
+        updateSecret: function updateSecret(record, data) {
+            record.set('service', data.service);
+            record.set('account', data.account);
+            record.set('secret', data.secret);
+            record.set('notes', data.notes);
+            record.set('tags', data.tags.join(' '));
+            return record.save();
+        },
+
+        updateTags: function updateTags(existingRecords, passwords) {
+            var self = this,
+                newTags = new Ember['default'].Map(),
+                result = [];
+            passwords.forEach(function (password) {
+                password.tags.forEach(function (tag) {
+                    if (newTags.has(tag)) {
+                        newTags.set(tag, newTags.get(tag) + 1);
+                    } else {
+                        newTags.set(tag, 1);
+                    }
+                });
+            });
+
+            newTags.forEach(function (name, count) {
+                var existingRecord = existingRecords.findBy('name', name);
+                if (existingRecord !== undefined) {
+                    result.push(self.updateTag(existingRecord, name, count));
+                } else {
+                    result.push(self.createTag(name, count));
+                }
+            });
+            return result;
+        },
+
+        createTag: function createTag(name, count) {
+            return this.store.createRecord('tag', {
+                name: name,
+                count: count
+            }).save();
+        },
+
+        updateTag: function updateTag(record, name, count) {
+            record.set('name', name);
+            record.set('count', count);
+            return record.save();
+        },
+
+        deleteAccount: function deleteAccount() {
+            var promises = [];
+            this.store.all('secret').forEach(function (secret) {
+                promises.push(secret.destroyRecord());
+            }, this);
+            this.store.all('tag').forEach(function (tag) {
+                promises.push(tag.destroyRecord());
+            }, this);
+            this.store.all('account').forEach(function (account) {
+                promises.push(account.destroyRecord());
+            }, this);
+
+            return Ember['default'].RSVP.all(promises);
         }
 
     });
@@ -4018,16 +4202,6 @@ define('yith-library-mobile-client/tests/initializers/settings.jshint', function
   });
 
 });
-define('yith-library-mobile-client/tests/initializers/syncmanager.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - initializers');
-  test('initializers/syncmanager.js should pass jshint', function() { 
-    ok(true, 'initializers/syncmanager.js should pass jshint.'); 
-  });
-
-});
 define('yith-library-mobile-client/tests/main.jshint', function () {
 
   'use strict';
@@ -4178,6 +4352,16 @@ define('yith-library-mobile-client/tests/services/auth.jshint', function () {
   });
 
 });
+define('yith-library-mobile-client/tests/services/sync.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - services');
+  test('services/sync.js should pass jshint', function() { 
+    ok(true, 'services/sync.js should pass jshint.'); 
+  });
+
+});
 define('yith-library-mobile-client/tests/test-helper', ['yith-library-mobile-client/tests/helpers/resolver', 'ember-qunit'], function (resolver, ember_qunit) {
 
 	'use strict';
@@ -4243,6 +4427,32 @@ define('yith-library-mobile-client/tests/unit/services/auth-test.jshint', functi
   });
 
 });
+define('yith-library-mobile-client/tests/unit/services/sync-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleFor('service:sync', 'Unit | Service | sync', {
+    // Specify the other units that are required for this test.
+    // needs: ['service:foo']
+  });
+
+  // Replace this with your real tests.
+  ember_qunit.test('it exists', function (assert) {
+    var service = this.subject();
+    assert.ok(service);
+  });
+
+});
+define('yith-library-mobile-client/tests/unit/services/sync-test.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - unit/services');
+  test('unit/services/sync-test.js should pass jshint', function() { 
+    ok(true, 'unit/services/sync-test.js should pass jshint.'); 
+  });
+
+});
 define('yith-library-mobile-client/tests/utils/prefix-event.jshint', function () {
 
   'use strict';
@@ -4270,16 +4480,6 @@ define('yith-library-mobile-client/tests/utils/snake-case-to-camel-case.jshint',
   module('JSHint - utils');
   test('utils/snake-case-to-camel-case.js should pass jshint', function() { 
     ok(true, 'utils/snake-case-to-camel-case.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/utils/syncmanager.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - utils');
-  test('utils/syncmanager.js should pass jshint', function() { 
-    ok(true, 'utils/syncmanager.js should pass jshint.'); 
   });
 
 });
@@ -4376,202 +4576,6 @@ define('yith-library-mobile-client/utils/snake-case-to-camel-case', ['exports'],
             }
         }).join('');
     }
-
-});
-define('yith-library-mobile-client/utils/syncmanager', ['exports', 'ember', 'yith-library-mobile-client/utils/snake-case-to-camel-case'], function (exports, Ember, snakeCaseToCamelCase) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Object.extend({
-
-        fetchUserInfo: function fetchUserInfo(accessToken, serverBaseUrl, clientId) {
-            var self = this;
-
-            return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
-                Ember['default'].$.ajax({
-                    url: serverBaseUrl + '/user?client_id=' + clientId,
-                    type: 'GET',
-                    crossDomain: true,
-                    headers: {
-                        'Authorization': 'Bearer ' + accessToken
-                    }
-                }).done(function (data /*, textStatus, jqXHR*/) {
-                    resolve(data);
-                });
-            }).then(function (data) {
-                return self.updateAccountStore(data);
-            });
-        },
-
-        /* Convert all the keys of the record to be in camelCase
-           instead of snake_case */
-        convertRecord: function convertRecord(record) {
-            var newRecord = {},
-                key = null,
-                newKey = null;
-            for (key in record) {
-                if (record.hasOwnProperty(key)) {
-                    newKey = snakeCaseToCamelCase['default'](key);
-                    newRecord[newKey] = record[key];
-                }
-            }
-            return newRecord;
-        },
-
-        updateAccountStore: function updateAccountStore(rawData) {
-            var self = this;
-
-            return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
-                var data = self.convertRecord(rawData);
-                self.store.findById('account', data.id).then(function (existingRecord) {
-                    // update account
-                    existingRecord.set('email', data.email);
-                    existingRecord.set('firstName', data.firstName);
-                    existingRecord.set('lastName', data.lastName);
-                    existingRecord.set('screenName', data.screenName);
-                    resolve(existingRecord);
-                }, function () {
-                    // create account
-                    // because we try to find it, it is already in the store
-                    // but the record is empty.
-                    var newRecord = self.store.recordForId('account', data.id);
-                    newRecord.loadedData();
-                    newRecord.setProperties({
-                        email: data.email,
-                        firstName: data.firstName,
-                        lastName: data.lastName,
-                        screenName: data.screenName
-                    });
-                    resolve(newRecord);
-                });
-            }).then(function (record) {
-                return record.save();
-            });
-        },
-
-        fetchSecrets: function fetchSecrets(accessToken, serverBaseUrl, clientId) {
-            var self = this;
-
-            return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
-                Ember['default'].$.ajax({
-                    url: serverBaseUrl + '/passwords?client_id=' + clientId,
-                    type: 'GET',
-                    crossDomain: true,
-                    headers: {
-                        'Authorization': 'Bearer ' + accessToken
-                    }
-                }).done(function (data /*, textStatus, jqXHR*/) {
-                    resolve(data);
-                });
-            }).then(function (data) {
-                return self.updateSecretsStore(data);
-            });
-        },
-
-        updateSecretsStore: function updateSecretsStore(data) {
-            var self = this,
-                promises = {
-                secrets: this.store.find('secret'),
-                tags: this.store.find('tag')
-            };
-            return Ember['default'].RSVP.hash(promises).then(function (results) {
-                var secretsPromise = Ember['default'].RSVP.all(self.updateSecrets(results.secrets, data.passwords)),
-                    tagsPromise = Ember['default'].RSVP.all(self.updateTags(results.tags, data.passwords));
-                return Ember['default'].RSVP.hash({
-                    secrets: secretsPromise,
-                    tags: tagsPromise
-                });
-            });
-        },
-
-        updateSecrets: function updateSecrets(existingRecords, passwords) {
-            var self = this,
-                result = [];
-            passwords.forEach(function (password) {
-                var existingRecord = existingRecords.findBy('id', password.id);
-                if (existingRecord !== undefined) {
-                    result.push(self.updateSecret(existingRecord, password));
-                } else {
-                    result.push(self.createSecret(password));
-                }
-            });
-            return result;
-        },
-
-        createSecret: function createSecret(data) {
-            return this.store.createRecord('secret', {
-                id: data.id,
-                service: data.service,
-                account: data.account,
-                secret: data.secret,
-                notes: data.notes,
-                tags: data.tags.join(' ')
-            }).save();
-        },
-
-        updateSecret: function updateSecret(record, data) {
-            record.set('service', data.service);
-            record.set('account', data.account);
-            record.set('secret', data.secret);
-            record.set('notes', data.notes);
-            record.set('tags', data.tags.join(' '));
-            return record.save();
-        },
-
-        updateTags: function updateTags(existingRecords, passwords) {
-            var self = this,
-                newTags = new Ember['default'].Map(),
-                result = [];
-            passwords.forEach(function (password) {
-                password.tags.forEach(function (tag) {
-                    if (newTags.has(tag)) {
-                        newTags.set(tag, newTags.get(tag) + 1);
-                    } else {
-                        newTags.set(tag, 1);
-                    }
-                });
-            });
-
-            newTags.forEach(function (name, count) {
-                var existingRecord = existingRecords.findBy('name', name);
-                if (existingRecord !== undefined) {
-                    result.push(self.updateTag(existingRecord, name, count));
-                } else {
-                    result.push(self.createTag(name, count));
-                }
-            });
-            return result;
-        },
-
-        createTag: function createTag(name, count) {
-            return this.store.createRecord('tag', {
-                name: name,
-                count: count
-            }).save();
-        },
-
-        updateTag: function updateTag(record, name, count) {
-            record.set('name', name);
-            record.set('count', count);
-            return record.save();
-        },
-
-        deleteAccount: function deleteAccount() {
-            var promises = [];
-            this.store.all('secret').forEach(function (secret) {
-                promises.push(secret.destroyRecord());
-            }, this);
-            this.store.all('tag').forEach(function (tag) {
-                promises.push(tag.destroyRecord());
-            }, this);
-            this.store.all('account').forEach(function (account) {
-                promises.push(account.destroyRecord());
-            }, this);
-
-            return Ember['default'].RSVP.all(promises);
-        }
-
-    });
 
 });
 define('yith-library-mobile-client/views/application', ['exports', 'ember'], function (exports, Ember) {
