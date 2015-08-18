@@ -1,6 +1,7 @@
 import Ember from 'ember';
 
 export default Ember.ArrayController.extend({
+    auth: Ember.inject.service('auth'),
     queryParams: ['tag'],
     sortProperties: ['service', 'account'],
     sortAscending: true,
@@ -55,6 +56,7 @@ export default Ember.ArrayController.extend({
 
     syncFromServer: function () {
         var controller = this,
+	    auth = this.get('auth'),
             accessToken = null,
             clientId = null,
             serverBaseUrl = null;
@@ -64,8 +66,8 @@ export default Ember.ArrayController.extend({
         } else {
             this.set('isSyncing', true);
 
-            accessToken = this.authManager.get('accessToken');
-            clientId = this.authManager.get('clientId');
+            accessToken = auth.get('accessToken');
+            clientId = auth.get('clientId');
             serverBaseUrl = this.settings.getSetting('serverBaseUrl');
 
             this.syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId)
@@ -86,6 +88,7 @@ export default Ember.ArrayController.extend({
 
     authorizeInServer: function () {
         var controller = this,
+	    auth = this.get('auth'),
             serverBaseUrl = null;
 
         if (this.get('isAuthorizing') === true) {
@@ -94,7 +97,7 @@ export default Ember.ArrayController.extend({
             this.set('isAuthorizing', true);
 
             serverBaseUrl = this.settings.getSetting('serverBaseUrl');
-            this.authManager.authorize(serverBaseUrl)
+            auth.authorize(serverBaseUrl)
                 .then(function () {
                     controller.set('isAuthorizing', false);
                     controller.showMessage('You have succesfully logged in');
@@ -103,8 +106,10 @@ export default Ember.ArrayController.extend({
     },
 
     logout: function () {
-        var self = this;
-        this.authManager.deleteToken();
+        var self = this,
+            auth = this.get('auth');
+
+        auth.deleteToken();
         this.settings.deleteSetting('lastAccount');
         this.syncManager.deleteAccount().then(function () {
             self.transitionToRoute('firstTime');

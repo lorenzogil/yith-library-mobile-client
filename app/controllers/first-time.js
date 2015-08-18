@@ -3,6 +3,7 @@ import Ember from 'ember';
 export default Ember.ObjectController.extend({
     needs: ['application'],
     step: 0,
+    auth: Ember.inject.service('auth'),
 
     showInstructions: function () {
         return this.get('step') === 0;
@@ -47,16 +48,16 @@ export default Ember.ObjectController.extend({
     connectToServer: function () {
         var controller = this,
             syncManager = this.syncManager,
-            authManager = this.authManager,
-            clientId = this.authManager.get('clientId'),
+            auth = this.get('auth'),
+            clientId = auth.get('clientId'),
             serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
             accessToken = null;
 
         this.incrementProperty('step');
 
-        this.authManager.authorize(serverBaseUrl)
+        auth.authorize(serverBaseUrl)
             .then(function () {
-                accessToken = authManager.get('accessToken');
+                accessToken = auth.get('accessToken');
                 controller.incrementProperty('step');
                 return syncManager.fetchUserInfo(
                     accessToken, serverBaseUrl, clientId

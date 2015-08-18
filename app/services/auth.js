@@ -1,8 +1,8 @@
 import Ember from 'ember';
-import snakeCaseToCamelCase from '../utils/snake-case-to-camel-case';
 import ENV from '../config/environment';
+import snakeCaseToCamelCase from '../utils/snake-case-to-camel-case';
 
-export default Ember.Object.extend({
+export default Ember.Service.extend({
 
     clientId: ENV.defaults.clientId,
     clientBaseUrl: ENV.defaults.clientBaseUrl,
@@ -13,6 +13,39 @@ export default Ember.Object.extend({
     init: function () {
         this._super();
         this.loadToken();
+    },
+
+    loadToken: function () {
+        var accessToken = window.localStorage.getItem('accessToken'),
+            expiration = window.localStorage.getItem('accessTokenExpiration');
+        this.set('accessToken', accessToken);
+        this.set('accessTokenExpiration', expiration);
+    },
+
+    saveToken: function (token) {
+        var expiration = this.now() + parseInt(token.expiresIn, 10);
+        this.set('accessToken', token.accessToken);
+        this.set('accessTokenExpiration', expiration);
+        window.localStorage.setItem('accessToken', token.accessToken);
+        window.localStorage.setItem('accessTokenExpiration', expiration);
+    },
+
+    deleteToken: function () {
+        window.localStorage.removeItem('accessToken');
+        window.localStorage.removeItem('accessTokenExpiration');
+    },
+
+    now: function () {
+        return Math.round(new Date().getTime() / 1000.0);
+    },
+
+    uuid: function () {
+        var template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+        return template.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0,
+                v = (c === 'x' ? r : (r & 0x3 | 0x8));
+            return v.toString(16);
+        });
     },
 
     redirectUri: function () {
@@ -81,38 +114,6 @@ export default Ember.Object.extend({
 
     checkResponse: function (params, state) {
         return params.accessToken && params.state === state;
-    },
-
-    saveToken: function (token) {
-        var expiration = this.now() + parseInt(token.expiresIn, 10);
-        this.set('accessToken', token.accessToken);
-        this.set('accessTokenExpiration', expiration);
-        window.localStorage.setItem('accessToken', token.accessToken);
-        window.localStorage.setItem('accessTokenExpiration', expiration);
-    },
-
-    loadToken: function () {
-        var accessToken = window.localStorage.getItem('accessToken'),
-            expiration = window.localStorage.getItem('accessTokenExpiration');
-        this.set('accessToken', accessToken);
-        this.set('accessTokenExpiration', expiration);
-    },
-
-    deleteToken: function () {
-        window.localStorage.removeItem('accessToken');
-        window.localStorage.removeItem('accessTokenExpiration');
-    },
-
-    now: function () {
-        return Math.round(new Date().getTime() / 1000.0);
-    },
-
-    uuid: function () {
-        var template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
-        return template.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0,
-                v = (c === 'x' ? r : (r & 0x3 | 0x8));
-            return v.toString(16);
-        });
     }
+
 });

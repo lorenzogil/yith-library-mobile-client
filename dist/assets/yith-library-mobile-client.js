@@ -89,6 +89,7 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
     exports['default'] = Ember['default'].ObjectController.extend({
         needs: ['application'],
         step: 0,
+        auth: Ember['default'].inject.service('auth'),
 
         showInstructions: (function () {
             return this.get('step') === 0;
@@ -133,15 +134,15 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
         connectToServer: function connectToServer() {
             var controller = this,
                 syncManager = this.syncManager,
-                authManager = this.authManager,
-                clientId = this.authManager.get('clientId'),
+                auth = this.get('auth'),
+                clientId = auth.get('clientId'),
                 serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
                 accessToken = null;
 
             this.incrementProperty('step');
 
-            this.authManager.authorize(serverBaseUrl).then(function () {
-                accessToken = authManager.get('accessToken');
+            auth.authorize(serverBaseUrl).then(function () {
+                accessToken = auth.get('accessToken');
                 controller.incrementProperty('step');
                 return syncManager.fetchUserInfo(accessToken, serverBaseUrl, clientId);
             }).then(function (user) {
@@ -192,6 +193,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
     'use strict';
 
     exports['default'] = Ember['default'].ArrayController.extend({
+        auth: Ember['default'].inject.service('auth'),
         queryParams: ['tag'],
         sortProperties: ['service', 'account'],
         sortAscending: true,
@@ -246,6 +248,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
 
         syncFromServer: function syncFromServer() {
             var controller = this,
+                auth = this.get('auth'),
                 accessToken = null,
                 clientId = null,
                 serverBaseUrl = null;
@@ -255,8 +258,8 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
             } else {
                 this.set('isSyncing', true);
 
-                accessToken = this.authManager.get('accessToken');
-                clientId = this.authManager.get('clientId');
+                accessToken = auth.get('accessToken');
+                clientId = auth.get('clientId');
                 serverBaseUrl = this.settings.getSetting('serverBaseUrl');
 
                 this.syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId).then(function (results) {
@@ -277,6 +280,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
 
         authorizeInServer: function authorizeInServer() {
             var controller = this,
+                auth = this.get('auth'),
                 serverBaseUrl = null;
 
             if (this.get('isAuthorizing') === true) {
@@ -285,7 +289,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
                 this.set('isAuthorizing', true);
 
                 serverBaseUrl = this.settings.getSetting('serverBaseUrl');
-                this.authManager.authorize(serverBaseUrl).then(function () {
+                auth.authorize(serverBaseUrl).then(function () {
                     controller.set('isAuthorizing', false);
                     controller.showMessage('You have succesfully logged in');
                 });
@@ -293,8 +297,10 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
         },
 
         logout: function logout() {
-            var self = this;
-            this.authManager.deleteToken();
+            var self = this,
+                auth = this.get('auth');
+
+            auth.deleteToken();
             this.settings.deleteSetting('lastAccount');
             this.syncManager.deleteAccount().then(function () {
                 self.transitionToRoute('firstTime');
@@ -460,21 +466,6 @@ define('yith-library-mobile-client/initializers/app-version', ['exports', 'ember
     name: 'App Version',
     initialize: initializerFactory['default'](name, version)
   };
-
-});
-define('yith-library-mobile-client/initializers/authmanager', ['exports', 'yith-library-mobile-client/utils/authmanager'], function (exports, AuthManager) {
-
-    'use strict';
-
-    exports['default'] = {
-        name: 'authManager',
-
-        initialize: function initialize(container, application) {
-            application.register('authmanager:main', AuthManager['default']);
-
-            application.inject('controller', 'authManager', 'authmanager:main');
-        }
-    };
 
 });
 define('yith-library-mobile-client/initializers/export-application-global', ['exports', 'ember', 'yith-library-mobile-client/config/environment'], function (exports, Ember, config) {
@@ -884,6 +875,122 @@ define('yith-library-mobile-client/serializers/application', ['exports', 'ember-
 	'use strict';
 
 	exports['default'] = DS['default'].IndexedDBSerializer.extend();
+
+});
+define('yith-library-mobile-client/services/auth', ['exports', 'ember', 'yith-library-mobile-client/config/environment', 'yith-library-mobile-client/utils/snake-case-to-camel-case'], function (exports, Ember, ENV, snakeCaseToCamelCase) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Service.extend({
+
+        clientId: ENV['default'].defaults.clientId,
+        clientBaseUrl: ENV['default'].defaults.clientBaseUrl,
+        scope: 'read-passwords read-userinfo',
+        accessToken: null,
+        accessTokenExpiration: null,
+
+        init: function init() {
+            this._super();
+            this.loadToken();
+        },
+
+        loadToken: function loadToken() {
+            var accessToken = window.localStorage.getItem('accessToken'),
+                expiration = window.localStorage.getItem('accessTokenExpiration');
+            this.set('accessToken', accessToken);
+            this.set('accessTokenExpiration', expiration);
+        },
+
+        saveToken: function saveToken(token) {
+            var expiration = this.now() + parseInt(token.expiresIn, 10);
+            this.set('accessToken', token.accessToken);
+            this.set('accessTokenExpiration', expiration);
+            window.localStorage.setItem('accessToken', token.accessToken);
+            window.localStorage.setItem('accessTokenExpiration', expiration);
+        },
+
+        deleteToken: function deleteToken() {
+            window.localStorage.removeItem('accessToken');
+            window.localStorage.removeItem('accessTokenExpiration');
+        },
+
+        now: function now() {
+            return Math.round(new Date().getTime() / 1000.0);
+        },
+
+        uuid: function uuid() {
+            var template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+            return template.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0,
+                    v = c === 'x' ? r : r & 0x3 | 0x8;
+                return v.toString(16);
+            });
+        },
+
+        redirectUri: (function () {
+            return this.get('clientBaseUrl') + '/assets/auth-callback.html';
+        }).property('clientBaseUrl'),
+
+        authUri: (function () {
+            return [this.get('authBaseUri'), '?response_type=token', '&redirect_uri=' + encodeURIComponent(this.get('redirectUri')), '&client_id=' + encodeURIComponent(this.get('clientId')), '&scope=' + encodeURIComponent(this.get('scope'))].join('');
+        }).property('authBaseUri', 'providerId', 'clientId', 'scope'),
+
+        hasValidAccessToken: (function () {
+            var accessToken = this.get('accessToken'),
+                expiration = this.get('accessTokenExpiration');
+            return accessToken !== null && this.now() < expiration;
+        }).property('accessToken', 'accessTokenExpiration'),
+
+        authorize: function authorize(serverBaseUrl) {
+            var self = this,
+                state = this.uuid(),
+                encodedState = encodeURIComponent(state),
+                authUri = this.get('authUri') + '&state=' + encodedState,
+                uri = serverBaseUrl + '/oauth2/endpoints/authorization' + authUri,
+                dialog = window.open(uri, 'Authorize', 'height=600, width=450'),
+                clientBaseUrl = this.get('clientBaseUrl');
+
+            if (window.focus) {
+                dialog.focus();
+            }
+
+            return new Ember['default'].RSVP.Promise(function (resolve, reject) {
+                Ember['default'].$(window).on('message', function (event) {
+                    var params;
+                    if (event.originalEvent.origin === clientBaseUrl) {
+                        dialog.close();
+                        params = self.parseHash(event.originalEvent.data);
+                        if (self.checkResponse(params, state)) {
+                            self.saveToken(params);
+                            resolve();
+                        } else {
+                            reject();
+                        }
+                    }
+                });
+            });
+        },
+
+        parseHash: function parseHash(hash) {
+            var params = {},
+                queryString = hash.substring(1),
+                // remove #
+            regex = /([^#?&=]+)=([^&]*)/g,
+                match = null,
+                key = null;
+
+            while ((match = regex.exec(queryString)) !== null) {
+                key = snakeCaseToCamelCase['default'](decodeURIComponent(match[1]));
+                params[key] = decodeURIComponent(match[2]);
+            }
+            return params;
+        },
+
+        checkResponse: function checkResponse(params, state) {
+            return params.accessToken && params.state === state;
+        }
+
+    });
 
 });
 define('yith-library-mobile-client/templates/application', ['exports'], function (exports) {
@@ -3901,16 +4008,6 @@ define('yith-library-mobile-client/tests/helpers/start-app.jshint', function () 
   });
 
 });
-define('yith-library-mobile-client/tests/initializers/authmanager.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - initializers');
-  test('initializers/authmanager.js should pass jshint', function() { 
-    ok(true, 'initializers/authmanager.js should pass jshint.'); 
-  });
-
-});
 define('yith-library-mobile-client/tests/initializers/settings.jshint', function () {
 
   'use strict';
@@ -4071,6 +4168,16 @@ define('yith-library-mobile-client/tests/serializers/application.jshint', functi
   });
 
 });
+define('yith-library-mobile-client/tests/services/auth.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - services');
+  test('services/auth.js should pass jshint', function() { 
+    ok(true, 'services/auth.js should pass jshint.'); 
+  });
+
+});
 define('yith-library-mobile-client/tests/test-helper', ['yith-library-mobile-client/tests/helpers/resolver', 'ember-qunit'], function (resolver, ember_qunit) {
 
 	'use strict';
@@ -4110,13 +4217,29 @@ define('yith-library-mobile-client/tests/test-loader.jshint', function () {
   });
 
 });
-define('yith-library-mobile-client/tests/utils/authmanager.jshint', function () {
+define('yith-library-mobile-client/tests/unit/services/auth-test', ['ember-qunit'], function (ember_qunit) {
 
   'use strict';
 
-  module('JSHint - utils');
-  test('utils/authmanager.js should pass jshint', function() { 
-    ok(true, 'utils/authmanager.js should pass jshint.'); 
+  ember_qunit.moduleFor('service:auth', 'Unit | Service | auth', {
+    // Specify the other units that are required for this test.
+    // needs: ['service:foo']
+  });
+
+  // Replace this with your real tests.
+  ember_qunit.test('it exists', function (assert) {
+    var service = this.subject();
+    assert.ok(service);
+  });
+
+});
+define('yith-library-mobile-client/tests/unit/services/auth-test.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - unit/services');
+  test('unit/services/auth-test.js should pass jshint', function() { 
+    ok(true, 'unit/services/auth-test.js should pass jshint.'); 
   });
 
 });
@@ -4188,121 +4311,6 @@ define('yith-library-mobile-client/tests/views/secrets.jshint', function () {
   test('views/secrets.js should pass jshint', function() { 
     ok(true, 'views/secrets.js should pass jshint.'); 
   });
-
-});
-define('yith-library-mobile-client/utils/authmanager', ['exports', 'ember', 'yith-library-mobile-client/utils/snake-case-to-camel-case', 'yith-library-mobile-client/config/environment'], function (exports, Ember, snakeCaseToCamelCase, ENV) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Object.extend({
-
-        clientId: ENV['default'].defaults.clientId,
-        clientBaseUrl: ENV['default'].defaults.clientBaseUrl,
-        scope: 'read-passwords read-userinfo',
-        accessToken: null,
-        accessTokenExpiration: null,
-
-        init: function init() {
-            this._super();
-            this.loadToken();
-        },
-
-        redirectUri: (function () {
-            return this.get('clientBaseUrl') + '/assets/auth-callback.html';
-        }).property('clientBaseUrl'),
-
-        authUri: (function () {
-            return [this.get('authBaseUri'), '?response_type=token', '&redirect_uri=' + encodeURIComponent(this.get('redirectUri')), '&client_id=' + encodeURIComponent(this.get('clientId')), '&scope=' + encodeURIComponent(this.get('scope'))].join('');
-        }).property('authBaseUri', 'providerId', 'clientId', 'scope'),
-
-        hasValidAccessToken: (function () {
-            var accessToken = this.get('accessToken'),
-                expiration = this.get('accessTokenExpiration');
-            return accessToken !== null && this.now() < expiration;
-        }).property('accessToken', 'accessTokenExpiration'),
-
-        authorize: function authorize(serverBaseUrl) {
-            var self = this,
-                state = this.uuid(),
-                encodedState = encodeURIComponent(state),
-                authUri = this.get('authUri') + '&state=' + encodedState,
-                uri = serverBaseUrl + '/oauth2/endpoints/authorization' + authUri,
-                dialog = window.open(uri, 'Authorize', 'height=600, width=450'),
-                clientBaseUrl = this.get('clientBaseUrl');
-
-            if (window.focus) {
-                dialog.focus();
-            }
-
-            return new Ember['default'].RSVP.Promise(function (resolve, reject) {
-                Ember['default'].$(window).on('message', function (event) {
-                    var params;
-                    if (event.originalEvent.origin === clientBaseUrl) {
-                        dialog.close();
-                        params = self.parseHash(event.originalEvent.data);
-                        if (self.checkResponse(params, state)) {
-                            self.saveToken(params);
-                            resolve();
-                        } else {
-                            reject();
-                        }
-                    }
-                });
-            });
-        },
-
-        parseHash: function parseHash(hash) {
-            var params = {},
-                queryString = hash.substring(1),
-                // remove #
-            regex = /([^#?&=]+)=([^&]*)/g,
-                match = null,
-                key = null;
-
-            while ((match = regex.exec(queryString)) !== null) {
-                key = snakeCaseToCamelCase['default'](decodeURIComponent(match[1]));
-                params[key] = decodeURIComponent(match[2]);
-            }
-            return params;
-        },
-
-        checkResponse: function checkResponse(params, state) {
-            return params.accessToken && params.state === state;
-        },
-
-        saveToken: function saveToken(token) {
-            var expiration = this.now() + parseInt(token.expiresIn, 10);
-            this.set('accessToken', token.accessToken);
-            this.set('accessTokenExpiration', expiration);
-            window.localStorage.setItem('accessToken', token.accessToken);
-            window.localStorage.setItem('accessTokenExpiration', expiration);
-        },
-
-        loadToken: function loadToken() {
-            var accessToken = window.localStorage.getItem('accessToken'),
-                expiration = window.localStorage.getItem('accessTokenExpiration');
-            this.set('accessToken', accessToken);
-            this.set('accessTokenExpiration', expiration);
-        },
-
-        deleteToken: function deleteToken() {
-            window.localStorage.removeItem('accessToken');
-            window.localStorage.removeItem('accessTokenExpiration');
-        },
-
-        now: function now() {
-            return Math.round(new Date().getTime() / 1000.0);
-        },
-
-        uuid: function uuid() {
-            var template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
-            return template.replace(/[xy]/g, function (c) {
-                var r = Math.random() * 16 | 0,
-                    v = c === 'x' ? r : r & 0x3 | 0x8;
-                return v.toString(16);
-            });
-        }
-    });
 
 });
 define('yith-library-mobile-client/utils/prefix-event', ['exports'], function (exports) {
