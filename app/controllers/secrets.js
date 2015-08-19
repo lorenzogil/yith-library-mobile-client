@@ -2,6 +2,7 @@ import Ember from 'ember';
 
 export default Ember.ArrayController.extend({
     auth: Ember.inject.service('auth'),
+    settings: Ember.inject.service('settings'),
     sync: Ember.inject.service('sync'),
     queryParams: ['tag'],
     sortProperties: ['service', 'account'],
@@ -59,6 +60,7 @@ export default Ember.ArrayController.extend({
         var controller = this,
 	    auth = this.get('auth'),
             sync = this.get('sync'),
+            settings = this.get('settings'),
             accessToken = null,
             clientId = null,
             serverBaseUrl = null;
@@ -70,12 +72,12 @@ export default Ember.ArrayController.extend({
 
             accessToken = auth.get('accessToken');
             clientId = auth.get('clientId');
-            serverBaseUrl = this.settings.getSetting('serverBaseUrl');
+            serverBaseUrl = settings.getSetting('serverBaseUrl');
 
             sync.fetchSecrets(accessToken, serverBaseUrl, clientId)
                 .then(function (results) {
                     var msg = [], length;
-                    controller.settings.setSetting('lastSync', new Date());
+                    settings.setSetting('lastSync', new Date());
                     controller.set('isSyncing', false);
                     length = results.secrets.length;
                     if (length > 0) {
@@ -91,6 +93,7 @@ export default Ember.ArrayController.extend({
     authorizeInServer: function () {
         var controller = this,
 	    auth = this.get('auth'),
+            settings = this.get('settings'),
             serverBaseUrl = null;
 
         if (this.get('isAuthorizing') === true) {
@@ -98,7 +101,7 @@ export default Ember.ArrayController.extend({
         } else {
             this.set('isAuthorizing', true);
 
-            serverBaseUrl = this.settings.getSetting('serverBaseUrl');
+            serverBaseUrl = settings.getSetting('serverBaseUrl');
             auth.authorize(serverBaseUrl)
                 .then(function () {
                     controller.set('isAuthorizing', false);
@@ -109,11 +112,12 @@ export default Ember.ArrayController.extend({
 
     logout: function () {
         var self = this,
+            settings = this.get('settings'),
             sync = this.get('sync'),
             auth = this.get('auth');
 
         auth.deleteToken();
-        this.settings.deleteSetting('lastAccount');
+        settings.deleteSetting('lastAccount');
         sync.deleteAccount().then(function () {
             self.transitionToRoute('firstTime');
         });

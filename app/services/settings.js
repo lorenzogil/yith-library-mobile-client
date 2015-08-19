@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import ENV from '../config/environment';
 
-export default Ember.Object.extend({
+export default Ember.Service.extend({
 
     defaults: {
         'serverBaseUrl': ENV.defaults.serverBaseUrl

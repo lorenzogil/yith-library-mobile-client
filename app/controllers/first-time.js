@@ -4,6 +4,7 @@ export default Ember.ObjectController.extend({
     needs: ['application'],
     step: 0,
     auth: Ember.inject.service('auth'),
+    settings: Ember.inject.service('settings'),
     sync: Ember.inject.service('sync'),
 
     showInstructions: function () {
@@ -51,7 +52,8 @@ export default Ember.ObjectController.extend({
             sync = this.get('sync'),
             auth = this.get('auth'),
             clientId = auth.get('clientId'),
-            serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
+            settings = this.get('settings'),
+            serverBaseUrl = settings.getSetting('serverBaseUrl'),
             accessToken = null;
 
         this.incrementProperty('step');
@@ -65,7 +67,7 @@ export default Ember.ObjectController.extend({
                 );
             })
             .then(function (user) {
-                controller.settings.setSetting('lastAccount', user.get('id'));
+                settings.setSetting('lastAccount', user.get('id'));
                 controller.get('controllers.application').set('model', user);
                 controller.incrementProperty('step');
                 return sync.fetchSecrets(
@@ -73,7 +75,7 @@ export default Ember.ObjectController.extend({
                 );
             })
             .then(function () {
-                controller.settings.setSetting('lastSync', new Date());
+                settings.setSetting('lastSync', new Date());
                 controller.incrementProperty('step');
             });
     },

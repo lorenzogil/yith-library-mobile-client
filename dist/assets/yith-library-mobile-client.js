@@ -90,6 +90,7 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
         needs: ['application'],
         step: 0,
         auth: Ember['default'].inject.service('auth'),
+        settings: Ember['default'].inject.service('settings'),
         sync: Ember['default'].inject.service('sync'),
 
         showInstructions: (function () {
@@ -137,7 +138,8 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
                 sync = this.get('sync'),
                 auth = this.get('auth'),
                 clientId = auth.get('clientId'),
-                serverBaseUrl = this.settings.getSetting('serverBaseUrl'),
+                settings = this.get('settings'),
+                serverBaseUrl = settings.getSetting('serverBaseUrl'),
                 accessToken = null;
 
             this.incrementProperty('step');
@@ -147,12 +149,12 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
                 controller.incrementProperty('step');
                 return sync.fetchUserInfo(accessToken, serverBaseUrl, clientId);
             }).then(function (user) {
-                controller.settings.setSetting('lastAccount', user.get('id'));
+                settings.setSetting('lastAccount', user.get('id'));
                 controller.get('controllers.application').set('model', user);
                 controller.incrementProperty('step');
                 return sync.fetchSecrets(accessToken, serverBaseUrl, clientId);
             }).then(function () {
-                controller.settings.setSetting('lastSync', new Date());
+                settings.setSetting('lastSync', new Date());
                 controller.incrementProperty('step');
             });
         },
@@ -195,6 +197,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
 
     exports['default'] = Ember['default'].ArrayController.extend({
         auth: Ember['default'].inject.service('auth'),
+        settings: Ember['default'].inject.service('settings'),
         sync: Ember['default'].inject.service('sync'),
         queryParams: ['tag'],
         sortProperties: ['service', 'account'],
@@ -252,6 +255,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
             var controller = this,
                 auth = this.get('auth'),
                 sync = this.get('sync'),
+                settings = this.get('settings'),
                 accessToken = null,
                 clientId = null,
                 serverBaseUrl = null;
@@ -263,12 +267,12 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
 
                 accessToken = auth.get('accessToken');
                 clientId = auth.get('clientId');
-                serverBaseUrl = this.settings.getSetting('serverBaseUrl');
+                serverBaseUrl = settings.getSetting('serverBaseUrl');
 
                 sync.fetchSecrets(accessToken, serverBaseUrl, clientId).then(function (results) {
                     var msg = [],
                         length;
-                    controller.settings.setSetting('lastSync', new Date());
+                    settings.setSetting('lastSync', new Date());
                     controller.set('isSyncing', false);
                     length = results.secrets.length;
                     if (length > 0) {
@@ -284,6 +288,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
         authorizeInServer: function authorizeInServer() {
             var controller = this,
                 auth = this.get('auth'),
+                settings = this.get('settings'),
                 serverBaseUrl = null;
 
             if (this.get('isAuthorizing') === true) {
@@ -291,7 +296,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
             } else {
                 this.set('isAuthorizing', true);
 
-                serverBaseUrl = this.settings.getSetting('serverBaseUrl');
+                serverBaseUrl = settings.getSetting('serverBaseUrl');
                 auth.authorize(serverBaseUrl).then(function () {
                     controller.set('isAuthorizing', false);
                     controller.showMessage('You have succesfully logged in');
@@ -301,11 +306,12 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
 
         logout: function logout() {
             var self = this,
+                settings = this.get('settings'),
                 sync = this.get('sync'),
                 auth = this.get('auth');
 
             auth.deleteToken();
-            this.settings.deleteSetting('lastAccount');
+            settings.deleteSetting('lastAccount');
             sync.deleteAccount().then(function () {
                 self.transitionToRoute('firstTime');
             });
@@ -511,22 +517,6 @@ define('yith-library-mobile-client/initializers/export-application-global', ['ex
   };
 
 });
-define('yith-library-mobile-client/initializers/settings', ['exports', 'yith-library-mobile-client/utils/settings'], function (exports, Settings) {
-
-    'use strict';
-
-    exports['default'] = {
-        name: 'settings',
-
-        initialize: function initialize(container, application) {
-            application.register('settings:main', Settings['default']);
-
-            application.inject('route', 'settings', 'settings:main');
-            application.inject('controller', 'settings', 'settings:main');
-        }
-    };
-
-});
 define('yith-library-mobile-client/main', ['exports', 'ember'], function (exports, Ember) {
 
   'use strict';
@@ -661,8 +651,12 @@ define('yith-library-mobile-client/routes/application', ['exports', 'ember'], fu
     'use strict';
 
     exports['default'] = Ember['default'].Route.extend({
+
+        settings: Ember['default'].inject.service('settings'),
+
         model: function model() {
-            var lastAccount = this.settings.getSetting('lastAccount');
+            var settings = this.get('settings'),
+                lastAccount = settings.getSetting('lastAccount');
             if (lastAccount) {
                 return this.store.find('account', lastAccount);
             } else {
@@ -976,6 +970,37 @@ define('yith-library-mobile-client/services/auth', ['exports', 'ember', 'yith-li
 
         checkResponse: function checkResponse(params, state) {
             return params.accessToken && params.state === state;
+        }
+
+    });
+
+});
+define('yith-library-mobile-client/services/settings', ['exports', 'ember', 'yith-library-mobile-client/config/environment'], function (exports, Ember, ENV) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Service.extend({
+
+        defaults: {
+            'serverBaseUrl': ENV['default'].defaults.serverBaseUrl
+        },
+
+        getSetting: function getSetting(name) {
+            var setting = window.localStorage.getItem(name);
+            if (setting === null) {
+                return this.defaults[name] || null;
+            } else {
+                return JSON.parse(setting);
+            }
+        },
+
+        setSetting: function setSetting(name, value) {
+            var serialized = JSON.stringify(value);
+            return window.localStorage.setItem(name, serialized);
+        },
+
+        deleteSetting: function deleteSetting(name) {
+            window.localStorage.removeItem(name);
         }
 
     });
@@ -4192,16 +4217,6 @@ define('yith-library-mobile-client/tests/helpers/start-app.jshint', function () 
   });
 
 });
-define('yith-library-mobile-client/tests/initializers/settings.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - initializers');
-  test('initializers/settings.js should pass jshint', function() { 
-    ok(true, 'initializers/settings.js should pass jshint.'); 
-  });
-
-});
 define('yith-library-mobile-client/tests/main.jshint', function () {
 
   'use strict';
@@ -4352,6 +4367,16 @@ define('yith-library-mobile-client/tests/services/auth.jshint', function () {
   });
 
 });
+define('yith-library-mobile-client/tests/services/settings.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - services');
+  test('services/settings.js should pass jshint', function() { 
+    ok(true, 'services/settings.js should pass jshint.'); 
+  });
+
+});
 define('yith-library-mobile-client/tests/services/sync.jshint', function () {
 
   'use strict';
@@ -4427,6 +4452,32 @@ define('yith-library-mobile-client/tests/unit/services/auth-test.jshint', functi
   });
 
 });
+define('yith-library-mobile-client/tests/unit/services/settings-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleFor('service:settings', 'Unit | Service | settings', {
+    // Specify the other units that are required for this test.
+    // needs: ['service:foo']
+  });
+
+  // Replace this with your real tests.
+  ember_qunit.test('it exists', function (assert) {
+    var service = this.subject();
+    assert.ok(service);
+  });
+
+});
+define('yith-library-mobile-client/tests/unit/services/settings-test.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - unit/services');
+  test('unit/services/settings-test.js should pass jshint', function() { 
+    ok(true, 'unit/services/settings-test.js should pass jshint.'); 
+  });
+
+});
 define('yith-library-mobile-client/tests/unit/services/sync-test', ['ember-qunit'], function (ember_qunit) {
 
   'use strict';
@@ -4460,16 +4511,6 @@ define('yith-library-mobile-client/tests/utils/prefix-event.jshint', function ()
   module('JSHint - utils');
   test('utils/prefix-event.js should pass jshint', function() { 
     ok(true, 'utils/prefix-event.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/utils/settings.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - utils');
-  test('utils/settings.js should pass jshint', function() { 
-    ok(true, 'utils/settings.js should pass jshint.'); 
   });
 
 });
@@ -4526,37 +4567,6 @@ define('yith-library-mobile-client/utils/prefix-event', ['exports'], function (e
         });
         return prefixedEventNames.join(' ');
     }
-
-});
-define('yith-library-mobile-client/utils/settings', ['exports', 'ember', 'yith-library-mobile-client/config/environment'], function (exports, Ember, ENV) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Object.extend({
-
-        defaults: {
-            'serverBaseUrl': ENV['default'].defaults.serverBaseUrl
-        },
-
-        getSetting: function getSetting(name) {
-            var setting = window.localStorage.getItem(name);
-            if (setting === null) {
-                return this.defaults[name] || null;
-            } else {
-                return JSON.parse(setting);
-            }
-        },
-
-        setSetting: function setSetting(name, value) {
-            var serialized = JSON.stringify(value);
-            return window.localStorage.setItem(name, serialized);
-        },
-
-        deleteSetting: function deleteSetting(name) {
-            window.localStorage.removeItem(name);
-        }
-
-    });
 
 });
 define('yith-library-mobile-client/utils/snake-case-to-camel-case', ['exports'], function (exports) {
