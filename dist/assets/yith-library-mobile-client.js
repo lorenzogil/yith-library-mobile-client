@@ -447,12 +447,10 @@ define('yith-library-mobile-client/helpers/current-tag', ['exports', 'ember'], f
 
     'use strict';
 
-    exports['default'] = Ember['default'].Helper.extend({
-        compute: function compute(params) {
-            var tagName = params[0],
-                selectedTag = params[1];
-            return tagName === selectedTag ? '*' : '';
-        }
+    exports['default'] = Ember['default'].Helper.helper(function (params) {
+        var tagName = params[0],
+            selectedTag = params[1];
+        return tagName === selectedTag ? '*' : '';
     });
 
 });
@@ -2036,9 +2034,9 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         statements: [
           ["block","if",[["get","isFinished",["loc",[null,[31,17],[31,27]]]]],[],0,1,["loc",[null,[31,10],[35,17]]]],
           ["block","if",[["get","isConnectingToServer",["loc",[null,[39,18],[39,38]]]]],[],2,3,["loc",[null,[39,12],[48,19]]]],
-          ["attribute","aria-disabled",["get","accountDisabled",[]]],
+          ["attribute","aria-disabled",["get","accountDisabled",["loc",[null,[50,30],[50,45]]]]],
           ["block","if",[["get","isGettingAccountInformation",["loc",[null,[51,18],[51,45]]]]],[],4,5,["loc",[null,[51,12],[60,19]]]],
-          ["attribute","aria-disabled",["get","secretsDisabled",[]]],
+          ["attribute","aria-disabled",["get","secretsDisabled",["loc",[null,[62,30],[62,45]]]]],
           ["block","if",[["get","isGettingSecrets",["loc",[null,[63,18],[63,34]]]]],[],6,7,["loc",[null,[63,12],[72,19]]]]
         ],
         locals: [],
@@ -4534,16 +4532,6 @@ define('yith-library-mobile-client/tests/utils/snake-case-to-camel-case.jshint',
   });
 
 });
-define('yith-library-mobile-client/tests/views/application.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - views');
-  test('views/application.js should pass jshint', function() { 
-    ok(true, 'views/application.js should pass jshint.'); 
-  });
-
-});
 define('yith-library-mobile-client/tests/views/secret-revealer.jshint', function () {
 
   'use strict';
@@ -4596,15 +4584,6 @@ define('yith-library-mobile-client/utils/snake-case-to-camel-case', ['exports'],
             }
         }).join('');
     }
-
-});
-define('yith-library-mobile-client/views/application', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].View.extend({
-        classNames: ['full-height']
-    });
 
 });
 define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'], function (exports, Ember) {

@@ -47,7 +47,7 @@
               {{/if}}
             {{/if}}
           </li>
-          <li {{bind-attr aria-disabled="accountDisabled"}}>
+          <li aria-disabled={{accountDisabled}}>
             {{#if isGettingAccountInformation}}
               <aside class="pack-end"><progress></progress></aside>
               <p>Getting account information...</p>
@@ -59,7 +59,7 @@
               {{/if}}
             {{/if}}
           </li>
-          <li {{bind-attr aria-disabled="secretsDisabled"}}>
+          <li aria-disabled={{secretsDisabled}}>
             {{#if isGettingSecrets}}
               <aside class="pack-end"><progress></progress></aside>
               <p>Getting secrets...</p>
