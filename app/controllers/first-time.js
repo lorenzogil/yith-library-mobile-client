@@ -1,11 +1,11 @@
 import Ember from 'ember';
 
 export default Ember.ObjectController.extend({
-    needs: ['application'],
+    application: Ember.inject.controller(),
     step: 0,
-    auth: Ember.inject.service('auth'),
-    settings: Ember.inject.service('settings'),
-    sync: Ember.inject.service('sync'),
+    auth: Ember.inject.service(),
+    settings: Ember.inject.service(),
+    sync: Ember.inject.service(),
 
     showInstructions: function () {
         return this.get('step') === 0;

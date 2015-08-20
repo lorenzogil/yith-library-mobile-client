@@ -87,11 +87,11 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
     'use strict';
 
     exports['default'] = Ember['default'].ObjectController.extend({
-        needs: ['application'],
+        application: Ember['default'].inject.controller(),
         step: 0,
-        auth: Ember['default'].inject.service('auth'),
-        settings: Ember['default'].inject.service('settings'),
-        sync: Ember['default'].inject.service('sync'),
+        auth: Ember['default'].inject.service(),
+        settings: Ember['default'].inject.service(),
+        sync: Ember['default'].inject.service(),
 
         showInstructions: (function () {
             return this.get('step') === 0;
