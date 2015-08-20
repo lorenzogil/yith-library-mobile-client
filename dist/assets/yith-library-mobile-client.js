@@ -68,7 +68,7 @@ define('yith-library-mobile-client/controllers/application', ['exports', 'ember'
 
     'use strict';
 
-    exports['default'] = Ember['default'].ObjectController.extend({
+    exports['default'] = Ember['default'].Controller.extend({
 
         // The active Account object will be set as the model for this controller
 
@@ -86,7 +86,7 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
 
     'use strict';
 
-    exports['default'] = Ember['default'].ObjectController.extend({
+    exports['default'] = Ember['default'].Controller.extend({
         application: Ember['default'].inject.controller(),
         step: 0,
         auth: Ember['default'].inject.service(),
