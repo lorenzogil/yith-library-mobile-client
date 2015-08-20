@@ -447,20 +447,12 @@ define('yith-library-mobile-client/helpers/current-tag', ['exports', 'ember'], f
 
     'use strict';
 
-    exports['default'] = Ember['default'].Handlebars.makeBoundHelper(function (tagName, selectedTag) {
-        return tagName === selectedTag ? '*' : '';
-    });
-
-});
-define('yith-library-mobile-client/helpers/current-version', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Handlebars.makeBoundHelper(function () {
-        var versionStatus = ['<section role="status" class="onviewport">',
-        //        '<p><small>v' + YithLibraryMobileClient.get('version') + '</small></p>',
-        '</section>'];
-        return new Ember['default'].Handlebars.SafeString(versionStatus.join(''));
+    exports['default'] = Ember['default'].Helper.extend({
+        compute: function compute(params) {
+            var tagName = params[0],
+                selectedTag = params[1];
+            return tagName === selectedTag ? '*' : '';
+        }
     });
 
 });
@@ -2122,7 +2114,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             "column": 0
           },
           "end": {
-            "line": 91,
+            "line": 93,
             "column": 0
           }
         },
@@ -2171,7 +2163,21 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n\n  ");
         dom.appendChild(el1, el2);
-        var el2 = dom.createComment("");
+        var el2 = dom.createElement("section");
+        dom.setAttribute(el2,"role","status");
+        dom.setAttribute(el2,"class","onviewport");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("p");
+        var el4 = dom.createElement("small");
+        var el5 = dom.createTextNode("v");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode(" \n  ");
+        dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n\n");
         dom.appendChild(el1, el2);
@@ -2186,13 +2192,13 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var morphs = new Array(3);
         morphs[0] = dom.createMorphAt(element6,1,1);
         morphs[1] = dom.createMorphAt(element6,2,2);
-        morphs[2] = dom.createMorphAt(element5,5,5);
+        morphs[2] = dom.createMorphAt(dom.childAt(element5, [5, 1, 0]),1,1);
         return morphs;
       },
       statements: [
         ["block","if",[["get","showInstructions",["loc",[null,[8,12],[8,28]]]]],[],0,1,["loc",[null,[8,6],[75,13]]]],
         ["block","if",[["get","isFinished",["loc",[null,[76,12],[76,22]]]]],[],2,null,["loc",[null,[76,6],[84,13]]]],
-        ["content","current-version",["loc",[null,[88,2],[88,21]]]]
+        ["content","app-version",["loc",[null,[89,15],[89,30]]]]
       ],
       locals: [],
       templates: [child0, child1, child2]
@@ -3793,7 +3799,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
             "column": 0
           },
           "end": {
-            "line": 57,
+            "line": 61,
             "column": 0
           }
         },
@@ -3884,11 +3890,25 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         var el3 = dom.createTextNode("\n  ");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n  ");
+        var el2 = dom.createTextNode("\n\n  ");
         dom.appendChild(el1, el2);
-        var el2 = dom.createComment("");
+        var el2 = dom.createElement("section");
+        dom.setAttribute(el2,"role","status");
+        dom.setAttribute(el2,"class","onviewport");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("p");
+        var el4 = dom.createElement("small");
+        var el5 = dom.createTextNode("v");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode(" \n  ");
+        dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
+        var el2 = dom.createTextNode("\n\n");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
@@ -3909,7 +3929,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         morphs[3] = dom.createElementMorph(element10);
         morphs[4] = dom.createMorphAt(element11,1,1);
         morphs[5] = dom.createMorphAt(element11,2,2);
-        morphs[6] = dom.createMorphAt(element6,5,5);
+        morphs[6] = dom.createMorphAt(dom.childAt(element6, [5, 1, 0]),1,1);
         return morphs;
       },
       statements: [
@@ -3919,7 +3939,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         ["element","action",["logout"],[],["loc",[null,[35,22],[35,41]]]],
         ["block","each",[["get","mostUsedTags",["loc",[null,[40,28],[40,40]]]]],[],3,null,["loc",[null,[40,6],[47,15]]]],
         ["block","if",[["get","hasMoreTags",["loc",[null,[48,13],[48,24]]]]],[],4,null,["loc",[null,[48,6],[52,13]]]],
-        ["content","current-version",["loc",[null,[55,2],[55,21]]]]
+        ["content","app-version",["loc",[null,[57,15],[57,30]]]]
       ],
       locals: [],
       templates: [child0, child1, child2, child3, child4]
@@ -4147,16 +4167,6 @@ define('yith-library-mobile-client/tests/helpers/current-tag.jshint', function (
   module('JSHint - helpers');
   test('helpers/current-tag.js should pass jshint', function() { 
     ok(true, 'helpers/current-tag.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/helpers/current-version.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - helpers');
-  test('helpers/current-version.js should pass jshint', function() { 
-    ok(true, 'helpers/current-version.js should pass jshint.'); 
   });
 
 });
