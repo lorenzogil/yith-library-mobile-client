@@ -2368,7 +2368,7 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
           return morphs;
         },
         statements: [
-          ["attribute","value",["get","view.decryptedSecret",["loc",[null,[3,50],[3,70]]]]]
+          ["attribute","value",["get","view.decryptedSecret",["loc",[null,[3,40],[3,60]]]]]
         ],
         locals: [],
         templates: []
@@ -2475,8 +2475,8 @@ define('yith-library-mobile-client/templates/secret-revealer', ['exports'], func
       },
       statements: [
         ["block","if",[["get","view.decryptedSecret",["loc",[null,[1,6],[1,26]]]]],[],0,1,["loc",[null,[1,0],[16,7]]]],
-        ["attribute","class",["concat",[["subexpr","-bind-attr-class",[["get","view.buttonClass",[]],"button-class"],[],[]]]]],
-        ["content","view.buttonText",["loc",[null,[18,47],[18,66]]]]
+        ["attribute","class",["get","view.buttonClass",["loc",[null,[18,18],[18,34]]]]],
+        ["content","view.buttonText",["loc",[null,[18,37],[18,56]]]]
       ],
       locals: [],
       templates: [child0, child1]
@@ -2741,8 +2741,8 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
         return morphs;
       },
       statements: [
-        ["attribute","class",["concat",[["subexpr","-bind-attr-class",[["get","position",[]],"position"],[],[]]]]],
-        ["element","action",["finishTransition"],["on","animationEnd"],["loc",[null,[1,76],[1,127]]]],
+        ["attribute","class",["get","position",["loc",[null,[1,53],[1,61]]]]],
+        ["element","action",["finishTransition"],["on","animationEnd"],["loc",[null,[1,64],[1,115]]]],
         ["block","link-to",["secrets"],[],0,null,["loc",[null,[3,6],[5,18]]]],
         ["content","service",["loc",[null,[6,10],[6,21]]]],
         ["inline","view",["secret-revealer"],["encryptedSecret",["subexpr","@mut",[["get","secret",["loc",[null,[10,47],[10,53]]]]],[],[]]],["loc",[null,[10,6],[10,55]]]],
@@ -3107,10 +3107,10 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
         return morphs;
       },
       statements: [
-        ["attribute","class",["concat",[["subexpr","-bind-attr-class",[["get","position",[]],"position"],[],[]]]]],
+        ["attribute","class",["get","position",["loc",[null,[1,41],[1,49]]]]],
         ["inline","outlet",[["get","drawer",["loc",[null,[3,11],[3,17]]]]],[],["loc",[null,[3,2],[3,19]]]],
-        ["attribute","class",["concat",[["subexpr","-bind-attr-class",[["get","state",[]],"state"],[],[]]]]],
-        ["element","action",["finishTransition"],["on","transitionEnd"],["loc",[null,[5,66],[5,114]]]],
+        ["attribute","class",["get","state",["loc",[null,[5,46],[5,51]]]]],
+        ["element","action",["finishTransition"],["on","transitionEnd"],["loc",[null,[5,54],[5,102]]]],
         ["block","link-to",["secrets.drawer"],[],0,null,["loc",[null,[8,6],[10,18]]]],
         ["inline","input",[],["placeholder","Search...","value",["subexpr","@mut",[["get","query",["loc",[null,[12,46],[12,51]]]]],[],[]]],["loc",[null,[12,8],[12,53]]]],
         ["element","action",["clearQuery"],[],["loc",[null,[13,29],[13,52]]]],
@@ -3118,7 +3118,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
         ["content","secretsNoun",["loc",[null,[20,34],[20,49]]]],
         ["block","if",[["get","tag",["loc",[null,[21,16],[21,19]]]]],[],1,null,["loc",[null,[21,10],[23,17]]]],
         ["block","each",[["get","secrets",["loc",[null,[26,18],[26,25]]]]],[],2,null,["loc",[null,[26,10],[33,19]]]],
-        ["attribute","class",["concat",[["subexpr","-bind-attr-class",[["get","statusClass",[]],"status-class"],[],[]]]]],
+        ["attribute","class",["get","statusClass",["loc",[null,[41,31],[41,42]]]]],
         ["content","statusMessage",["loc",[null,[42,5],[42,22]]]],
         ["content","outlet",["loc",[null,[45,0],[45,10]]]]
       ],
@@ -3935,7 +3935,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
         ["content","accountDisplayName",["loc",[null,[6,8],[6,30]]]],
         ["block","if",[["get","authManager.hasValidAccessToken",["loc",[null,[13,15],[13,46]]]]],[],1,2,["loc",[null,[13,8],[33,15]]]],
         ["element","action",["logout"],[],["loc",[null,[35,22],[35,41]]]],
-        ["block","each",[["get","mostUsedTags",["loc",[null,[40,28],[40,40]]]]],[],3,null,["loc",[null,[40,6],[47,15]]]],
+        ["block","each",[["get","mostUsedTags",["loc",[null,[40,14],[40,26]]]]],[],3,null,["loc",[null,[40,6],[47,15]]]],
         ["block","if",[["get","hasMoreTags",["loc",[null,[48,13],[48,24]]]]],[],4,null,["loc",[null,[48,6],[52,13]]]],
         ["content","app-version",["loc",[null,[57,15],[57,30]]]]
       ],
@@ -4069,7 +4069,7 @@ define('yith-library-mobile-client/templates/secrets/tags', ['exports'], functio
         return morphs;
       },
       statements: [
-        ["block","each",[["get","sortedTags",["loc",[null,[4,19],[4,29]]]]],[],0,null,["loc",[null,[4,4],[8,13]]]],
+        ["block","each",[["get","sortedTags",["loc",[null,[4,12],[4,22]]]]],[],0,null,["loc",[null,[4,4],[8,13]]]],
         ["element","action",["cancel"],[],["loc",[null,[9,26],[9,45]]]]
       ],
       locals: [],
