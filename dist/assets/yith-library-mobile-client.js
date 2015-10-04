@@ -12,18 +12,12 @@ define('yith-library-mobile-client/acceptance-tests/main', ['exports', 'ember-cl
 	exports['default'] = main['default'];
 
 });
-define('yith-library-mobile-client/adapters/application', ['exports', 'ember-data'], function (exports, DS) {
+define('yith-library-mobile-client/adapters/application', ['exports', 'ember-localforage-adapter/adapters/localforage'], function (exports, LFAdapter) {
 
     'use strict';
 
-    exports['default'] = DS['default'].IndexedDBAdapter.extend({
-        databaseName: 'yithlibrary',
-        version: 1,
-        migrations: function migrations() {
-            this.addModel('account', { keyPath: 'id', autoIncrement: false });
-            this.addModel('secret', { keyPath: 'id', autoIncrement: false });
-            this.addModel('tag');
-        }
+    exports['default'] = LFAdapter['default'].extend({
+        namespace: 'YithLibrary'
     });
 
 });
@@ -150,7 +144,7 @@ define('yith-library-mobile-client/controllers/first-time', ['exports', 'ember']
                 return sync.fetchUserInfo(accessToken, serverBaseUrl, clientId);
             }).then(function (user) {
                 settings.setSetting('lastAccount', user.get('id'));
-                controller.get('controllers.application').set('model', user);
+                controller.get('application').set('model', user);
                 controller.incrementProperty('step');
                 return sync.fetchSecrets(accessToken, serverBaseUrl, clientId);
             }).then(function () {
@@ -648,7 +642,7 @@ define('yith-library-mobile-client/routes/application', ['exports', 'ember'], fu
             var settings = this.get('settings'),
                 lastAccount = settings.getSetting('lastAccount');
             if (lastAccount) {
-                return this.store.find('account', lastAccount);
+                return this.store.findRecord('account', lastAccount);
             } else {
                 return null;
             }
@@ -1002,6 +996,8 @@ define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-li
 
     exports['default'] = Ember['default'].Service.extend({
 
+        store: Ember['default'].inject.service(),
+
         fetchUserInfo: function fetchUserInfo(accessToken, serverBaseUrl, clientId) {
             var self = this;
 
@@ -1037,33 +1033,27 @@ define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-li
         },
 
         updateAccountStore: function updateAccountStore(rawData) {
-            var self = this;
+            var self = this,
+                data = self.convertRecord(rawData);
 
             return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
-                var data = self.convertRecord(rawData);
-                self.store.findById('account', data.id).then(function (existingRecord) {
+                var store = self.get('store');
+                store.findRecord('account', data.id).then(function (existingRecord) {
                     // update account
                     existingRecord.set('email', data.email);
                     existingRecord.set('firstName', data.firstName);
                     existingRecord.set('lastName', data.lastName);
                     existingRecord.set('screenName', data.screenName);
-                    resolve(existingRecord);
+                    resolve(existingRecord.save());
                 }, function () {
                     // create account
                     // because we try to find it, it is already in the store
                     // but the record is empty.
-                    var newRecord = self.store.recordForId('account', data.id);
-                    newRecord.loadedData();
-                    newRecord.setProperties({
-                        email: data.email,
-                        firstName: data.firstName,
-                        lastName: data.lastName,
-                        screenName: data.screenName
-                    });
+                    var newRecord = store.push('account', store.normalize('account', data));
                     resolve(newRecord);
                 });
             }).then(function (record) {
-                return record.save();
+                return record;
             });
         },
 
@@ -1088,9 +1078,10 @@ define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-li
 
         updateSecretsStore: function updateSecretsStore(data) {
             var self = this,
+                store = this.get('store'),
                 promises = {
-                secrets: this.store.find('secret'),
-                tags: this.store.find('tag')
+                secrets: store.findAll('secret'),
+                tags: store.findAll('tag')
             };
             return Ember['default'].RSVP.hash(promises).then(function (results) {
                 var secretsPromise = Ember['default'].RSVP.all(self.updateSecrets(results.secrets, data.passwords)),
@@ -1117,7 +1108,7 @@ define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-li
         },
 
         createSecret: function createSecret(data) {
-            return this.store.createRecord('secret', {
+            return this.get('store').createRecord('secret', {
                 id: data.id,
                 service: data.service,
                 account: data.account,
@@ -1162,7 +1153,7 @@ define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-li
         },
 
         createTag: function createTag(name, count) {
-            return this.store.createRecord('tag', {
+            return this.get('store').createRecord('tag', {
                 name: name,
                 count: count
             }).save();
@@ -1175,14 +1166,15 @@ define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-li
         },
 
         deleteAccount: function deleteAccount() {
-            var promises = [];
-            this.store.all('secret').forEach(function (secret) {
+            var promises = [],
+                store = this.get('store');
+            store.all('secret').forEach(function (secret) {
                 promises.push(secret.destroyRecord());
             }, this);
-            this.store.all('tag').forEach(function (tag) {
+            store.all('tag').forEach(function (tag) {
                 promises.push(tag.destroyRecord());
             }, this);
-            this.store.all('account').forEach(function (account) {
+            store.all('account').forEach(function (account) {
                 promises.push(account.destroyRecord());
             }, this);
 
@@ -4431,6 +4423,32 @@ define('yith-library-mobile-client/tests/test-loader.jshint', function () {
   module('JSHint - .');
   test('test-loader.js should pass jshint', function() { 
     ok(true, 'test-loader.js should pass jshint.'); 
+  });
+
+});
+define('yith-library-mobile-client/tests/unit/adapters/application-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleFor('adapter:application', 'Unit | Adapter | application', {
+    // Specify the other units that are required for this test.
+    // needs: ['serializer:foo']
+  });
+
+  // Replace this with your real tests.
+  ember_qunit.test('it exists', function (assert) {
+    var adapter = this.subject();
+    assert.ok(adapter);
+  });
+
+});
+define('yith-library-mobile-client/tests/unit/adapters/application-test.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - unit/adapters');
+  test('unit/adapters/application-test.js should pass jshint', function() { 
+    ok(true, 'unit/adapters/application-test.js should pass jshint.'); 
   });
 
 });

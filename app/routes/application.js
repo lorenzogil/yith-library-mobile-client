@@ -8,7 +8,7 @@ export default Ember.Route.extend({
         var settings = this.get('settings'),
             lastAccount = settings.getSetting('lastAccount');
         if (lastAccount) {
-            return this.store.find('account', lastAccount);
+            return this.store.findRecord('account', lastAccount);
         } else {
             return null;
         }

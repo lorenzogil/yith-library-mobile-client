@@ -68,7 +68,7 @@ export default Ember.Controller.extend({
             })
             .then(function (user) {
                 settings.setSetting('lastAccount', user.get('id'));
-                controller.get('controllers.application').set('model', user);
+                controller.get('application').set('model', user);
                 controller.incrementProperty('step');
                 return sync.fetchSecrets(
                     accessToken, serverBaseUrl, clientId

@@ -14,9 +14,9 @@ module.exports = function(environment) {
     },
 
     defaults: {
-      clientId: 'd866fbc8-a367-44a2-9d6f-8ae2ffbd2748',
-      clientBaseUrl: 'http://localyith:4200',
-      serverBaseUrl: 'http://localyith:6543'
+      clientId: '67c2348d-f040-4baa-b7fa-9ab3ec6ac903',
+      clientBaseUrl: 'http://tyrion:4200',
+      serverBaseUrl: 'https://www.yithlibrary.com'
     },
 
     APP: {

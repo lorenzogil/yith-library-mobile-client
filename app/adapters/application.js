@@ -1,11 +1,5 @@
-import DS from "ember-data";
+import LFAdapter from 'ember-localforage-adapter/adapters/localforage';
 
-export default DS.IndexedDBAdapter.extend({
-    databaseName: 'yithlibrary',
-    version: 1,
-    migrations: function () {
-        this.addModel('account', {keyPath: 'id', autoIncrement: false});
-        this.addModel('secret', {keyPath: 'id', autoIncrement: false});
-        this.addModel('tag');
-    }
+export default LFAdapter.extend({
+    namespace: 'YithLibrary'
 });

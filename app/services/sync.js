@@ -3,6 +3,8 @@ import snakeCaseToCamelCase from '../utils/snake-case-to-camel-case';
 
 export default Ember.Service.extend({
 
+    store: Ember.inject.service(),
+
     fetchUserInfo: function (accessToken, serverBaseUrl, clientId) {
         var self = this;
 
@@ -36,36 +38,29 @@ export default Ember.Service.extend({
     },
 
     updateAccountStore: function (rawData) {
-        var self = this;
+        var self = this, data = self.convertRecord(rawData);
 
         return new Ember.RSVP.Promise(function (resolve /*, reject */) {
-            var data = self.convertRecord(rawData);
-            self.store.findById('account', data.id).then(
+            var store = self.get('store');
+            store.findRecord('account', data.id).then(
                 function (existingRecord) {
                     // update account
-                    existingRecord.set('email', data.email);
-                    existingRecord.set('firstName', data.firstName);
-                    existingRecord.set('lastName', data.lastName);
-                    existingRecord.set('screenName', data.screenName);
-                    resolve(existingRecord);
+		    existingRecord.set('email', data.email);
+		    existingRecord.set('firstName', data.firstName);
+		    existingRecord.set('lastName', data.lastName);
+		    existingRecord.set('screenName', data.screenName);
+                    resolve(existingRecord.save());
                 }, function () {
                     // create account
                     // because we try to find it, it is already in the store
                     // but the record is empty.
-                    var newRecord = self.store.recordForId('account', data.id);
-                    newRecord.loadedData();
-                    newRecord.setProperties({
-                        email: data.email,
-                        firstName: data.firstName,
-                        lastName: data.lastName,
-                        screenName: data.screenName
-                    });
+                    var newRecord = store.push('account', store.normalize('account', data));
                     resolve(newRecord);
                 }
             );
 
         }).then(function (record) {
-            return record.save();
+            return record;
         });
     },
 
@@ -90,9 +85,10 @@ export default Ember.Service.extend({
 
     updateSecretsStore: function (data) {
         var self = this,
+            store = this.get('store'),
             promises = {
-                secrets: this.store.find('secret'),
-                tags: this.store.find('tag')
+                secrets: store.findAll('secret'),
+                tags: store.findAll('tag')
             };
         return Ember.RSVP.hash(promises).then(function (results) {
             var secretsPromise = Ember.RSVP.all(self.updateSecrets(
@@ -123,7 +119,7 @@ export default Ember.Service.extend({
     },
 
     createSecret: function (data) {
-        return this.store.createRecord('secret', {
+        return this.get('store').createRecord('secret', {
             id: data.id,
             service: data.service,
             account: data.account,
@@ -166,7 +162,7 @@ export default Ember.Service.extend({
     },
 
     createTag: function (name, count) {
-        return this.store.createRecord('tag', {
+        return this.get('store').createRecord('tag', {
             name: name,
             count: count
         }).save();
@@ -179,14 +175,14 @@ export default Ember.Service.extend({
     },
 
     deleteAccount: function () {
-        var promises = [];
-        this.store.all('secret').forEach(function (secret) {
+        var promises = [], store = this.get('store');
+        store.all('secret').forEach(function (secret) {
             promises.push(secret.destroyRecord());
         }, this);
-        this.store.all('tag').forEach(function (tag) {
+        store.all('tag').forEach(function (tag) {
             promises.push(tag.destroyRecord());
         }, this);
-        this.store.all('account').forEach(function (account) {
+        store.all('account').forEach(function (account) {
             promises.push(account.destroyRecord());
         }, this);
 
