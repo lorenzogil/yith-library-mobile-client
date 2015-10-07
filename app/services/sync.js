@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import request from 'ic-ajax';
 import snakeCaseToCamelCase from '../utils/snake-case-to-camel-case';
 
 export default Ember.Service.extend({
@@ -8,7 +9,19 @@ export default Ember.Service.extend({
     fetchUserInfo: function (accessToken, serverBaseUrl, clientId) {
         var self = this;
 
-        return new Ember.RSVP.Promise(function (resolve /*, reject */) {
+        return request({
+            url: serverBaseUrl + '/user?client_id=' + clientId,
+            type: 'GET',
+            crossDomain: true,
+            headers: {
+                'Authorization': 'Bearer ' + accessToken
+            }
+        }).then(function (rawData) {
+            return self.convertRecord(rawData);
+        });
+    },
+/*
+        return new Ember.RSVP.Promise(function (resolve) {
             Ember.$.ajax({
                 url: serverBaseUrl + '/user?client_id=' + clientId,
                 type: 'GET',
@@ -16,13 +29,14 @@ export default Ember.Service.extend({
                 headers: {
                     'Authorization': 'Bearer ' + accessToken
                 }
-            }).done(function (data /*, textStatus, jqXHR*/) {
+            }).done(function (data) {
                 resolve(data);
             });
         }).then(function (data) {
             return self.updateAccountStore(data);
         });
     },
+*/
 
     /* Convert all the keys of the record to be in camelCase
        instead of snake_case */
@@ -37,30 +51,34 @@ export default Ember.Service.extend({
         return newRecord;
     },
 
-    updateAccountStore: function (rawData) {
-        var self = this, data = self.convertRecord(rawData);
+    updateAccountStore: function (data) {
+        var self = this;
 
         return new Ember.RSVP.Promise(function (resolve /*, reject */) {
             var store = self.get('store');
             store.findRecord('account', data.id).then(
                 function (existingRecord) {
                     // update account
-		    existingRecord.set('email', data.email);
-		    existingRecord.set('firstName', data.firstName);
-		    existingRecord.set('lastName', data.lastName);
-		    existingRecord.set('screenName', data.screenName);
-                    resolve(existingRecord.save());
-                }, function () {
+		            existingRecord.set('email', data.email);
+		            existingRecord.set('firstName', data.firstName);
+		            existingRecord.set('lastName', data.lastName);
+		            existingRecord.set('screenName', data.screenName);
+                    existingRecord.save().then(function (record) {
+                        resolve(record);
+                    });
+                },
+                function () {
                     // create account
                     // because we try to find it, it is already in the store
                     // but the record is empty.
-                    var newRecord = store.push('account', store.normalize('account', data));
-                    resolve(newRecord);
+                    var newRecord = store.recordForId('account', data.id);
+                    store.unloadRecord(newRecord);
+                    newRecord = store.createRecord('account', data);
+                    newRecord.save().then(function (record) {
+                        resolve(record);
+                    });
                 }
             );
-
-        }).then(function (record) {
-            return record;
         });
     },
 

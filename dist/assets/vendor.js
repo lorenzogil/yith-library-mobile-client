@@ -69136,21 +69136,34 @@ define("ember/resolver",
 
     if (fullName.parsedName === true) { return fullName; }
 
-    var prefixParts = fullName.split('@');
-    var prefix;
+    var prefix, type, name;
+    var fullNameParts = fullName.split('@');
 
-    if (prefixParts.length === 2) {
-      if (prefixParts[0].split(':')[0] === 'view') {
-        prefixParts[0] = prefixParts[0].split(':')[1];
-        prefixParts[1] = 'view:' + prefixParts[1];
+    // Htmlbars uses helper:@content-helper which collides
+    // with ember-cli namespace detection.
+    // This will be removed in a future release of Htmlbars.
+    if (fullName !== 'helper:@content-helper' &&
+        fullNameParts.length === 2) {
+      var prefixParts = fullNameParts[0].split(':');
+
+      if (prefixParts.length === 2) {
+        prefix = prefixParts[1];
+        type = prefixParts[0];
+        name = fullNameParts[1];
+      } else {
+        var nameParts = fullNameParts[1].split(':');
+
+        prefix = fullNameParts[0];
+        type = nameParts[0];
+        name = nameParts[1];
       }
-
-      prefix = prefixParts[0];
+    } else {
+      fullNameParts = fullName.split(':');
+      type = fullNameParts[0];
+      name = fullNameParts[1];
     }
 
-    var nameParts = prefixParts[prefixParts.length - 1].split(":");
-    var type = nameParts[0], fullNameWithoutType = nameParts[1];
-    var name = fullNameWithoutType;
+    var fullNameWithoutType = name;
     var namespace = get(this, 'namespace');
     var root = namespace;
 
@@ -69429,19 +69442,29 @@ define("ember/resolver",
 
     translateToContainerFullname: function(type, moduleName) {
       var prefix = this.prefix({ type: type });
+
+      // Note: using string manipulation here rather than regexes for better performance.
+      // pod modules
+      // '^' + prefix + '/(.+)/' + type + '$'
+      var podPrefix = prefix + '/';
+      var podSuffix = '/' + type;
+      var start = moduleName.indexOf(podPrefix);
+      var end = moduleName.indexOf(podSuffix);
+
+      if (start === 0 && end === (moduleName.length - podSuffix.length) &&
+          moduleName.length > (podPrefix.length + podSuffix.length)) {
+        return type + ':' + moduleName.slice(start + podPrefix.length, end);
+      }
+
+      // non-pod modules
+      // '^' + prefix + '/' + pluralizedType + '/(.+)$'
       var pluralizedType = this.pluralize(type);
-      var nonPodRegExp = new RegExp('^' + prefix + '/' + pluralizedType + '/(.+)$');
-      var podRegExp = new RegExp('^' + prefix + '/(.+)/' + type + '$');
-      var matches;
+      var nonPodPrefix = prefix + '/' + pluralizedType + '/';
 
-
-      if ((matches = moduleName.match(podRegExp))) {
-        return type + ':' + matches[1];
+      if (moduleName.indexOf(nonPodPrefix) === 0 && moduleName.length > nonPodPrefix.length) {
+        return type + ':' + moduleName.slice(nonPodPrefix.length);
       }
 
-      if ((matches = moduleName.match(nonPodRegExp))) {
-        return type + ':' + matches[1];
-      }
     },
 
     _extractDefaultExport: function(normalizedModuleName) {
@@ -69600,11 +69623,12 @@ define("ember/container-debug-adapter",
   Ember.Application.initializer({
     name: 'container-debug-adapter',
 
-    initialize: function(container, app) {
+    initialize: function() {
+      var app = arguments[1] || arguments[0];
       var ContainerDebugAdapter = require('ember/container-debug-adapter');
       var Resolver = require('ember/resolver');
 
-      container.register('container-debug-adapter:main', ContainerDebugAdapter);
+      app.register('container-debug-adapter:main', ContainerDebugAdapter);
       app.inject('container-debug-adapter:main', 'namespace', 'application:main');
     }
   });
@@ -86629,7 +86653,7 @@ define("ember/load-initializers",
 
 ;/*!
     localForage -- Offline Storage, Improved
-    Version 1.2.8
+    Version 1.2.10
     https://mozilla.github.io/localForage
     (c) 2013-2015 Mozilla, Apache License 2.0
 */
@@ -87858,7 +87882,8 @@ requireModule('promise/polyfill').polyfill();
                         if (_isEncodedBlob(value)) {
                             value = _decodeBlob(value);
                         }
-                        var result = iterator(value, cursor.key, iterationNumber++);
+                        var result = iterator(value, cursor.key,
+                                              iterationNumber++);
 
                         if (result !== void(0)) {
                             resolve(result);
@@ -88295,6 +88320,14 @@ requireModule('promise/polyfill').polyfill();
             var keyPrefixLength = keyPrefix.length;
             var length = localStorage.length;
 
+            // We use a dedicated iterator instead of the `i` variable below
+            // so other keys we fetch in localStorage aren't counted in
+            // the `iterationNumber` argument passed to the `iterate()`
+            // callback.
+            //
+            // See: github.com/mozilla/localForage/pull/435#discussion_r38061530
+            var iterationNumber = 1;
+
             for (var i = 0; i < length; i++) {
                 var key = localStorage.key(i);
                 if (key.indexOf(keyPrefix) !== 0) {
@@ -88310,7 +88343,8 @@ requireModule('promise/polyfill').polyfill();
                     value = serializer.deserialize(value);
                 }
 
-                value = iterator(value, key.substring(keyPrefixLength), i + 1);
+                value = iterator(value, key.substring(keyPrefixLength),
+                                 iterationNumber++);
 
                 if (value !== void(0)) {
                     return value;
@@ -90617,19 +90651,7 @@ a=a.replace(/^\{|\}$/g,"").split(/,/);var b={},c,d;for(c=0;c<a.length;c++)(d=a[c
 a[d]=b[d]);return a},ea:function(a,b){var c={},d;for(d in a)a.hasOwnProperty(d)&&a[d]!==b[d]&&(c[d]=a[d]);return c},da:function(a,b){var c={},d;for(d=0;d<b.length;d++)a[b[d]]!==t&&(c[b[d]]=a[b[d]]);return c}};sjcl.encrypt=sjcl.json.encrypt;sjcl.decrypt=sjcl.json.decrypt;sjcl.misc.ca={};
 sjcl.misc.cachedPbkdf2=function(a,b){var c=sjcl.misc.ca,d;b=b||{};d=b.iter||1E3;c=c[a]=c[a]||{};d=c[d]=c[d]||{firstSalt:b.salt&&b.salt.length?b.salt.slice(0):sjcl.random.randomWords(2,0)};c=b.salt===t?d.firstSalt:b.salt;d[c]=d[c]||sjcl.misc.pbkdf2(a,c,b.iter);return{key:d[c].slice(0),salt:c.slice(0)}};
 
-;define('ember-cli-app-version', ['ember-cli-app-version/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
-  'use strict';
-  var keys = Object.keys || __Ember__['default'].keys;
-  var forEach = Array.prototype.forEach && function(array, cb) {
-    array.forEach(cb);
-  } || __Ember__['default'].EnumerableUtils.forEach;
-
-  forEach(keys(__index__), (function(key) {
-    __exports__[key] = __index__[key];
-  }));
-});
-
-define('ember-cli-app-version/components/app-version', ['exports', 'ember', 'ember-cli-app-version/templates/app-version'], function (exports, Ember, layout) {
+;define('ember-cli-app-version/components/app-version', ['exports', 'ember', 'ember-cli-app-version/templates/app-version'], function (exports, Ember, layout) {
 
   'use strict';
 
@@ -90708,7 +90730,7 @@ define('ember-cli-app-version/templates/app-version', ['exports'], function (exp
   }()));
 
 });
-define('ember-cli-content-security-policy', ['ember-cli-content-security-policy/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
+define('ember-cli-app-version', ['ember-cli-app-version/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
   'use strict';
   var keys = Object.keys || __Ember__['default'].keys;
   var forEach = Array.prototype.forEach && function(array, cb) {
@@ -90720,7 +90742,7 @@ define('ember-cli-content-security-policy', ['ember-cli-content-security-policy/
   }));
 });
 
-define('ember-localforage-adapter', ['ember-localforage-adapter/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
+define('ember-cli-content-security-policy', ['ember-cli-content-security-policy/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
   'use strict';
   var keys = Object.keys || __Ember__['default'].keys;
   var forEach = Array.prototype.forEach && function(array, cb) {
@@ -91412,6 +91434,18 @@ define('ember-localforage-adapter/utils/queue', ['exports', 'ember'], function (
     } });
 
 });
+define('ember-localforage-adapter', ['ember-localforage-adapter/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
+  'use strict';
+  var keys = Object.keys || __Ember__['default'].keys;
+  var forEach = Array.prototype.forEach && function(array, cb) {
+    array.forEach(cb);
+  } || __Ember__['default'].EnumerableUtils.forEach;
+
+  forEach(keys(__index__), (function(key) {
+    __exports__[key] = __index__[key];
+  }));
+});
+
 ;/* jshint ignore:start */
 
 

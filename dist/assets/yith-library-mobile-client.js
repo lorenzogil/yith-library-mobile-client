@@ -3,15 +3,6 @@
 
 /* jshint ignore:end */
 
-define('yith-library-mobile-client/acceptance-tests/main', ['exports', 'ember-cli-sri/acceptance-tests/main'], function (exports, main) {
-
-	'use strict';
-
-
-
-	exports['default'] = main['default'];
-
-});
 define('yith-library-mobile-client/adapters/application', ['exports', 'ember-localforage-adapter/adapters/localforage'], function (exports, LFAdapter) {
 
     'use strict';
@@ -185,6 +176,114 @@ define('yith-library-mobile-client/controllers/secret', ['exports', 'ember'], fu
     });
 
 });
+define('yith-library-mobile-client/controllers/secrets/drawer', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].ArrayController.extend({
+        needs: ['application', 'secrets'],
+        sortProperties: ['count:desc'],
+        sortedTags: Ember['default'].computed.sort('content', 'sortProperties'),
+        tagsToDisplay: 5,
+        tag: Ember['default'].computed.alias('controllers.secrets.tag'),
+
+        accountDisplayName: (function () {
+            return this.get('controllers.application.model.displayName');
+        }).property('controllers.application.model.displayName'),
+
+        selectedTagCount: (function () {
+            var tag = this.get('sortedTags').findBy('name', this.get('tag'));
+            if (tag) {
+                return tag.get('count');
+            } else {
+                return 0;
+            }
+        }).property('sortedTags.[]', 'tag'),
+
+        mostUsedTags: (function () {
+            var tags = this.get('sortedTags');
+            var mostUsed = tags.slice(0, this.get('tagsToDisplay'));
+            var selectedTag = this.get('tag');
+            var foundSelectedTag = false;
+            var wrapped = mostUsed.map(function (element) {
+                var name = element.get('name');
+                if (name === selectedTag) {
+                    foundSelectedTag = true;
+                }
+                return {
+                    'name': name,
+                    'count': element.get('count'),
+                    'selectTag': name === selectedTag ? '' : name
+                };
+            });
+            if (!foundSelectedTag && selectedTag !== '') {
+                wrapped.pop();
+                wrapped.push({
+                    'name': selectedTag,
+                    'count': this.get('selectedTagCount'),
+                    'selectTag': ''
+                });
+            }
+            return wrapped;
+        }).property('selectedTagCount', 'sortedTags.[]', 'tag', 'tagsToDisplay'),
+
+        hasMoreTags: (function () {
+            return this.get('sortedTags').length > this.get('tagsToDisplay');
+        }).property('sortedTags.[]', 'tagsToDisplay'),
+
+        syncButtonDisabled: (function () {
+            return this.get('controllers.secrets.isSyncing') || !this.get('controllers.secrets.isOnline');
+        }).property('controllers.secrets.isSyncing', 'controllers.secrets.isOnline'),
+
+        loginButtonDisabled: (function () {
+            return !this.get('isOnline');
+        }).property('controllers.secrets.isOnline'),
+
+        actions: {
+            login: function login() {
+                this.transitionToRoute('secrets');
+                Ember['default'].run.next(this, function () {
+                    this.get('controllers.secrets').authorizeInServer();
+                });
+            },
+
+            sync: function sync() {
+                this.transitionToRoute('secrets');
+                Ember['default'].run.next(this, function () {
+                    this.get('controllers.secrets').syncFromServer();
+                });
+            },
+
+            logout: function logout() {
+                this.transitionToRoute('secrets');
+                Ember['default'].run.next(this, function () {
+                    this.get('controllers.secrets').logout();
+                });
+            }
+        }
+
+    });
+
+});
+define('yith-library-mobile-client/controllers/secrets/tags', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].ArrayController.extend({
+        tagsSortProperties: ['name:asc'],
+        sortedTags: Ember['default'].computed.sort('content', 'tagsSortProperties'),
+        actions: {
+            selectTag: function selectTag(tagName) {
+                this.transitionToRoute('secrets', { queryParams: { tag: tagName } });
+            },
+
+            cancel: function cancel() {
+                this.transitionToRoute('secrets');
+            }
+        }
+    });
+
+});
 define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -329,114 +428,6 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
     });
 
 });
-define('yith-library-mobile-client/controllers/secrets/drawer', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].ArrayController.extend({
-        needs: ['application', 'secrets'],
-        sortProperties: ['count:desc'],
-        sortedTags: Ember['default'].computed.sort('content', 'sortProperties'),
-        tagsToDisplay: 5,
-        tag: Ember['default'].computed.alias('controllers.secrets.tag'),
-
-        accountDisplayName: (function () {
-            return this.get('controllers.application.model.displayName');
-        }).property('controllers.application.model.displayName'),
-
-        selectedTagCount: (function () {
-            var tag = this.get('sortedTags').findBy('name', this.get('tag'));
-            if (tag) {
-                return tag.get('count');
-            } else {
-                return 0;
-            }
-        }).property('sortedTags.[]', 'tag'),
-
-        mostUsedTags: (function () {
-            var tags = this.get('sortedTags');
-            var mostUsed = tags.slice(0, this.get('tagsToDisplay'));
-            var selectedTag = this.get('tag');
-            var foundSelectedTag = false;
-            var wrapped = mostUsed.map(function (element) {
-                var name = element.get('name');
-                if (name === selectedTag) {
-                    foundSelectedTag = true;
-                }
-                return {
-                    'name': name,
-                    'count': element.get('count'),
-                    'selectTag': name === selectedTag ? '' : name
-                };
-            });
-            if (!foundSelectedTag && selectedTag !== '') {
-                wrapped.pop();
-                wrapped.push({
-                    'name': selectedTag,
-                    'count': this.get('selectedTagCount'),
-                    'selectTag': ''
-                });
-            }
-            return wrapped;
-        }).property('selectedTagCount', 'sortedTags.[]', 'tag', 'tagsToDisplay'),
-
-        hasMoreTags: (function () {
-            return this.get('sortedTags').length > this.get('tagsToDisplay');
-        }).property('sortedTags.[]', 'tagsToDisplay'),
-
-        syncButtonDisabled: (function () {
-            return this.get('controllers.secrets.isSyncing') || !this.get('controllers.secrets.isOnline');
-        }).property('controllers.secrets.isSyncing', 'controllers.secrets.isOnline'),
-
-        loginButtonDisabled: (function () {
-            return !this.get('isOnline');
-        }).property('controllers.secrets.isOnline'),
-
-        actions: {
-            login: function login() {
-                this.transitionToRoute('secrets');
-                Ember['default'].run.next(this, function () {
-                    this.get('controllers.secrets').authorizeInServer();
-                });
-            },
-
-            sync: function sync() {
-                this.transitionToRoute('secrets');
-                Ember['default'].run.next(this, function () {
-                    this.get('controllers.secrets').syncFromServer();
-                });
-            },
-
-            logout: function logout() {
-                this.transitionToRoute('secrets');
-                Ember['default'].run.next(this, function () {
-                    this.get('controllers.secrets').logout();
-                });
-            }
-        }
-
-    });
-
-});
-define('yith-library-mobile-client/controllers/secrets/tags', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].ArrayController.extend({
-        tagsSortProperties: ['name:asc'],
-        sortedTags: Ember['default'].computed.sort('content', 'tagsSortProperties'),
-        actions: {
-            selectTag: function selectTag(tagName) {
-                this.transitionToRoute('secrets', { queryParams: { tag: tagName } });
-            },
-
-            cancel: function cancel() {
-                this.transitionToRoute('secrets');
-            }
-        }
-    });
-
-});
 define('yith-library-mobile-client/helpers/current-tag', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -468,7 +459,8 @@ define('yith-library-mobile-client/initializers/export-application-global', ['ex
 
   exports.initialize = initialize;
 
-  function initialize(container, application) {
+  function initialize() {
+    var application = arguments[1] || arguments[0];
     if (config['default'].exportApplicationGlobal !== false) {
       var value = config['default'].exportApplicationGlobal;
       var globalName;
@@ -724,54 +716,6 @@ define('yith-library-mobile-client/routes/secret', ['exports', 'ember'], functio
     });
 
 });
-define('yith-library-mobile-client/routes/secrets-drawer', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Route.extend({
-
-        model: function model() {
-            return this.store.find('tag');
-        },
-
-        renderTemplate: function renderTemplate() {
-            this.render({ outlet: 'drawer' });
-        }
-
-    });
-
-});
-define('yith-library-mobile-client/routes/secrets', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Route.extend({
-
-        setupController: function setupController(controller, model) {
-            this._super(controller, model);
-            controller.set('state', '');
-        },
-
-        model: function model() {
-            return this.store.find('secret');
-        },
-
-        actions: {
-            willTransition: function willTransition(transition) {
-                if (transition.targetName === 'secret') {
-                    this.controller.set('position', 'left');
-                } else if (transition.targetName === 'secrets.index') {
-                    this.controller.set('position', 'current');
-                    this.controller.set('state', '');
-                }
-                return true;
-            }
-
-        }
-
-    });
-
-});
 define('yith-library-mobile-client/routes/secrets/drawer', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -831,6 +775,54 @@ define('yith-library-mobile-client/routes/secrets/tags', ['exports', 'ember'], f
 
         model: function model() {
             return this.store.find('tag');
+        }
+
+    });
+
+});
+define('yith-library-mobile-client/routes/secrets-drawer', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Route.extend({
+
+        model: function model() {
+            return this.store.find('tag');
+        },
+
+        renderTemplate: function renderTemplate() {
+            this.render({ outlet: 'drawer' });
+        }
+
+    });
+
+});
+define('yith-library-mobile-client/routes/secrets', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Route.extend({
+
+        setupController: function setupController(controller, model) {
+            this._super(controller, model);
+            controller.set('state', '');
+        },
+
+        model: function model() {
+            return this.store.find('secret');
+        },
+
+        actions: {
+            willTransition: function willTransition(transition) {
+                if (transition.targetName === 'secret') {
+                    this.controller.set('position', 'left');
+                } else if (transition.targetName === 'secrets.index') {
+                    this.controller.set('position', 'current');
+                    this.controller.set('state', '');
+                }
+                return true;
+            }
+
         }
 
     });
@@ -2748,378 +2740,6 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
   }()));
 
 });
-define('yith-library-mobile-client/templates/secrets', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    var child0 = (function() {
-      return {
-        meta: {
-          "revision": "Ember@1.13.7",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 8,
-              "column": 6
-            },
-            "end": {
-              "line": 10,
-              "column": 6
-            }
-          },
-          "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("        ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createElement("span");
-          dom.setAttribute(el1,"class","icon icon-menu");
-          var el2 = dom.createTextNode("menu");
-          dom.appendChild(el1, el2);
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes() { return []; },
-        statements: [
-
-        ],
-        locals: [],
-        templates: []
-      };
-    }());
-    var child1 = (function() {
-      return {
-        meta: {
-          "revision": "Ember@1.13.7",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 21,
-              "column": 10
-            },
-            "end": {
-              "line": 23,
-              "column": 10
-            }
-          },
-          "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("            ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createElement("span");
-          dom.setAttribute(el1,"class","tag");
-          var el2 = dom.createComment("");
-          dom.appendChild(el1, el2);
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var morphs = new Array(1);
-          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
-          return morphs;
-        },
-        statements: [
-          ["content","tag",["loc",[null,[22,30],[22,37]]]]
-        ],
-        locals: [],
-        templates: []
-      };
-    }());
-    var child2 = (function() {
-      var child0 = (function() {
-        return {
-          meta: {
-            "revision": "Ember@1.13.7",
-            "loc": {
-              "source": null,
-              "start": {
-                "line": 28,
-                "column": 14
-              },
-              "end": {
-                "line": 31,
-                "column": 14
-              }
-            },
-            "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
-          },
-          arity: 0,
-          cachedFragment: null,
-          hasRendered: false,
-          buildFragment: function buildFragment(dom) {
-            var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("                ");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createElement("p");
-            var el2 = dom.createComment("");
-            dom.appendChild(el1, el2);
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("\n                ");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createElement("p");
-            var el2 = dom.createComment("");
-            dom.appendChild(el1, el2);
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("\n");
-            dom.appendChild(el0, el1);
-            return el0;
-          },
-          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-            var morphs = new Array(2);
-            morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
-            morphs[1] = dom.createMorphAt(dom.childAt(fragment, [3]),0,0);
-            return morphs;
-          },
-          statements: [
-            ["content","service",["loc",[null,[29,19],[29,30]]]],
-            ["content","account",["loc",[null,[30,19],[30,30]]]]
-          ],
-          locals: [],
-          templates: []
-        };
-      }());
-      return {
-        meta: {
-          "revision": "Ember@1.13.7",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 26,
-              "column": 10
-            },
-            "end": {
-              "line": 33,
-              "column": 10
-            }
-          },
-          "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("            ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createElement("li");
-          var el2 = dom.createTextNode("\n");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createComment("");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("            ");
-          dom.appendChild(el1, el2);
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var morphs = new Array(1);
-          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
-          return morphs;
-        },
-        statements: [
-          ["block","link-to",["secret",["get","id",["loc",[null,[28,34],[28,36]]]]],[],0,null,["loc",[null,[28,14],[31,26]]]]
-        ],
-        locals: [],
-        templates: [child0]
-      };
-    }());
-    return {
-      meta: {
-        "revision": "Ember@1.13.7",
-        "loc": {
-          "source": null,
-          "start": {
-            "line": 1,
-            "column": 0
-          },
-          "end": {
-            "line": 46,
-            "column": 0
-          }
-        },
-        "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
-      },
-      arity: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      buildFragment: function buildFragment(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createElement("section");
-        dom.setAttribute(el1,"data-position","current");
-        var el2 = dom.createTextNode("\n\n  ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createComment("");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n\n  ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("section");
-        dom.setAttribute(el2,"id","secrets");
-        dom.setAttribute(el2,"role","region");
-        var el3 = dom.createTextNode("\n\n    ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("header");
-        dom.setAttribute(el3,"class","fixed");
-        var el4 = dom.createTextNode("\n");
-        dom.appendChild(el3, el4);
-        var el4 = dom.createComment("");
-        dom.appendChild(el3, el4);
-        var el4 = dom.createTextNode("      ");
-        dom.appendChild(el3, el4);
-        var el4 = dom.createElement("form");
-        dom.setAttribute(el4,"action","#");
-        var el5 = dom.createTextNode("\n        ");
-        dom.appendChild(el4, el5);
-        var el5 = dom.createComment("");
-        dom.appendChild(el4, el5);
-        var el5 = dom.createTextNode("\n        ");
-        dom.appendChild(el4, el5);
-        var el5 = dom.createElement("button");
-        dom.setAttribute(el5,"type","reset");
-        var el6 = dom.createTextNode("Remove text");
-        dom.appendChild(el5, el6);
-        dom.appendChild(el4, el5);
-        var el5 = dom.createTextNode("\n      ");
-        dom.appendChild(el4, el5);
-        dom.appendChild(el3, el4);
-        var el4 = dom.createTextNode("\n    ");
-        dom.appendChild(el3, el4);
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n\n    ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("article");
-        dom.setAttribute(el3,"class","content scrollable header");
-        var el4 = dom.createTextNode("\n      ");
-        dom.appendChild(el3, el4);
-        var el4 = dom.createElement("div");
-        dom.setAttribute(el4,"data-type","list");
-        var el5 = dom.createTextNode("\n        ");
-        dom.appendChild(el4, el5);
-        var el5 = dom.createElement("header");
-        var el6 = dom.createTextNode("\n          ");
-        dom.appendChild(el5, el6);
-        var el6 = dom.createElement("small");
-        var el7 = dom.createComment("");
-        dom.appendChild(el6, el7);
-        var el7 = dom.createTextNode(" ");
-        dom.appendChild(el6, el7);
-        var el7 = dom.createComment("");
-        dom.appendChild(el6, el7);
-        dom.appendChild(el5, el6);
-        var el6 = dom.createTextNode("\n");
-        dom.appendChild(el5, el6);
-        var el6 = dom.createComment("");
-        dom.appendChild(el5, el6);
-        var el6 = dom.createTextNode("        ");
-        dom.appendChild(el5, el6);
-        dom.appendChild(el4, el5);
-        var el5 = dom.createTextNode("\n        ");
-        dom.appendChild(el4, el5);
-        var el5 = dom.createElement("ul");
-        var el6 = dom.createTextNode("\n");
-        dom.appendChild(el5, el6);
-        var el6 = dom.createComment("");
-        dom.appendChild(el5, el6);
-        var el6 = dom.createTextNode("        ");
-        dom.appendChild(el5, el6);
-        dom.appendChild(el4, el5);
-        var el5 = dom.createTextNode("\n      ");
-        dom.appendChild(el4, el5);
-        dom.appendChild(el3, el4);
-        var el4 = dom.createTextNode("\n    ");
-        dom.appendChild(el3, el4);
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n  ");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n\n");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createElement("section");
-        dom.setAttribute(el1,"role","status");
-        var el2 = dom.createTextNode("\n  ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("p");
-        var el3 = dom.createComment("");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n\n");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createComment("");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var element0 = dom.childAt(fragment, [0]);
-        var element1 = dom.childAt(element0, [3]);
-        var element2 = dom.childAt(element1, [1]);
-        var element3 = dom.childAt(element2, [3]);
-        var element4 = dom.childAt(element3, [3]);
-        var element5 = dom.childAt(element1, [3, 1]);
-        var element6 = dom.childAt(element5, [1]);
-        var element7 = dom.childAt(element6, [1]);
-        var element8 = dom.childAt(fragment, [2]);
-        var morphs = new Array(14);
-        morphs[0] = dom.createAttrMorph(element0, 'class');
-        morphs[1] = dom.createMorphAt(element0,1,1);
-        morphs[2] = dom.createAttrMorph(element1, 'class');
-        morphs[3] = dom.createElementMorph(element1);
-        morphs[4] = dom.createMorphAt(element2,1,1);
-        morphs[5] = dom.createMorphAt(element3,1,1);
-        morphs[6] = dom.createElementMorph(element4);
-        morphs[7] = dom.createMorphAt(element7,0,0);
-        morphs[8] = dom.createMorphAt(element7,2,2);
-        morphs[9] = dom.createMorphAt(element6,3,3);
-        morphs[10] = dom.createMorphAt(dom.childAt(element5, [3]),1,1);
-        morphs[11] = dom.createAttrMorph(element8, 'class');
-        morphs[12] = dom.createMorphAt(dom.childAt(element8, [1]),0,0);
-        morphs[13] = dom.createMorphAt(fragment,4,4,contextualElement);
-        return morphs;
-      },
-      statements: [
-        ["attribute","class",["get","position",["loc",[null,[1,41],[1,49]]]]],
-        ["inline","outlet",[["get","drawer",["loc",[null,[3,11],[3,17]]]]],[],["loc",[null,[3,2],[3,19]]]],
-        ["attribute","class",["get","state",["loc",[null,[5,46],[5,51]]]]],
-        ["element","action",["finishTransition"],["on","transitionEnd"],["loc",[null,[5,54],[5,102]]]],
-        ["block","link-to",["secrets.drawer"],[],0,null,["loc",[null,[8,6],[10,18]]]],
-        ["inline","input",[],["placeholder","Search...","value",["subexpr","@mut",[["get","query",["loc",[null,[12,46],[12,51]]]]],[],[]]],["loc",[null,[12,8],[12,53]]]],
-        ["element","action",["clearQuery"],[],["loc",[null,[13,29],[13,52]]]],
-        ["content","secretsCount",["loc",[null,[20,17],[20,33]]]],
-        ["content","secretsNoun",["loc",[null,[20,34],[20,49]]]],
-        ["block","if",[["get","tag",["loc",[null,[21,16],[21,19]]]]],[],1,null,["loc",[null,[21,10],[23,17]]]],
-        ["block","each",[["get","secrets",["loc",[null,[26,18],[26,25]]]]],[],2,null,["loc",[null,[26,10],[33,19]]]],
-        ["attribute","class",["get","statusClass",["loc",[null,[41,31],[41,42]]]]],
-        ["content","statusMessage",["loc",[null,[42,5],[42,22]]]],
-        ["content","outlet",["loc",[null,[45,0],[45,10]]]]
-      ],
-      locals: [],
-      templates: [child0, child1, child2]
-    };
-  }()));
-
-});
 define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], function (exports) {
 
   'use strict';
@@ -4070,13 +3690,385 @@ define('yith-library-mobile-client/templates/secrets/tags', ['exports'], functio
   }()));
 
 });
+define('yith-library-mobile-client/templates/secrets', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.7",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 8,
+              "column": 6
+            },
+            "end": {
+              "line": 10,
+              "column": 6
+            }
+          },
+          "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("span");
+          dom.setAttribute(el1,"class","icon icon-menu");
+          var el2 = dom.createTextNode("menu");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes() { return []; },
+        statements: [
+
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child1 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.7",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 21,
+              "column": 10
+            },
+            "end": {
+              "line": 23,
+              "column": 10
+            }
+          },
+          "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("            ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("span");
+          dom.setAttribute(el1,"class","tag");
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
+          return morphs;
+        },
+        statements: [
+          ["content","tag",["loc",[null,[22,30],[22,37]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child2 = (function() {
+      var child0 = (function() {
+        return {
+          meta: {
+            "revision": "Ember@1.13.7",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 28,
+                "column": 14
+              },
+              "end": {
+                "line": 31,
+                "column": 14
+              }
+            },
+            "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
+          },
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("                ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("p");
+            var el2 = dom.createComment("");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n                ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("p");
+            var el2 = dom.createComment("");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var morphs = new Array(2);
+            morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
+            morphs[1] = dom.createMorphAt(dom.childAt(fragment, [3]),0,0);
+            return morphs;
+          },
+          statements: [
+            ["content","service",["loc",[null,[29,19],[29,30]]]],
+            ["content","account",["loc",[null,[30,19],[30,30]]]]
+          ],
+          locals: [],
+          templates: []
+        };
+      }());
+      return {
+        meta: {
+          "revision": "Ember@1.13.7",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 26,
+              "column": 10
+            },
+            "end": {
+              "line": 33,
+              "column": 10
+            }
+          },
+          "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("            ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("li");
+          var el2 = dom.createTextNode("\n");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("            ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
+          return morphs;
+        },
+        statements: [
+          ["block","link-to",["secret",["get","id",["loc",[null,[28,34],[28,36]]]]],[],0,null,["loc",[null,[28,14],[31,26]]]]
+        ],
+        locals: [],
+        templates: [child0]
+      };
+    }());
+    return {
+      meta: {
+        "revision": "Ember@1.13.7",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 46,
+            "column": 0
+          }
+        },
+        "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
+      },
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("section");
+        dom.setAttribute(el1,"data-position","current");
+        var el2 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("section");
+        dom.setAttribute(el2,"id","secrets");
+        dom.setAttribute(el2,"role","region");
+        var el3 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("header");
+        dom.setAttribute(el3,"class","fixed");
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("form");
+        dom.setAttribute(el4,"action","#");
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("button");
+        dom.setAttribute(el5,"type","reset");
+        var el6 = dom.createTextNode("Remove text");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n      ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("article");
+        dom.setAttribute(el3,"class","content scrollable header");
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("div");
+        dom.setAttribute(el4,"data-type","list");
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("header");
+        var el6 = dom.createTextNode("\n          ");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createElement("small");
+        var el7 = dom.createComment("");
+        dom.appendChild(el6, el7);
+        var el7 = dom.createTextNode(" ");
+        dom.appendChild(el6, el7);
+        var el7 = dom.createComment("");
+        dom.appendChild(el6, el7);
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("\n");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createComment("");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("        ");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("ul");
+        var el6 = dom.createTextNode("\n");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createComment("");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("        ");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n      ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("section");
+        dom.setAttribute(el1,"role","status");
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("p");
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var element0 = dom.childAt(fragment, [0]);
+        var element1 = dom.childAt(element0, [3]);
+        var element2 = dom.childAt(element1, [1]);
+        var element3 = dom.childAt(element2, [3]);
+        var element4 = dom.childAt(element3, [3]);
+        var element5 = dom.childAt(element1, [3, 1]);
+        var element6 = dom.childAt(element5, [1]);
+        var element7 = dom.childAt(element6, [1]);
+        var element8 = dom.childAt(fragment, [2]);
+        var morphs = new Array(14);
+        morphs[0] = dom.createAttrMorph(element0, 'class');
+        morphs[1] = dom.createMorphAt(element0,1,1);
+        morphs[2] = dom.createAttrMorph(element1, 'class');
+        morphs[3] = dom.createElementMorph(element1);
+        morphs[4] = dom.createMorphAt(element2,1,1);
+        morphs[5] = dom.createMorphAt(element3,1,1);
+        morphs[6] = dom.createElementMorph(element4);
+        morphs[7] = dom.createMorphAt(element7,0,0);
+        morphs[8] = dom.createMorphAt(element7,2,2);
+        morphs[9] = dom.createMorphAt(element6,3,3);
+        morphs[10] = dom.createMorphAt(dom.childAt(element5, [3]),1,1);
+        morphs[11] = dom.createAttrMorph(element8, 'class');
+        morphs[12] = dom.createMorphAt(dom.childAt(element8, [1]),0,0);
+        morphs[13] = dom.createMorphAt(fragment,4,4,contextualElement);
+        return morphs;
+      },
+      statements: [
+        ["attribute","class",["get","position",["loc",[null,[1,41],[1,49]]]]],
+        ["inline","outlet",[["get","drawer",["loc",[null,[3,11],[3,17]]]]],[],["loc",[null,[3,2],[3,19]]]],
+        ["attribute","class",["get","state",["loc",[null,[5,46],[5,51]]]]],
+        ["element","action",["finishTransition"],["on","transitionEnd"],["loc",[null,[5,54],[5,102]]]],
+        ["block","link-to",["secrets.drawer"],[],0,null,["loc",[null,[8,6],[10,18]]]],
+        ["inline","input",[],["placeholder","Search...","value",["subexpr","@mut",[["get","query",["loc",[null,[12,46],[12,51]]]]],[],[]]],["loc",[null,[12,8],[12,53]]]],
+        ["element","action",["clearQuery"],[],["loc",[null,[13,29],[13,52]]]],
+        ["content","secretsCount",["loc",[null,[20,17],[20,33]]]],
+        ["content","secretsNoun",["loc",[null,[20,34],[20,49]]]],
+        ["block","if",[["get","tag",["loc",[null,[21,16],[21,19]]]]],[],1,null,["loc",[null,[21,10],[23,17]]]],
+        ["block","each",[["get","secrets",["loc",[null,[26,18],[26,25]]]]],[],2,null,["loc",[null,[26,10],[33,19]]]],
+        ["attribute","class",["get","statusClass",["loc",[null,[41,31],[41,42]]]]],
+        ["content","statusMessage",["loc",[null,[42,5],[42,22]]]],
+        ["content","outlet",["loc",[null,[45,0],[45,10]]]]
+      ],
+      locals: [],
+      templates: [child0, child1, child2]
+    };
+  }()));
+
+});
 define('yith-library-mobile-client/tests/adapters/application.jshint', function () {
 
   'use strict';
 
-  module('JSHint - adapters');
-  test('adapters/application.js should pass jshint', function() { 
-    ok(true, 'adapters/application.js should pass jshint.'); 
+  QUnit.module('JSHint - adapters');
+  QUnit.test('adapters/application.js should pass jshint', function(assert) { 
+    assert.ok(true, 'adapters/application.js should pass jshint.'); 
   });
 
 });
@@ -4084,9 +4076,9 @@ define('yith-library-mobile-client/tests/app.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('app.js should pass jshint', function() { 
-    ok(true, 'app.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('app.js should pass jshint', function(assert) { 
+    assert.ok(true, 'app.js should pass jshint.'); 
   });
 
 });
@@ -4094,9 +4086,9 @@ define('yith-library-mobile-client/tests/controllers/application.jshint', functi
 
   'use strict';
 
-  module('JSHint - controllers');
-  test('controllers/application.js should pass jshint', function() { 
-    ok(true, 'controllers/application.js should pass jshint.'); 
+  QUnit.module('JSHint - controllers');
+  QUnit.test('controllers/application.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/application.js should pass jshint.'); 
   });
 
 });
@@ -4104,9 +4096,9 @@ define('yith-library-mobile-client/tests/controllers/first-time.jshint', functio
 
   'use strict';
 
-  module('JSHint - controllers');
-  test('controllers/first-time.js should pass jshint', function() { 
-    ok(true, 'controllers/first-time.js should pass jshint.'); 
+  QUnit.module('JSHint - controllers');
+  QUnit.test('controllers/first-time.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/first-time.js should pass jshint.'); 
   });
 
 });
@@ -4114,19 +4106,9 @@ define('yith-library-mobile-client/tests/controllers/secret.jshint', function ()
 
   'use strict';
 
-  module('JSHint - controllers');
-  test('controllers/secret.js should pass jshint', function() { 
-    ok(true, 'controllers/secret.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/controllers/secrets.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - controllers');
-  test('controllers/secrets.js should pass jshint', function() { 
-    ok(true, 'controllers/secrets.js should pass jshint.'); 
+  QUnit.module('JSHint - controllers');
+  QUnit.test('controllers/secret.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/secret.js should pass jshint.'); 
   });
 
 });
@@ -4134,9 +4116,9 @@ define('yith-library-mobile-client/tests/controllers/secrets/drawer.jshint', fun
 
   'use strict';
 
-  module('JSHint - controllers/secrets');
-  test('controllers/secrets/drawer.js should pass jshint', function() { 
-    ok(true, 'controllers/secrets/drawer.js should pass jshint.'); 
+  QUnit.module('JSHint - controllers/secrets');
+  QUnit.test('controllers/secrets/drawer.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/secrets/drawer.js should pass jshint.'); 
   });
 
 });
@@ -4144,9 +4126,19 @@ define('yith-library-mobile-client/tests/controllers/secrets/tags.jshint', funct
 
   'use strict';
 
-  module('JSHint - controllers/secrets');
-  test('controllers/secrets/tags.js should pass jshint', function() { 
-    ok(true, 'controllers/secrets/tags.js should pass jshint.'); 
+  QUnit.module('JSHint - controllers/secrets');
+  QUnit.test('controllers/secrets/tags.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/secrets/tags.js should pass jshint.'); 
+  });
+
+});
+define('yith-library-mobile-client/tests/controllers/secrets.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - controllers');
+  QUnit.test('controllers/secrets.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/secrets.js should pass jshint.'); 
   });
 
 });
@@ -4154,9 +4146,9 @@ define('yith-library-mobile-client/tests/helpers/current-tag.jshint', function (
 
   'use strict';
 
-  module('JSHint - helpers');
-  test('helpers/current-tag.js should pass jshint', function() { 
-    ok(true, 'helpers/current-tag.js should pass jshint.'); 
+  QUnit.module('JSHint - helpers');
+  QUnit.test('helpers/current-tag.js should pass jshint', function(assert) { 
+    assert.ok(true, 'helpers/current-tag.js should pass jshint.'); 
   });
 
 });
@@ -4178,9 +4170,9 @@ define('yith-library-mobile-client/tests/helpers/resolver.jshint', function () {
 
   'use strict';
 
-  module('JSHint - helpers');
-  test('helpers/resolver.js should pass jshint', function() { 
-    ok(true, 'helpers/resolver.js should pass jshint.'); 
+  QUnit.module('JSHint - helpers');
+  QUnit.test('helpers/resolver.js should pass jshint', function(assert) { 
+    assert.ok(true, 'helpers/resolver.js should pass jshint.'); 
   });
 
 });
@@ -4211,9 +4203,9 @@ define('yith-library-mobile-client/tests/helpers/start-app.jshint', function () 
 
   'use strict';
 
-  module('JSHint - helpers');
-  test('helpers/start-app.js should pass jshint', function() { 
-    ok(true, 'helpers/start-app.js should pass jshint.'); 
+  QUnit.module('JSHint - helpers');
+  QUnit.test('helpers/start-app.js should pass jshint', function(assert) { 
+    assert.ok(true, 'helpers/start-app.js should pass jshint.'); 
   });
 
 });
@@ -4221,9 +4213,9 @@ define('yith-library-mobile-client/tests/main.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('main.js should pass jshint', function() { 
-    ok(true, 'main.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('main.js should pass jshint', function(assert) { 
+    assert.ok(true, 'main.js should pass jshint.'); 
   });
 
 });
@@ -4231,9 +4223,9 @@ define('yith-library-mobile-client/tests/models/account.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/account.js should pass jshint', function() { 
-    ok(true, 'models/account.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/account.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/account.js should pass jshint.'); 
   });
 
 });
@@ -4241,9 +4233,9 @@ define('yith-library-mobile-client/tests/models/secret.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/secret.js should pass jshint', function() { 
-    ok(true, 'models/secret.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/secret.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/secret.js should pass jshint.'); 
   });
 
 });
@@ -4251,9 +4243,9 @@ define('yith-library-mobile-client/tests/models/tag.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/tag.js should pass jshint', function() { 
-    ok(true, 'models/tag.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/tag.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/tag.js should pass jshint.'); 
   });
 
 });
@@ -4261,9 +4253,9 @@ define('yith-library-mobile-client/tests/router.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('router.js should pass jshint', function() { 
-    ok(true, 'router.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('router.js should pass jshint', function(assert) { 
+    assert.ok(true, 'router.js should pass jshint.'); 
   });
 
 });
@@ -4271,9 +4263,9 @@ define('yith-library-mobile-client/tests/routes/application.jshint', function ()
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/application.js should pass jshint', function() { 
-    ok(true, 'routes/application.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/application.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/application.js should pass jshint.'); 
   });
 
 });
@@ -4281,9 +4273,9 @@ define('yith-library-mobile-client/tests/routes/first-time.jshint', function () 
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/first-time.js should pass jshint', function() { 
-    ok(true, 'routes/first-time.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/first-time.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/first-time.js should pass jshint.'); 
   });
 
 });
@@ -4291,9 +4283,9 @@ define('yith-library-mobile-client/tests/routes/index.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/index.js should pass jshint', function() { 
-    ok(true, 'routes/index.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/index.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/index.js should pass jshint.'); 
   });
 
 });
@@ -4301,29 +4293,9 @@ define('yith-library-mobile-client/tests/routes/secret.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/secret.js should pass jshint', function() { 
-    ok(true, 'routes/secret.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/routes/secrets-drawer.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - routes');
-  test('routes/secrets-drawer.js should pass jshint', function() { 
-    ok(true, 'routes/secrets-drawer.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/routes/secrets.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - routes');
-  test('routes/secrets.js should pass jshint', function() { 
-    ok(true, 'routes/secrets.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/secret.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/secret.js should pass jshint.'); 
   });
 
 });
@@ -4331,9 +4303,9 @@ define('yith-library-mobile-client/tests/routes/secrets/drawer.jshint', function
 
   'use strict';
 
-  module('JSHint - routes/secrets');
-  test('routes/secrets/drawer.js should pass jshint', function() { 
-    ok(true, 'routes/secrets/drawer.js should pass jshint.'); 
+  QUnit.module('JSHint - routes/secrets');
+  QUnit.test('routes/secrets/drawer.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/secrets/drawer.js should pass jshint.'); 
   });
 
 });
@@ -4341,9 +4313,29 @@ define('yith-library-mobile-client/tests/routes/secrets/tags.jshint', function (
 
   'use strict';
 
-  module('JSHint - routes/secrets');
-  test('routes/secrets/tags.js should pass jshint', function() { 
-    ok(true, 'routes/secrets/tags.js should pass jshint.'); 
+  QUnit.module('JSHint - routes/secrets');
+  QUnit.test('routes/secrets/tags.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/secrets/tags.js should pass jshint.'); 
+  });
+
+});
+define('yith-library-mobile-client/tests/routes/secrets-drawer.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/secrets-drawer.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/secrets-drawer.js should pass jshint.'); 
+  });
+
+});
+define('yith-library-mobile-client/tests/routes/secrets.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/secrets.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/secrets.js should pass jshint.'); 
   });
 
 });
@@ -4351,9 +4343,9 @@ define('yith-library-mobile-client/tests/serializers/application.jshint', functi
 
   'use strict';
 
-  module('JSHint - serializers');
-  test('serializers/application.js should pass jshint', function() { 
-    ok(true, 'serializers/application.js should pass jshint.'); 
+  QUnit.module('JSHint - serializers');
+  QUnit.test('serializers/application.js should pass jshint', function(assert) { 
+    assert.ok(true, 'serializers/application.js should pass jshint.'); 
   });
 
 });
@@ -4361,9 +4353,9 @@ define('yith-library-mobile-client/tests/services/auth.jshint', function () {
 
   'use strict';
 
-  module('JSHint - services');
-  test('services/auth.js should pass jshint', function() { 
-    ok(true, 'services/auth.js should pass jshint.'); 
+  QUnit.module('JSHint - services');
+  QUnit.test('services/auth.js should pass jshint', function(assert) { 
+    assert.ok(true, 'services/auth.js should pass jshint.'); 
   });
 
 });
@@ -4371,9 +4363,9 @@ define('yith-library-mobile-client/tests/services/settings.jshint', function () 
 
   'use strict';
 
-  module('JSHint - services');
-  test('services/settings.js should pass jshint', function() { 
-    ok(true, 'services/settings.js should pass jshint.'); 
+  QUnit.module('JSHint - services');
+  QUnit.test('services/settings.js should pass jshint', function(assert) { 
+    assert.ok(true, 'services/settings.js should pass jshint.'); 
   });
 
 });
@@ -4381,9 +4373,9 @@ define('yith-library-mobile-client/tests/services/sync.jshint', function () {
 
   'use strict';
 
-  module('JSHint - services');
-  test('services/sync.js should pass jshint', function() { 
-    ok(true, 'services/sync.js should pass jshint.'); 
+  QUnit.module('JSHint - services');
+  QUnit.test('services/sync.js should pass jshint', function(assert) { 
+    assert.ok(true, 'services/sync.js should pass jshint.'); 
   });
 
 });
@@ -4398,9 +4390,9 @@ define('yith-library-mobile-client/tests/test-helper.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('test-helper.js should pass jshint', function() { 
-    ok(true, 'test-helper.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('test-helper.js should pass jshint', function(assert) { 
+    assert.ok(true, 'test-helper.js should pass jshint.'); 
   });
 
 });
@@ -4420,9 +4412,9 @@ define('yith-library-mobile-client/tests/test-loader.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('test-loader.js should pass jshint', function() { 
-    ok(true, 'test-loader.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('test-loader.js should pass jshint', function(assert) { 
+    assert.ok(true, 'test-loader.js should pass jshint.'); 
   });
 
 });
@@ -4446,9 +4438,9 @@ define('yith-library-mobile-client/tests/unit/adapters/application-test.jshint',
 
   'use strict';
 
-  module('JSHint - unit/adapters');
-  test('unit/adapters/application-test.js should pass jshint', function() { 
-    ok(true, 'unit/adapters/application-test.js should pass jshint.'); 
+  QUnit.module('JSHint - unit/adapters');
+  QUnit.test('unit/adapters/application-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'unit/adapters/application-test.js should pass jshint.'); 
   });
 
 });
@@ -4472,9 +4464,9 @@ define('yith-library-mobile-client/tests/unit/services/auth-test.jshint', functi
 
   'use strict';
 
-  module('JSHint - unit/services');
-  test('unit/services/auth-test.js should pass jshint', function() { 
-    ok(true, 'unit/services/auth-test.js should pass jshint.'); 
+  QUnit.module('JSHint - unit/services');
+  QUnit.test('unit/services/auth-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'unit/services/auth-test.js should pass jshint.'); 
   });
 
 });
@@ -4498,9 +4490,9 @@ define('yith-library-mobile-client/tests/unit/services/settings-test.jshint', fu
 
   'use strict';
 
-  module('JSHint - unit/services');
-  test('unit/services/settings-test.js should pass jshint', function() { 
-    ok(true, 'unit/services/settings-test.js should pass jshint.'); 
+  QUnit.module('JSHint - unit/services');
+  QUnit.test('unit/services/settings-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'unit/services/settings-test.js should pass jshint.'); 
   });
 
 });
@@ -4524,9 +4516,9 @@ define('yith-library-mobile-client/tests/unit/services/sync-test.jshint', functi
 
   'use strict';
 
-  module('JSHint - unit/services');
-  test('unit/services/sync-test.js should pass jshint', function() { 
-    ok(true, 'unit/services/sync-test.js should pass jshint.'); 
+  QUnit.module('JSHint - unit/services');
+  QUnit.test('unit/services/sync-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'unit/services/sync-test.js should pass jshint.'); 
   });
 
 });
@@ -4534,9 +4526,9 @@ define('yith-library-mobile-client/tests/utils/prefix-event.jshint', function ()
 
   'use strict';
 
-  module('JSHint - utils');
-  test('utils/prefix-event.js should pass jshint', function() { 
-    ok(true, 'utils/prefix-event.js should pass jshint.'); 
+  QUnit.module('JSHint - utils');
+  QUnit.test('utils/prefix-event.js should pass jshint', function(assert) { 
+    assert.ok(true, 'utils/prefix-event.js should pass jshint.'); 
   });
 
 });
@@ -4544,9 +4536,9 @@ define('yith-library-mobile-client/tests/utils/snake-case-to-camel-case.jshint',
 
   'use strict';
 
-  module('JSHint - utils');
-  test('utils/snake-case-to-camel-case.js should pass jshint', function() { 
-    ok(true, 'utils/snake-case-to-camel-case.js should pass jshint.'); 
+  QUnit.module('JSHint - utils');
+  QUnit.test('utils/snake-case-to-camel-case.js should pass jshint', function(assert) { 
+    assert.ok(true, 'utils/snake-case-to-camel-case.js should pass jshint.'); 
   });
 
 });
@@ -4554,9 +4546,9 @@ define('yith-library-mobile-client/tests/views/secret-revealer.jshint', function
 
   'use strict';
 
-  module('JSHint - views');
-  test('views/secret-revealer.js should pass jshint', function() { 
-    ok(true, 'views/secret-revealer.js should pass jshint.'); 
+  QUnit.module('JSHint - views');
+  QUnit.test('views/secret-revealer.js should pass jshint', function(assert) { 
+    assert.ok(true, 'views/secret-revealer.js should pass jshint.'); 
   });
 
 });
@@ -4564,9 +4556,9 @@ define('yith-library-mobile-client/tests/views/secrets.jshint', function () {
 
   'use strict';
 
-  module('JSHint - views');
-  test('views/secrets.js should pass jshint', function() { 
-    ok(true, 'views/secrets.js should pass jshint.'); 
+  QUnit.module('JSHint - views');
+  QUnit.test('views/secrets.js should pass jshint', function(assert) { 
+    assert.ok(true, 'views/secrets.js should pass jshint.'); 
   });
 
 });
