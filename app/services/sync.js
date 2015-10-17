@@ -157,20 +157,23 @@ export default Ember.Service.extend({
             });
         });
 
-        newTags.forEach(function (name, count) {
-            var existingRecord = existingRecords.findBy('name', name);
+        newTags.forEach(function (count, name) {
+            var existingRecord = existingRecords.findBy('name', name),
+                data = {name: name, count: count};
             if (existingRecord !== undefined) {
-                result.push(self.updateTag(existingRecord, name, count));
+                result.push(self.updateTag(existingRecord, data));
             } else {
-                result.push(self.createTag(name, count));
+                result.push(self.createTag(data));
             }
         });
+
+        // TODO: remove tags that do not exist anymore
+
         return result;
     },
 
     createTag: function (data) {
         return this.get('store').createRecord('tag', {
-            id: data.id,
             name: data.name,
             count: data.count
         }).save();

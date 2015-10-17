@@ -35,14 +35,14 @@ test('updateAccountStore creates a new record and save it to the store if the re
             assert.equal(results.get('length'), 0, 'The store should be empty initially');
 
             return service.updateAccountStore({
-                'id': 123,
+                'id': '123',
                 'email': 'test@example.com',
                 'firstName': 'John',
                 'lastName': 'Doe',
                 'screenName': 'Johnny'
             });
         }).then(function (record) {
-            assert.equal(record.get('id'), 123, 'The id attribute should match');
+            assert.equal(record.get('id'), '123', 'The id attribute should match');
             assert.equal(record.get('email'), 'test@example.com', 'The email attribute should match');
             assert.equal(record.get('firstName'), 'John', 'The firstName attribute should match');
             assert.equal(record.get('lastName'), 'Doe', 'The lastName attribute should match');
@@ -65,7 +65,7 @@ test('updateAccountStore updates an existing record and save it to the store if 
 
     Ember.run(function () {
         var account = service.get('store').createRecord('account', {
-            'id': 123,
+            'id': '123',
             'email': 'test@example.com',
             'firstName': 'John',
             'lastName': 'Doe',
@@ -76,14 +76,14 @@ test('updateAccountStore updates an existing record and save it to the store if 
         }).then(function (results) {
             assert.equal(results.get('length'), 1, 'The store should contain one account initially');
             return service.updateAccountStore({
-                'id': 123,
+                'id': '123',
                 'email': 'test2@example.com',
                 'firstName': 'John2',
                 'lastName': 'Doe2',
                 'screenName': 'Johnny2'
             });
         }).then(function (record) {
-            assert.equal(record.get('id'), 123, 'The id attribute should match');
+            assert.equal(record.get('id'), '123', 'The id attribute should match');
             assert.equal(record.get('email'), 'test2@example.com', 'The email attribute should match');
             assert.equal(record.get('firstName'), 'John2', 'The firstName attribute should match');
             assert.equal(record.get('lastName'), 'Doe2', 'The lastName attribute should match');
@@ -105,7 +105,7 @@ test('fetchUserInfo get user info and update the account store', function (asser
 
     defineFixture('/user?client_id=123', {
         response: {
-            'id': 123,
+            'id': '123',
             'email': 'test@example.com',
             'first_name': 'John',
             'last_name': 'Doe',
@@ -116,7 +116,7 @@ test('fetchUserInfo get user info and update the account store', function (asser
     });
     Ember.run(function () {
         service.fetchUserInfo('token', '', 123).then(function (record) {
-            assert.equal(record.get('id'), 123, 'The id attribute should match');
+            assert.equal(record.get('id'), '123', 'The id attribute should match');
             assert.equal(record.get('email'), 'test@example.com', 'The email attribute should match');
             assert.equal(record.get('firstName'), 'John', 'The firstName attribute should match');
             assert.equal(record.get('lastName'), 'Doe', 'The lastName attribute should match');
@@ -138,7 +138,7 @@ test('createSecret creates a new secret', function (assert) {
             assert.equal(results.get('length'), 0, 'The store should be empty initially');
 
             return service.createSecret({
-                id: 1,
+                id: '1',
                 service: 'example.com',
                 account: 'john',
                 secret: 's3cr3t',
@@ -146,7 +146,7 @@ test('createSecret creates a new secret', function (assert) {
                 tags: ['tag1', 'tag2']
             });
         }).then(function (record) {
-            assert.equal(record.get('id'), 1, 'The id attribute should match');
+            assert.equal(record.get('id'), '1', 'The id attribute should match');
             assert.equal(record.get('service'), 'example.com', 'The service attribute should match');
             assert.equal(record.get('account'), 'john', 'The account attribute should match');
             assert.equal(record.get('secret'), 's3cr3t', 'The secret attribute should match');
@@ -170,7 +170,7 @@ test('updateSecret updates an existing secret without creating another one', fun
 
     Ember.run(function () {
         var secret = service.get('store').createRecord('secret', {
-            id: 1,
+            id: '1',
             service: 'example.com',
             account: 'john',
             secret: 's3cr3t',
@@ -191,7 +191,7 @@ test('updateSecret updates an existing secret without creating another one', fun
                 tags: ['tag3', 'tag4']
             });
         }).then(function (record) {
-            assert.equal(record.get('id'), 1, 'The id attribute should match');
+            assert.equal(record.get('id'), '1', 'The id attribute should match');
             assert.equal(record.get('service'), 'mail.example.com', 'The service attribute should match');
             assert.equal(record.get('account'), 'john2', 'The account attribute should match');
             assert.equal(record.get('secret'), 's3cr3t', 'The secret attribute should match');
@@ -207,23 +207,25 @@ test('updateSecret updates an existing secret without creating another one', fun
     });
 });
 
-test('updateSecrets create or update a set of passwords', function (assert) {
+test('updateSecrets creates secrets if they do not exists in the store', function (assert) {
     var service = this.subject(),
         done = assert.async();
+
+    assert.expect(15);
 
     Ember.run(function () {
         service.get('store').findAll('secret').then(function (existingRecords) {
             assert.equal(existingRecords.get('length'), 0, 'The store should be empty initially');
 
             return Ember.RSVP.all(service.updateSecrets(existingRecords, [{
-                id: 10,
+                id: '10',
                 service: '1.example.com',
                 account: 'john',
                 secret: 's3cr3t1',
                 notes: 'example notes',
                 tags: ['tag1', 'tag2']
             }, {
-                id: 11,
+                id: '11',
                 service: '2.example.com',
                 account: 'john',
                 secret: 's3cr3t2',
@@ -232,6 +234,20 @@ test('updateSecrets create or update a set of passwords', function (assert) {
             }]));
         }).then(function (newRecords) {
             assert.equal(newRecords.length, 2, "After the promises are resolved the result contain 2 new records");
+
+            assert.equal(newRecords[0].get('id'), '10', 'The id attribute of the first record should match');
+            assert.equal(newRecords[0].get('service'), '1.example.com', 'The service attribute of the first record should match');
+            assert.equal(newRecords[0].get('account'), 'john', 'The account attribute of the first record should match');
+            assert.equal(newRecords[0].get('secret'), 's3cr3t1', 'The secret attribute of the first record should match');
+            assert.equal(newRecords[0].get('notes'), 'example notes', 'The notes attribute of the first record should match');
+            assert.equal(newRecords[0].get('tags'), 'tag1 tag2', 'The tags attribute of the first record should match');
+
+            assert.equal(newRecords[1].get('id'), '11', 'The id attribute of the second record should match');
+            assert.equal(newRecords[1].get('service'), '2.example.com', 'The service attribute of the second record should match');
+            assert.equal(newRecords[1].get('account'), 'john', 'The account attribute of the second record should match');
+            assert.equal(newRecords[1].get('secret'), 's3cr3t2', 'The secret attribute of the second record should match');
+            assert.equal(newRecords[1].get('notes'), '', 'The notes attribute of the second record should match');
+            assert.equal(newRecords[1].get('tags'), '', 'The tags attribute of the second record should match');
 
             return service.get('store').findAll('secret');
         }).then(function (results) {
@@ -242,23 +258,83 @@ test('updateSecrets create or update a set of passwords', function (assert) {
     });
 });
 
+test('updateSecrets updates secrets if they already exists in the store', function (assert) {
+    var service = this.subject(),
+        done = assert.async();
+
+    assert.expect(15);
+
+    Ember.run(function () {
+        var secret = service.get('store').createRecord('secret', {
+            id: '10',
+            service: 'example.com',
+            account: 'johnny',
+            secret: '0lds3cr3t',
+            notes: 'old example notes',
+            tags: ['old-tag1', 'old-tag2']
+        });
+        secret.save().then(function () {
+            return service.get('store').findAll('secret');
+        }).then(function (existingRecords) {
+            assert.equal(existingRecords.get('length'), 1, 'The store should contain one secret initially');
+
+            return Ember.RSVP.all(service.updateSecrets(existingRecords, [{
+                id: '10',
+                service: '1.example.com',
+                account: 'john',
+                secret: 's3cr3t1',
+                notes: 'example notes',
+                tags: ['tag1', 'tag2']
+            }, {
+                id: '11',
+                service: '2.example.com',
+                account: 'john',
+                secret: 's3cr3t2',
+                notes: '',
+                tags: []
+            }]));
+        }).then(function (newRecords) {
+            assert.equal(newRecords.length, 2, "After the promises are resolved the result contain 2 records, one updated, one new");
+
+            assert.equal(newRecords[0].get('id'), '10', 'The id attribute of the first record should match');
+            assert.equal(newRecords[0].get('service'), '1.example.com', 'The service attribute of the first record should match');
+            assert.equal(newRecords[0].get('account'), 'john', 'The account attribute of the first record should match');
+            assert.equal(newRecords[0].get('secret'), 's3cr3t1', 'The secret attribute of the first record should match');
+            assert.equal(newRecords[0].get('notes'), 'example notes', 'The notes attribute of the first record should match');
+            assert.equal(newRecords[0].get('tags'), 'tag1 tag2', 'The tags attribute of the first record should match');
+
+            assert.equal(newRecords[1].get('id'), '11', 'The id attribute of the second record should match');
+            assert.equal(newRecords[1].get('service'), '2.example.com', 'The service attribute of the second record should match');
+            assert.equal(newRecords[1].get('account'), 'john', 'The account attribute of the second record should match');
+            assert.equal(newRecords[1].get('secret'), 's3cr3t2', 'The secret attribute of the second record should match');
+            assert.equal(newRecords[1].get('notes'), '', 'The notes attribute of the second record should match');
+            assert.equal(newRecords[1].get('tags'), '', 'The tags attribute of the second record should match');
+
+            return service.get('store').findAll('secret');
+        }).then(function (results) {
+            assert.equal(results.get('length'), 2, 'After the call to updateSecrets the store should contains two secrets');
+
+            done();
+        });
+    });
+});
+
+
 test('createTag creates a new tag', function (assert) {
     var service = this.subject(),
         done = assert.async();
 
-    assert.expect(5);
+    assert.expect(4);
 
     Ember.run(function () {
         service.get('store').findAll('tag').then(function (results) {
             assert.equal(results.get('length'), 0, 'The store should be empty initially');
 
             return service.createTag({
-                id: 1,
                 name: 'tag1',
                 count: 10
             });
         }).then(function (record) {
-            assert.equal(record.get('id'), 1, 'The id attribute should match');
             assert.equal(record.get('name'), 'tag1', 'The name attribute should match');
             assert.equal(record.get('count'), 10, 'The count attribute should match');
 
@@ -275,11 +351,10 @@ test('updateTag updates an existing tag without creating another one', function 
     var service = this.subject(),
         done = assert.async();
 
-    assert.expect(5);
+    assert.expect(4);
 
     Ember.run(function () {
         var tag = service.get('store').createRecord('tag', {
-            id: 1,
             name: 'tag1',
             count: 10
         });
@@ -290,7 +365,6 @@ test('updateTag updates an existing tag without creating another one', function 
 
             return service.updateTag(tag, {name: 'tag1', count: 20});
         }).then(function (record) {
-            assert.equal(record.get('id'), 1, 'The id attribute should match');
             assert.equal(record.get('name'), 'tag1', 'The name attribute should match');
             assert.equal(record.get('count'), 20, 'The count attribute should match');
 
@@ -303,3 +377,92 @@ test('updateTag updates an existing tag without creating another one', function 
     });
 });
 
+test('updateTags creates tags if they do not exists in the store', function (assert) {
+    var service = this.subject(),
+        done = assert.async();
+
+    assert.expect(7);
+
+    Ember.run(function () {
+        service.get('store').findAll('tag').then(function (existingRecords) {
+            assert.equal(existingRecords.get('length'), 0, 'The store should be empty initially');
+
+            return Ember.RSVP.all(service.updateTags(existingRecords, [{
+                id: '10',
+                service: '1.example.com',
+                account: 'john',
+                secret: 's3cr3t1',
+                notes: 'example notes',
+                tags: ['tag1', 'tag2']
+            }, {
+                id: '11',
+                service: '2.example.com',
+                account: 'john',
+                secret: 's3cr3t2',
+                notes: '',
+                tags: ['tag1']
+            }]));
+        }).then(function (newRecords) {
+            assert.equal(newRecords.length, 2, "After the promises are resolved the result contain 2 new records");
+
+            assert.equal(newRecords[0].get('name'), 'tag1', 'The name attribute of the first record should match');
+            assert.equal(newRecords[0].get('count'), 2, 'The count attribute of the first record should match');
+
+            assert.equal(newRecords[1].get('name'), 'tag2', 'The name attribute of the second record should match');
+            assert.equal(newRecords[1].get('count'), 1, 'The count attribute of the second record should match');
+            return service.get('store').findAll('tag');
+        }).then(function (results) {
+            assert.equal(results.get('length'), 2, 'After the call to updateSecrets the store should contains two tags');
+
+            done();
+        });
+    });
+});
+
+test('updateTags updates tags if they exist in the store', function (assert) {
+    var service = this.subject(),
+        done = assert.async();
+
+    assert.expect(7);
+
+    Ember.run(function () {
+        var tag = service.get('store').createRecord('tag', {
+            name: 'tag1',
+            count: 10
+        });
+        tag.save().then(function () {
+            return service.get('store').findAll('tag');
+        }).then(function (existingRecords) {
+            assert.equal(existingRecords.get('length'), 1, 'The store should contain one tag initially');
+
+            return Ember.RSVP.all(service.updateTags(existingRecords, [{
+                id: '10',
+                service: '1.example.com',
+                account: 'john',
+                secret: 's3cr3t1',
+                notes: 'example notes',
+                tags: ['tag1', 'tag2']
+            }, {
+                id: '11',
+                service: '2.example.com',
+                account: 'john',
+                secret: 's3cr3t2',
+                notes: '',
+                tags: ['tag1']
+            }]));
+        }).then(function (newRecords) {
+            assert.equal(newRecords.length, 2, "After the promises are resolved the result contain 2 new records");
+
+            assert.equal(newRecords[0].get('name'), 'tag1', 'The name attribute of the first record should match');
+            assert.equal(newRecords[0].get('count'), 2, 'The count attribute of the first record should match');
+
+            assert.equal(newRecords[1].get('name'), 'tag2', 'The name attribute of the second record should match');
+            assert.equal(newRecords[1].get('count'), 1, 'The count attribute of the second record should match');
+            return service.get('store').findAll('tag');
+        }).then(function (results) {
+            assert.equal(results.get('length'), 2, 'After the call to updateSecrets the store should contains two tags');
+
+            done();
+        });
+    });
+});
