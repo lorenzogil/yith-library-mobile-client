@@ -9,6 +9,14 @@ export default Ember.Service.extend({
     fetchUserInfo: function (accessToken, serverBaseUrl, clientId) {
         var self = this;
 
+        return self.getUserInfo(accessToken, serverBaseUrl, clientId).then(function (rawData) {
+            return self.convertRecord(rawData);
+        }).then(function (convertedData) {
+            return self.updateAccountStore(convertedData);
+        });
+    },
+
+    getUserInfo: function (accessToken, serverBaseUrl, clientId) {
         return request({
             url: serverBaseUrl + '/user?client_id=' + clientId,
             type: 'GET',
@@ -16,27 +24,8 @@ export default Ember.Service.extend({
             headers: {
                 'Authorization': 'Bearer ' + accessToken
             }
-        }).then(function (rawData) {
-            return self.convertRecord(rawData);
         });
     },
-/*
-        return new Ember.RSVP.Promise(function (resolve) {
-            Ember.$.ajax({
-                url: serverBaseUrl + '/user?client_id=' + clientId,
-                type: 'GET',
-                crossDomain: true,
-                headers: {
-                    'Authorization': 'Bearer ' + accessToken
-                }
-            }).done(function (data) {
-                resolve(data);
-            });
-        }).then(function (data) {
-            return self.updateAccountStore(data);
-        });
-    },
-*/
 
     /* Convert all the keys of the record to be in camelCase
        instead of snake_case */
@@ -85,19 +74,19 @@ export default Ember.Service.extend({
     fetchSecrets: function (accessToken, serverBaseUrl, clientId) {
         var self = this;
 
-        return new Ember.RSVP.Promise(function (resolve /*, reject */) {
-            Ember.$.ajax({
-                url: serverBaseUrl + '/passwords?client_id=' + clientId,
-                type: 'GET',
-                crossDomain: true,
-                headers: {
-                    'Authorization': 'Bearer ' + accessToken
-                }
-            }).done(function (data /*, textStatus, jqXHR*/) {
-                resolve(data);
-            });
-        }).then(function (data) {
-            return self.updateSecretsStore(data);
+        self.getSecrets(accessToken, serverBaseUrl, clientId).then(function (rawData) {
+            return self.updateSecretsStore(rawData);
+        });
+    },
+
+    getSecrets: function (accessToken, serverBaseUrl, clientId) {
+        return request({
+            url: serverBaseUrl + '/passwords?client_id=' + clientId,
+            type: 'GET',
+            crossDomain: true,
+            headers: {
+                'Authorization': 'Bearer ' + accessToken
+            }
         });
     },
 
@@ -123,14 +112,14 @@ export default Ember.Service.extend({
         });
     },
 
-    updateSecrets: function (existingRecords, passwords) {
+    updateSecrets: function (existingRecords, secrets) {
         var self = this, result = [];
-        passwords.forEach(function (password) {
-            var existingRecord = existingRecords.findBy('id', password.id);
+        secrets.forEach(function (secret) {
+            var existingRecord = existingRecords.findBy('id', secret.id);
             if (existingRecord !== undefined) {
-                result.push(self.updateSecret(existingRecord, password));
+                result.push(self.updateSecret(existingRecord, secret));
             } else {
-                result.push(self.createSecret(password));
+                result.push(self.createSecret(secret));
             }
         });
         return result;
@@ -179,16 +168,17 @@ export default Ember.Service.extend({
         return result;
     },
 
-    createTag: function (name, count) {
+    createTag: function (data) {
         return this.get('store').createRecord('tag', {
-            name: name,
-            count: count
+            id: data.id,
+            name: data.name,
+            count: data.count
         }).save();
     },
 
-    updateTag: function (record, name, count) {
-        record.set('name', name);
-        record.set('count', count);
+    updateTag: function (record, data) {
+        record.set('name', data.name);
+        record.set('count', data.count);
         return record.save();
     },
 

@@ -15,46 +15,52 @@ test('convertRecord', function (assert) {
     assert.deepEqual(result, expected);
 });
 
-/*
-test('updateAccountStore', function (assert) {
-    var service = this.subject(), result = null;
-    assert.expect(1);
-    Ember.run(function () {
-        result = service.updateAccountStore({
+test('getUserInfo', function (assert) {
+    var service = this.subject(),
+        expectedData = {
             'id': 123,
             'email': 'test@example.com',
             'first_name': 'John',
             'last_name': 'Doe',
             'screen_name': 'Johnny'
-        });
-
-        result.then(function (record) {
-            assert.ok(record);
-        });
-    });
-});
-*/
-test('fetchUserInfo empty results', function(assert) {
-    var service = this.subject();
+        };
     assert.expect(1);
     defineFixture('/user?client_id=123', {
-        response: {
-            'id': 123,
-            'email': 'test@example.com',
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'screen_name': 'Johnny'
-        },
+        response: expectedData,
         jqXHR: {},
         textStatus: 'success'
     });
-    service.fetchUserInfo('token', '', '123').then(function (data) {
-        assert.deepEqual(data, {
-            'id': 123,
-            'email': 'test@example.com',
-            'firstName': 'John',
-            'lastName': 'Doe',
-            'screenName': 'Johnny'
-        });
+    service.getUserInfo('token', '', 123).then(function (data) {
+        assert.deepEqual(data, expectedData);
+    });
+});
+
+test('getSecrets', function (assert) {
+    var service = this.subject(),
+        expectedData = {
+            passwords: [{
+                id: 1,
+                service: 'example.com',
+                account: 'john',
+                secret: 's3cr3t',
+                notes: '',
+                tags: []
+            }, {
+                id: 2,
+                service: 'mail.example.com',
+                account: 'john',
+                secret: 's3cr3t',
+                notes: '',
+                tags: ['tag1', 'tag2']
+            }]
+        };
+    assert.expect(1);
+    defineFixture('/passwords?client_id=123', {
+        response: expectedData,
+        jqXHR: {},
+        textStatus: 'success'
+    });
+    service.getSecrets('token', '', '123').then(function (data) {
+        assert.deepEqual(data, expectedData);
     });
 });
