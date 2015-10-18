@@ -466,3 +466,142 @@ test('updateTags updates tags if they exist in the store', function (assert) {
         });
     });
 });
+
+test('updateSecretsStore updates the secrets store with incoming data from the server', function (assert) {
+    var service = this.subject(),
+        done = assert.async();
+
+    assert.expect(22);
+
+    Ember.run(function () {
+
+        service.get('store').findAll('tag').then(function (results) {
+            assert.equal(results.get('length'), 0, 'The tag store should be empty initially');
+
+            return service.get('store').findAll('secret');
+        }).then(function (results) {
+            assert.equal(results.get('length'), 0, 'The secret store should be empty initially');
+
+            return service.updateSecretsStore({
+                passwords: [{
+                    id: '1',
+                    service: '1.example.com',
+                    account: 'john',
+                    secret: 's3cr3t1',
+                    notes: 'example notes',
+                    tags: ['tag1', 'tag2']
+                }, {
+                    id: '2',
+                    service: '2.example.com',
+                    account: 'john',
+                    secret: 's3cr3t2',
+                    notes: '',
+                    tags: ['tag1']
+                }]
+            });
+        }).then(function (result) {
+            assert.equal(result.secrets.length, 2, 'There should be two secrets in the results');
+            assert.equal(result.secrets[0].get('id'), '1', 'The id attribute of the first secret should match');
+            assert.equal(result.secrets[0].get('service'), '1.example.com', 'The service attribute of the first secret should match');
+            assert.equal(result.secrets[0].get('account'), 'john', 'The account attribute of the first secret should match');
+            assert.equal(result.secrets[0].get('secret'), 's3cr3t1', 'The secret attribute of the first secret should match');
+            assert.equal(result.secrets[0].get('notes'), 'example notes', 'The notes attribute of the first secret should match');
+            assert.equal(result.secrets[0].get('tags'), 'tag1 tag2', 'The tags attribute of the first secret should match');
+
+            assert.equal(result.secrets[1].get('id'), '2', 'The id attribute of the second secret should match');
+            assert.equal(result.secrets[1].get('service'), '2.example.com', 'The service attribute of the second secret should match');
+            assert.equal(result.secrets[1].get('account'), 'john', 'The account attribute of the second secret should match');
+            assert.equal(result.secrets[1].get('secret'), 's3cr3t2', 'The secret attribute of the second secret should match');
+            assert.equal(result.secrets[1].get('notes'), '', 'The notes attribute of the second secret should match');
+            assert.equal(result.secrets[1].get('tags'), 'tag1', 'The tags attribute of the second secret should match');
+
+            assert.equal(result.tags.length, 2, 'There should be two tags in the results');
+            assert.equal(result.tags[0].get('name'), 'tag1', 'The name attribute of the first tag should match');
+            assert.equal(result.tags[0].get('count'), 2, 'The count attribute of the first tag should match');
+
+            assert.equal(result.tags[1].get('name'), 'tag2', 'The name attribute of the second tag should match');
+            assert.equal(result.tags[1].get('count'), 1, 'The count attribute of the second tag should match');
+
+            return service.get('store').findAll('secret');
+        }).then(function (results) {
+            assert.equal(results.get('length'), 2, 'After the call to updateSecretsStore the store should contain two secrets');
+
+            return service.get('store').findAll('tag');
+        }).then(function (results) {
+            assert.equal(results.get('length'), 2, 'After the call to updateSecretsStore the store should contain two tags');
+            done();
+        });
+    });
+
+});
+
+test('fetchSecrets get the secrets and update the account store', function (assert) {
+    var service = this.subject(),
+        done = assert.async();
+
+    assert.expect(22);
+
+    defineFixture('/passwords?client_id=123', {
+        response: {
+            passwords: [{
+                id: '1',
+                service: '1.example.com',
+                account: 'john',
+                secret: 's3cr3t1',
+                notes: 'example notes',
+                tags: ['tag1', 'tag2']
+            }, {
+                id: '2',
+                service: '2.example.com',
+                account: 'john',
+                secret: 's3cr3t2',
+                notes: '',
+                tags: ['tag1']
+            }]
+        },
+        jqXHR: {},
+        textStatus: 'success'
+    });
+    Ember.run(function () {
+        service.get('store').findAll('tag').then(function (results) {
+            assert.equal(results.get('length'), 0, 'The tag store should be empty initially');
+
+            return service.get('store').findAll('secret');
+        }).then(function (results) {
+            assert.equal(results.get('length'), 0, 'The secret store should be empty initially');
+
+            return service.fetchSecrets('token', '', 123);
+        }).then(function (result) {
+            assert.equal(result.secrets.length, 2, 'There should be two secrets in the results');
+            assert.equal(result.secrets[0].get('id'), '1', 'The id attribute of the first secret should match');
+            assert.equal(result.secrets[0].get('service'), '1.example.com', 'The service attribute of the first secret should match');
+            assert.equal(result.secrets[0].get('account'), 'john', 'The account attribute of the first secret should match');
+            assert.equal(result.secrets[0].get('secret'), 's3cr3t1', 'The secret attribute of the first secret should match');
+            assert.equal(result.secrets[0].get('notes'), 'example notes', 'The notes attribute of the first secret should match');
+            assert.equal(result.secrets[0].get('tags'), 'tag1 tag2', 'The tags attribute of the first secret should match');
+
+            assert.equal(result.secrets[1].get('id'), '2', 'The id attribute of the second secret should match');
+            assert.equal(result.secrets[1].get('service'), '2.example.com', 'The service attribute of the second secret should match');
+            assert.equal(result.secrets[1].get('account'), 'john', 'The account attribute of the second secret should match');
+            assert.equal(result.secrets[1].get('secret'), 's3cr3t2', 'The secret attribute of the second secret should match');
+            assert.equal(result.secrets[1].get('notes'), '', 'The notes attribute of the second secret should match');
+            assert.equal(result.secrets[1].get('tags'), 'tag1', 'The tags attribute of the second secret should match');
+
+            assert.equal(result.tags.length, 2, 'There should be two tags in the results');
+            assert.equal(result.tags[0].get('name'), 'tag1', 'The name attribute of the first tag should match');
+            assert.equal(result.tags[0].get('count'), 2, 'The count attribute of the first tag should match');
+
+            assert.equal(result.tags[1].get('name'), 'tag2', 'The name attribute of the second tag should match');
+            assert.equal(result.tags[1].get('count'), 1, 'The count attribute of the second tag should match');
+
+            return service.get('store').findAll('secret');
+        }).then(function (results) {
+            assert.equal(results.get('length'), 2, 'After the call to updateSecretsStore the store should contain two secrets');
+
+            return service.get('store').findAll('tag');
+        }).then(function (results) {
+            assert.equal(results.get('length'), 2, 'After the call to updateSecretsStore the store should contain two tags');
+            done();
+        });
+    });
+});

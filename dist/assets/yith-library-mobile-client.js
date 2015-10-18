@@ -982,7 +982,7 @@ define('yith-library-mobile-client/services/settings', ['exports', 'ember', 'yit
     });
 
 });
-define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-library-mobile-client/utils/snake-case-to-camel-case'], function (exports, Ember, snakeCaseToCamelCase) {
+define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'ic-ajax', 'yith-library-mobile-client/utils/snake-case-to-camel-case'], function (exports, Ember, request, snakeCaseToCamelCase) {
 
     'use strict';
 
@@ -993,19 +993,21 @@ define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-li
         fetchUserInfo: function fetchUserInfo(accessToken, serverBaseUrl, clientId) {
             var self = this;
 
-            return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
-                Ember['default'].$.ajax({
-                    url: serverBaseUrl + '/user?client_id=' + clientId,
-                    type: 'GET',
-                    crossDomain: true,
-                    headers: {
-                        'Authorization': 'Bearer ' + accessToken
-                    }
-                }).done(function (data /*, textStatus, jqXHR*/) {
-                    resolve(data);
-                });
-            }).then(function (data) {
-                return self.updateAccountStore(data);
+            return self.getUserInfo(accessToken, serverBaseUrl, clientId).then(function (rawData) {
+                return self.convertRecord(rawData);
+            }).then(function (convertedData) {
+                return self.updateAccountStore(convertedData);
+            });
+        },
+
+        getUserInfo: function getUserInfo(accessToken, serverBaseUrl, clientId) {
+            return request['default']({
+                url: serverBaseUrl + '/user?client_id=' + clientId,
+                type: 'GET',
+                crossDomain: true,
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                }
             });
         },
 
@@ -1024,9 +1026,8 @@ define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-li
             return newRecord;
         },
 
-        updateAccountStore: function updateAccountStore(rawData) {
-            var self = this,
-                data = self.convertRecord(rawData);
+        updateAccountStore: function updateAccountStore(data) {
+            var self = this;
 
             return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
                 var store = self.get('store');
@@ -1036,35 +1037,39 @@ define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-li
                     existingRecord.set('firstName', data.firstName);
                     existingRecord.set('lastName', data.lastName);
                     existingRecord.set('screenName', data.screenName);
-                    resolve(existingRecord.save());
+                    existingRecord.save().then(function (record) {
+                        resolve(record);
+                    });
                 }, function () {
                     // create account
                     // because we try to find it, it is already in the store
                     // but the record is empty.
-                    var newRecord = store.push('account', store.normalize('account', data));
-                    resolve(newRecord);
+                    var newRecord = store.recordForId('account', data.id);
+                    store.unloadRecord(newRecord);
+                    newRecord = store.createRecord('account', data);
+                    newRecord.save().then(function (record) {
+                        resolve(record);
+                    });
                 });
-            }).then(function (record) {
-                return record;
             });
         },
 
         fetchSecrets: function fetchSecrets(accessToken, serverBaseUrl, clientId) {
             var self = this;
 
-            return new Ember['default'].RSVP.Promise(function (resolve /*, reject */) {
-                Ember['default'].$.ajax({
-                    url: serverBaseUrl + '/passwords?client_id=' + clientId,
-                    type: 'GET',
-                    crossDomain: true,
-                    headers: {
-                        'Authorization': 'Bearer ' + accessToken
-                    }
-                }).done(function (data /*, textStatus, jqXHR*/) {
-                    resolve(data);
-                });
-            }).then(function (data) {
-                return self.updateSecretsStore(data);
+            self.getSecrets(accessToken, serverBaseUrl, clientId).then(function (rawData) {
+                return self.updateSecretsStore(rawData);
+            });
+        },
+
+        getSecrets: function getSecrets(accessToken, serverBaseUrl, clientId) {
+            return request['default']({
+                url: serverBaseUrl + '/passwords?client_id=' + clientId,
+                type: 'GET',
+                crossDomain: true,
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
+                }
             });
         },
 
@@ -1085,15 +1090,15 @@ define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-li
             });
         },
 
-        updateSecrets: function updateSecrets(existingRecords, passwords) {
+        updateSecrets: function updateSecrets(existingRecords, secrets) {
             var self = this,
                 result = [];
-            passwords.forEach(function (password) {
-                var existingRecord = existingRecords.findBy('id', password.id);
+            secrets.forEach(function (secret) {
+                var existingRecord = existingRecords.findBy('id', secret.id);
                 if (existingRecord !== undefined) {
-                    result.push(self.updateSecret(existingRecord, password));
+                    result.push(self.updateSecret(existingRecord, secret));
                 } else {
-                    result.push(self.createSecret(password));
+                    result.push(self.createSecret(secret));
                 }
             });
             return result;
@@ -1133,27 +1138,31 @@ define('yith-library-mobile-client/services/sync', ['exports', 'ember', 'yith-li
                 });
             });
 
-            newTags.forEach(function (name, count) {
-                var existingRecord = existingRecords.findBy('name', name);
+            newTags.forEach(function (count, name) {
+                var existingRecord = existingRecords.findBy('name', name),
+                    data = { name: name, count: count };
                 if (existingRecord !== undefined) {
-                    result.push(self.updateTag(existingRecord, name, count));
+                    result.push(self.updateTag(existingRecord, data));
                 } else {
-                    result.push(self.createTag(name, count));
+                    result.push(self.createTag(data));
                 }
             });
+
+            // TODO: remove tags that do not exist anymore
+
             return result;
         },
 
-        createTag: function createTag(name, count) {
+        createTag: function createTag(data) {
             return this.get('store').createRecord('tag', {
-                name: name,
-                count: count
+                name: data.name,
+                count: data.count
             }).save();
         },
 
-        updateTag: function updateTag(record, name, count) {
-            record.set('name', name);
-            record.set('count', count);
+        updateTag: function updateTag(record, data) {
+            record.set('name', data.name);
+            record.set('count', data.count);
             return record.save();
         },
 
@@ -4209,6 +4218,483 @@ define('yith-library-mobile-client/tests/helpers/start-app.jshint', function () 
   });
 
 });
+define('yith-library-mobile-client/tests/integration/sync-test', ['ember', 'ember-qunit', 'ic-ajax', 'yith-library-mobile-client/tests/helpers/start-app'], function (Ember, ember_qunit, ic_ajax, startApp) {
+
+    'use strict';
+
+    ember_qunit.moduleFor('service:sync', 'Integration | Service | sync', {
+        integration: true,
+        needs: ['model:account', 'model:secret', 'model:tag'],
+        beforeEach: function beforeEach(assert) {
+            var adapter = null,
+                done = assert.async();
+
+            this.app = startApp['default']();
+            adapter = this.app.__container__.lookup('adapter:application');
+            adapter.get('cache').clear();
+
+            window.localforage.clear(function () {
+                done();
+            });
+        },
+        afterEach: function afterEach() {
+            Ember['default'].run(this.app, 'destroy');
+        }
+    });
+
+    ember_qunit.test('updateAccountStore creates a new record and save it to the store if the record is new', function (assert) {
+        var service = this.subject(),
+            done = assert.async();
+
+        assert.expect(7);
+
+        Ember['default'].run(function () {
+            service.get('store').findAll('account').then(function (results) {
+                assert.equal(results.get('length'), 0, 'The store should be empty initially');
+
+                return service.updateAccountStore({
+                    'id': '123',
+                    'email': 'test@example.com',
+                    'firstName': 'John',
+                    'lastName': 'Doe',
+                    'screenName': 'Johnny'
+                });
+            }).then(function (record) {
+                assert.equal(record.get('id'), '123', 'The id attribute should match');
+                assert.equal(record.get('email'), 'test@example.com', 'The email attribute should match');
+                assert.equal(record.get('firstName'), 'John', 'The firstName attribute should match');
+                assert.equal(record.get('lastName'), 'Doe', 'The lastName attribute should match');
+                assert.equal(record.get('screenName'), 'Johnny', 'The screenName attribute should match');
+
+                return service.get('store').findAll('account');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 1, 'After the call to updateAccountStore the store should contain one account');
+
+                done();
+            });
+        });
+    });
+
+    ember_qunit.test('updateAccountStore updates an existing record and save it to the store if the record is not new', function (assert) {
+        var service = this.subject(),
+            done = assert.async();
+
+        assert.expect(7);
+
+        Ember['default'].run(function () {
+            var account = service.get('store').createRecord('account', {
+                'id': '123',
+                'email': 'test@example.com',
+                'firstName': 'John',
+                'lastName': 'Doe',
+                'screenName': 'Johnny'
+            });
+            account.save().then(function () {
+                return service.get('store').findAll('account');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 1, 'The store should contain one account initially');
+                return service.updateAccountStore({
+                    'id': '123',
+                    'email': 'test2@example.com',
+                    'firstName': 'John2',
+                    'lastName': 'Doe2',
+                    'screenName': 'Johnny2'
+                });
+            }).then(function (record) {
+                assert.equal(record.get('id'), '123', 'The id attribute should match');
+                assert.equal(record.get('email'), 'test2@example.com', 'The email attribute should match');
+                assert.equal(record.get('firstName'), 'John2', 'The firstName attribute should match');
+                assert.equal(record.get('lastName'), 'Doe2', 'The lastName attribute should match');
+                assert.equal(record.get('screenName'), 'Johnny2', 'The screenName attribute should match');
+
+                return service.get('store').findAll('account');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 1, 'After the call to updateAccountStore the store should still contain one account');
+                done();
+            });
+        });
+    });
+
+    ember_qunit.test('fetchUserInfo get user info and update the account store', function (assert) {
+        var service = this.subject(),
+            done = assert.async();
+
+        assert.expect(5);
+
+        ic_ajax.defineFixture('/user?client_id=123', {
+            response: {
+                'id': '123',
+                'email': 'test@example.com',
+                'first_name': 'John',
+                'last_name': 'Doe',
+                'screen_name': 'Johnny'
+            },
+            jqXHR: {},
+            textStatus: 'success'
+        });
+        Ember['default'].run(function () {
+            service.fetchUserInfo('token', '', 123).then(function (record) {
+                assert.equal(record.get('id'), '123', 'The id attribute should match');
+                assert.equal(record.get('email'), 'test@example.com', 'The email attribute should match');
+                assert.equal(record.get('firstName'), 'John', 'The firstName attribute should match');
+                assert.equal(record.get('lastName'), 'Doe', 'The lastName attribute should match');
+                assert.equal(record.get('screenName'), 'Johnny', 'The screenName attribute should match');
+
+                done();
+            });
+        });
+    });
+
+    ember_qunit.test('createSecret creates a new secret', function (assert) {
+        var service = this.subject(),
+            done = assert.async();
+
+        assert.expect(8);
+
+        Ember['default'].run(function () {
+            service.get('store').findAll('secret').then(function (results) {
+                assert.equal(results.get('length'), 0, 'The store should be empty initially');
+
+                return service.createSecret({
+                    id: '1',
+                    service: 'example.com',
+                    account: 'john',
+                    secret: 's3cr3t',
+                    notes: 'example notes',
+                    tags: ['tag1', 'tag2']
+                });
+            }).then(function (record) {
+                assert.equal(record.get('id'), '1', 'The id attribute should match');
+                assert.equal(record.get('service'), 'example.com', 'The service attribute should match');
+                assert.equal(record.get('account'), 'john', 'The account attribute should match');
+                assert.equal(record.get('secret'), 's3cr3t', 'The secret attribute should match');
+                assert.equal(record.get('notes'), 'example notes', 'The notes attribute should match');
+                assert.equal(record.get('tags'), 'tag1 tag2', 'The notes attribute should match a serialized string of the original list');
+
+                return service.get('store').findAll('secret');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 1, 'After the call to createSecret the store should contains one secret');
+
+                done();
+            });
+        });
+    });
+
+    ember_qunit.test('updateSecret updates an existing secret without creating another one', function (assert) {
+        var service = this.subject(),
+            done = assert.async();
+
+        assert.expect(8);
+
+        Ember['default'].run(function () {
+            var secret = service.get('store').createRecord('secret', {
+                id: '1',
+                service: 'example.com',
+                account: 'john',
+                secret: 's3cr3t',
+                notes: 'example notes',
+                tags: ['tag1', 'tag2']
+
+            });
+            secret.save().then(function () {
+                return service.get('store').findAll('secret');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 1, 'The store should contain one secret initially');
+
+                return service.updateSecret(secret, {
+                    service: 'mail.example.com',
+                    account: 'john2',
+                    secret: 's3cr3t',
+                    notes: 'example notes2',
+                    tags: ['tag3', 'tag4']
+                });
+            }).then(function (record) {
+                assert.equal(record.get('id'), '1', 'The id attribute should match');
+                assert.equal(record.get('service'), 'mail.example.com', 'The service attribute should match');
+                assert.equal(record.get('account'), 'john2', 'The account attribute should match');
+                assert.equal(record.get('secret'), 's3cr3t', 'The secret attribute should match');
+                assert.equal(record.get('notes'), 'example notes2', 'The notes attribute should match');
+                assert.equal(record.get('tags'), 'tag3 tag4', 'The notes attribute should match a serialized string of the original list');
+
+                return service.get('store').findAll('secret');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 1, 'After the call to updateSecret the store should still contains one secret');
+
+                done();
+            });
+        });
+    });
+
+    ember_qunit.test('updateSecrets creates secrets if they do not exists in the store', function (assert) {
+        var service = this.subject(),
+            done = assert.async();
+
+        assert.expect(15);
+
+        Ember['default'].run(function () {
+            service.get('store').findAll('secret').then(function (existingRecords) {
+                assert.equal(existingRecords.get('length'), 0, 'The store should be empty initially');
+
+                return Ember['default'].RSVP.all(service.updateSecrets(existingRecords, [{
+                    id: '10',
+                    service: '1.example.com',
+                    account: 'john',
+                    secret: 's3cr3t1',
+                    notes: 'example notes',
+                    tags: ['tag1', 'tag2']
+                }, {
+                    id: '11',
+                    service: '2.example.com',
+                    account: 'john',
+                    secret: 's3cr3t2',
+                    notes: '',
+                    tags: []
+                }]));
+            }).then(function (newRecords) {
+                assert.equal(newRecords.length, 2, "After the promises are resolved the result contain 2 new records");
+
+                assert.equal(newRecords[0].get('id'), '10', 'The id attribute of the first record should match');
+                assert.equal(newRecords[0].get('service'), '1.example.com', 'The service attribute of the first record should match');
+                assert.equal(newRecords[0].get('account'), 'john', 'The account attribute of the first record should match');
+                assert.equal(newRecords[0].get('secret'), 's3cr3t1', 'The secret attribute of the first record should match');
+                assert.equal(newRecords[0].get('notes'), 'example notes', 'The notes attribute of the first record should match');
+                assert.equal(newRecords[0].get('tags'), 'tag1 tag2', 'The tags attribute of the first record should match');
+
+                assert.equal(newRecords[1].get('id'), '11', 'The id attribute of the second record should match');
+                assert.equal(newRecords[1].get('service'), '2.example.com', 'The service attribute of the second record should match');
+                assert.equal(newRecords[1].get('account'), 'john', 'The account attribute of the second record should match');
+                assert.equal(newRecords[1].get('secret'), 's3cr3t2', 'The secret attribute of the second record should match');
+                assert.equal(newRecords[1].get('notes'), '', 'The notes attribute of the second record should match');
+                assert.equal(newRecords[1].get('tags'), '', 'The tags attribute of the second record should match');
+
+                return service.get('store').findAll('secret');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 2, 'After the call to updateSecrets the store should contains two secrets');
+
+                done();
+            });
+        });
+    });
+
+    ember_qunit.test('updateSecrets updates secrets if they already exists in the store', function (assert) {
+        var service = this.subject(),
+            done = assert.async();
+
+        assert.expect(15);
+
+        Ember['default'].run(function () {
+            var secret = service.get('store').createRecord('secret', {
+                id: '10',
+                service: 'example.com',
+                account: 'johnny',
+                secret: '0lds3cr3t',
+                notes: 'old example notes',
+                tags: ['old-tag1', 'old-tag2']
+            });
+            secret.save().then(function () {
+                return service.get('store').findAll('secret');
+            }).then(function (existingRecords) {
+                assert.equal(existingRecords.get('length'), 1, 'The store should contain one secret initially');
+
+                return Ember['default'].RSVP.all(service.updateSecrets(existingRecords, [{
+                    id: '10',
+                    service: '1.example.com',
+                    account: 'john',
+                    secret: 's3cr3t1',
+                    notes: 'example notes',
+                    tags: ['tag1', 'tag2']
+                }, {
+                    id: '11',
+                    service: '2.example.com',
+                    account: 'john',
+                    secret: 's3cr3t2',
+                    notes: '',
+                    tags: []
+                }]));
+            }).then(function (newRecords) {
+                assert.equal(newRecords.length, 2, "After the promises are resolved the result contain 2 records, one updated, one new");
+
+                assert.equal(newRecords[0].get('id'), '10', 'The id attribute of the first record should match');
+                assert.equal(newRecords[0].get('service'), '1.example.com', 'The service attribute of the first record should match');
+                assert.equal(newRecords[0].get('account'), 'john', 'The account attribute of the first record should match');
+                assert.equal(newRecords[0].get('secret'), 's3cr3t1', 'The secret attribute of the first record should match');
+                assert.equal(newRecords[0].get('notes'), 'example notes', 'The notes attribute of the first record should match');
+                assert.equal(newRecords[0].get('tags'), 'tag1 tag2', 'The tags attribute of the first record should match');
+
+                assert.equal(newRecords[1].get('id'), '11', 'The id attribute of the second record should match');
+                assert.equal(newRecords[1].get('service'), '2.example.com', 'The service attribute of the second record should match');
+                assert.equal(newRecords[1].get('account'), 'john', 'The account attribute of the second record should match');
+                assert.equal(newRecords[1].get('secret'), 's3cr3t2', 'The secret attribute of the second record should match');
+                assert.equal(newRecords[1].get('notes'), '', 'The notes attribute of the second record should match');
+                assert.equal(newRecords[1].get('tags'), '', 'The tags attribute of the second record should match');
+
+                return service.get('store').findAll('secret');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 2, 'After the call to updateSecrets the store should contains two secrets');
+
+                done();
+            });
+        });
+    });
+
+    ember_qunit.test('createTag creates a new tag', function (assert) {
+        var service = this.subject(),
+            done = assert.async();
+
+        assert.expect(4);
+
+        Ember['default'].run(function () {
+            service.get('store').findAll('tag').then(function (results) {
+                assert.equal(results.get('length'), 0, 'The store should be empty initially');
+
+                return service.createTag({
+                    name: 'tag1',
+                    count: 10
+                });
+            }).then(function (record) {
+                assert.equal(record.get('name'), 'tag1', 'The name attribute should match');
+                assert.equal(record.get('count'), 10, 'The count attribute should match');
+
+                return service.get('store').findAll('tag');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 1, 'After the call to createTag the store should contains one tag');
+
+                done();
+            });
+        });
+    });
+
+    ember_qunit.test('updateTag updates an existing tag without creating another one', function (assert) {
+        var service = this.subject(),
+            done = assert.async();
+
+        assert.expect(4);
+
+        Ember['default'].run(function () {
+            var tag = service.get('store').createRecord('tag', {
+                name: 'tag1',
+                count: 10
+            });
+            tag.save().then(function () {
+                return service.get('store').findAll('tag');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 1, 'The store should contain one tag initially');
+
+                return service.updateTag(tag, { name: 'tag1', count: 20 });
+            }).then(function (record) {
+                assert.equal(record.get('name'), 'tag1', 'The name attribute should match');
+                assert.equal(record.get('count'), 20, 'The count attribute should match');
+
+                return service.get('store').findAll('tag');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 1, 'After the call to updateTag the store should still contains one tag');
+
+                done();
+            });
+        });
+    });
+
+    ember_qunit.test('updateTags creates tags if they do not exists in the store', function (assert) {
+        var service = this.subject(),
+            done = assert.async();
+
+        assert.expect(7);
+
+        Ember['default'].run(function () {
+            service.get('store').findAll('tag').then(function (existingRecords) {
+                assert.equal(existingRecords.get('length'), 0, 'The store should be empty initially');
+
+                return Ember['default'].RSVP.all(service.updateTags(existingRecords, [{
+                    id: '10',
+                    service: '1.example.com',
+                    account: 'john',
+                    secret: 's3cr3t1',
+                    notes: 'example notes',
+                    tags: ['tag1', 'tag2']
+                }, {
+                    id: '11',
+                    service: '2.example.com',
+                    account: 'john',
+                    secret: 's3cr3t2',
+                    notes: '',
+                    tags: ['tag1']
+                }]));
+            }).then(function (newRecords) {
+                assert.equal(newRecords.length, 2, "After the promises are resolved the result contain 2 new records");
+
+                assert.equal(newRecords[0].get('name'), 'tag1', 'The name attribute of the first record should match');
+                assert.equal(newRecords[0].get('count'), 2, 'The count attribute of the first record should match');
+
+                assert.equal(newRecords[1].get('name'), 'tag2', 'The name attribute of the second record should match');
+                assert.equal(newRecords[1].get('count'), 1, 'The count attribute of the second record should match');
+                return service.get('store').findAll('tag');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 2, 'After the call to updateSecrets the store should contains two tags');
+
+                done();
+            });
+        });
+    });
+
+    ember_qunit.test('updateTags updates tags if they exist in the store', function (assert) {
+        var service = this.subject(),
+            done = assert.async();
+
+        assert.expect(7);
+
+        Ember['default'].run(function () {
+            var tag = service.get('store').createRecord('tag', {
+                name: 'tag1',
+                count: 10
+            });
+            tag.save().then(function () {
+                return service.get('store').findAll('tag');
+            }).then(function (existingRecords) {
+                assert.equal(existingRecords.get('length'), 1, 'The store should contain one tag initially');
+
+                return Ember['default'].RSVP.all(service.updateTags(existingRecords, [{
+                    id: '10',
+                    service: '1.example.com',
+                    account: 'john',
+                    secret: 's3cr3t1',
+                    notes: 'example notes',
+                    tags: ['tag1', 'tag2']
+                }, {
+                    id: '11',
+                    service: '2.example.com',
+                    account: 'john',
+                    secret: 's3cr3t2',
+                    notes: '',
+                    tags: ['tag1']
+                }]));
+            }).then(function (newRecords) {
+                assert.equal(newRecords.length, 2, "After the promises are resolved the result contain 2 new records");
+
+                assert.equal(newRecords[0].get('name'), 'tag1', 'The name attribute of the first record should match');
+                assert.equal(newRecords[0].get('count'), 2, 'The count attribute of the first record should match');
+
+                assert.equal(newRecords[1].get('name'), 'tag2', 'The name attribute of the second record should match');
+                assert.equal(newRecords[1].get('count'), 1, 'The count attribute of the second record should match');
+                return service.get('store').findAll('tag');
+            }).then(function (results) {
+                assert.equal(results.get('length'), 2, 'After the call to updateSecrets the store should contains two tags');
+
+                done();
+            });
+        });
+    });
+
+});
+define('yith-library-mobile-client/tests/integration/sync-test.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - integration');
+  QUnit.test('integration/sync-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'integration/sync-test.js should pass jshint.'); 
+  });
+
+});
 define('yith-library-mobile-client/tests/main.jshint', function () {
 
   'use strict';
@@ -4496,20 +4982,72 @@ define('yith-library-mobile-client/tests/unit/services/settings-test.jshint', fu
   });
 
 });
-define('yith-library-mobile-client/tests/unit/services/sync-test', ['ember-qunit'], function (ember_qunit) {
+define('yith-library-mobile-client/tests/unit/services/sync-test', ['ember-qunit', 'ic-ajax'], function (ember_qunit, ic_ajax) {
 
-  'use strict';
+    'use strict';
 
-  ember_qunit.moduleFor('service:sync', 'Unit | Service | sync', {
-    // Specify the other units that are required for this test.
-    // needs: ['service:foo']
-  });
+    ember_qunit.moduleFor('service:sync', 'Unit | Service | sync', {
+        needs: ['model:account']
+    });
 
-  // Replace this with your real tests.
-  ember_qunit.test('it exists', function (assert) {
-    var service = this.subject();
-    assert.ok(service);
-  });
+    ember_qunit.test('convertRecord', function (assert) {
+        var service = this.subject(),
+            original = { foo_bar: 1 },
+            expected = { fooBar: 1 },
+            result = service.convertRecord(original);
+
+        assert.deepEqual(result, expected);
+    });
+
+    ember_qunit.test('getUserInfo', function (assert) {
+        var service = this.subject(),
+            expectedData = {
+            'id': 123,
+            'email': 'test@example.com',
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'screen_name': 'Johnny'
+        };
+        assert.expect(1);
+        ic_ajax.defineFixture('/user?client_id=123', {
+            response: expectedData,
+            jqXHR: {},
+            textStatus: 'success'
+        });
+        service.getUserInfo('token', '', 123).then(function (data) {
+            assert.deepEqual(data, expectedData);
+        });
+    });
+
+    ember_qunit.test('getSecrets', function (assert) {
+        var service = this.subject(),
+            expectedData = {
+            passwords: [{
+                id: 1,
+                service: 'example.com',
+                account: 'john',
+                secret: 's3cr3t',
+                notes: '',
+                tags: []
+            }, {
+                id: 2,
+                service: 'mail.example.com',
+                account: 'john',
+                secret: 's3cr3t',
+                notes: '',
+                tags: ['tag1', 'tag2']
+            }]
+        };
+        assert.expect(1);
+        ic_ajax.defineFixture('/passwords?client_id=123', {
+            response: expectedData,
+            jqXHR: {},
+            textStatus: 'success'
+        });
+        service.getSecrets('token', '', '123').then(function (data) {
+            assert.deepEqual(data, expectedData);
+        });
+    });
 
 });
 define('yith-library-mobile-client/tests/unit/services/sync-test.jshint', function () {

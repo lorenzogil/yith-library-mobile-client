@@ -74,7 +74,7 @@ export default Ember.Service.extend({
     fetchSecrets: function (accessToken, serverBaseUrl, clientId) {
         var self = this;
 
-        self.getSecrets(accessToken, serverBaseUrl, clientId).then(function (rawData) {
+        return self.getSecrets(accessToken, serverBaseUrl, clientId).then(function (rawData) {
             return self.updateSecretsStore(rawData);
         });
     },
