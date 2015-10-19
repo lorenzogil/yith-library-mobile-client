@@ -69136,34 +69136,21 @@ define("ember/resolver",
 
     if (fullName.parsedName === true) { return fullName; }
 
-    var prefix, type, name;
-    var fullNameParts = fullName.split('@');
+    var prefixParts = fullName.split('@');
+    var prefix;
 
-    // Htmlbars uses helper:@content-helper which collides
-    // with ember-cli namespace detection.
-    // This will be removed in a future release of Htmlbars.
-    if (fullName !== 'helper:@content-helper' &&
-        fullNameParts.length === 2) {
-      var prefixParts = fullNameParts[0].split(':');
-
-      if (prefixParts.length === 2) {
-        prefix = prefixParts[1];
-        type = prefixParts[0];
-        name = fullNameParts[1];
-      } else {
-        var nameParts = fullNameParts[1].split(':');
-
-        prefix = fullNameParts[0];
-        type = nameParts[0];
-        name = nameParts[1];
+    if (prefixParts.length === 2) {
+      if (prefixParts[0].split(':')[0] === 'view') {
+        prefixParts[0] = prefixParts[0].split(':')[1];
+        prefixParts[1] = 'view:' + prefixParts[1];
       }
-    } else {
-      fullNameParts = fullName.split(':');
-      type = fullNameParts[0];
-      name = fullNameParts[1];
+
+      prefix = prefixParts[0];
     }
 
-    var fullNameWithoutType = name;
+    var nameParts = prefixParts[prefixParts.length - 1].split(":");
+    var type = nameParts[0], fullNameWithoutType = nameParts[1];
+    var name = fullNameWithoutType;
     var namespace = get(this, 'namespace');
     var root = namespace;
 
@@ -69442,29 +69429,19 @@ define("ember/resolver",
 
     translateToContainerFullname: function(type, moduleName) {
       var prefix = this.prefix({ type: type });
-
-      // Note: using string manipulation here rather than regexes for better performance.
-      // pod modules
-      // '^' + prefix + '/(.+)/' + type + '$'
-      var podPrefix = prefix + '/';
-      var podSuffix = '/' + type;
-      var start = moduleName.indexOf(podPrefix);
-      var end = moduleName.indexOf(podSuffix);
-
-      if (start === 0 && end === (moduleName.length - podSuffix.length) &&
-          moduleName.length > (podPrefix.length + podSuffix.length)) {
-        return type + ':' + moduleName.slice(start + podPrefix.length, end);
-      }
-
-      // non-pod modules
-      // '^' + prefix + '/' + pluralizedType + '/(.+)$'
       var pluralizedType = this.pluralize(type);
-      var nonPodPrefix = prefix + '/' + pluralizedType + '/';
+      var nonPodRegExp = new RegExp('^' + prefix + '/' + pluralizedType + '/(.+)$');
+      var podRegExp = new RegExp('^' + prefix + '/(.+)/' + type + '$');
+      var matches;
 
-      if (moduleName.indexOf(nonPodPrefix) === 0 && moduleName.length > nonPodPrefix.length) {
-        return type + ':' + moduleName.slice(nonPodPrefix.length);
+
+      if ((matches = moduleName.match(podRegExp))) {
+        return type + ':' + matches[1];
       }
 
+      if ((matches = moduleName.match(nonPodRegExp))) {
+        return type + ':' + matches[1];
+      }
     },
 
     _extractDefaultExport: function(normalizedModuleName) {
@@ -69623,12 +69600,11 @@ define("ember/container-debug-adapter",
   Ember.Application.initializer({
     name: 'container-debug-adapter',
 
-    initialize: function() {
-      var app = arguments[1] || arguments[0];
+    initialize: function(container, app) {
       var ContainerDebugAdapter = require('ember/container-debug-adapter');
       var Resolver = require('ember/resolver');
 
-      app.register('container-debug-adapter:main', ContainerDebugAdapter);
+      container.register('container-debug-adapter:main', ContainerDebugAdapter);
       app.inject('container-debug-adapter:main', 'namespace', 'application:main');
     }
   });
@@ -90651,7 +90627,19 @@ a=a.replace(/^\{|\}$/g,"").split(/,/);var b={},c,d;for(c=0;c<a.length;c++)(d=a[c
 a[d]=b[d]);return a},ea:function(a,b){var c={},d;for(d in a)a.hasOwnProperty(d)&&a[d]!==b[d]&&(c[d]=a[d]);return c},da:function(a,b){var c={},d;for(d=0;d<b.length;d++)a[b[d]]!==t&&(c[b[d]]=a[b[d]]);return c}};sjcl.encrypt=sjcl.json.encrypt;sjcl.decrypt=sjcl.json.decrypt;sjcl.misc.ca={};
 sjcl.misc.cachedPbkdf2=function(a,b){var c=sjcl.misc.ca,d;b=b||{};d=b.iter||1E3;c=c[a]=c[a]||{};d=c[d]=c[d]||{firstSalt:b.salt&&b.salt.length?b.salt.slice(0):sjcl.random.randomWords(2,0)};c=b.salt===t?d.firstSalt:b.salt;d[c]=d[c]||sjcl.misc.pbkdf2(a,c,b.iter);return{key:d[c].slice(0),salt:c.slice(0)}};
 
-;define('ember-cli-app-version/components/app-version', ['exports', 'ember', 'ember-cli-app-version/templates/app-version'], function (exports, Ember, layout) {
+;define('ember-cli-app-version', ['ember-cli-app-version/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
+  'use strict';
+  var keys = Object.keys || __Ember__['default'].keys;
+  var forEach = Array.prototype.forEach && function(array, cb) {
+    array.forEach(cb);
+  } || __Ember__['default'].EnumerableUtils.forEach;
+
+  forEach(keys(__index__), (function(key) {
+    __exports__[key] = __index__[key];
+  }));
+});
+
+define('ember-cli-app-version/components/app-version', ['exports', 'ember', 'ember-cli-app-version/templates/app-version'], function (exports, Ember, layout) {
 
   'use strict';
 
@@ -90730,7 +90718,7 @@ define('ember-cli-app-version/templates/app-version', ['exports'], function (exp
   }()));
 
 });
-define('ember-cli-app-version', ['ember-cli-app-version/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
+define('ember-cli-content-security-policy', ['ember-cli-content-security-policy/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
   'use strict';
   var keys = Object.keys || __Ember__['default'].keys;
   var forEach = Array.prototype.forEach && function(array, cb) {
@@ -90742,7 +90730,7 @@ define('ember-cli-app-version', ['ember-cli-app-version/index', 'ember', 'export
   }));
 });
 
-define('ember-cli-content-security-policy', ['ember-cli-content-security-policy/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
+define('ember-localforage-adapter', ['ember-localforage-adapter/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
   'use strict';
   var keys = Object.keys || __Ember__['default'].keys;
   var forEach = Array.prototype.forEach && function(array, cb) {
@@ -91458,18 +91446,6 @@ define('ember-localforage-adapter/utils/queue', ['exports', 'ember'], function (
     } });
 
 });
-define('ember-localforage-adapter', ['ember-localforage-adapter/index', 'ember', 'exports'], function(__index__, __Ember__, __exports__) {
-  'use strict';
-  var keys = Object.keys || __Ember__['default'].keys;
-  var forEach = Array.prototype.forEach && function(array, cb) {
-    array.forEach(cb);
-  } || __Ember__['default'].EnumerableUtils.forEach;
-
-  forEach(keys(__index__), (function(key) {
-    __exports__[key] = __index__[key];
-  }));
-});
-
 ;/* jshint ignore:start */
 
 

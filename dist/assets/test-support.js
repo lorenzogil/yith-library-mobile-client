@@ -6628,19 +6628,10 @@ jQuery(document).ready(function() {
 /* globals jQuery,QUnit */
 
 jQuery(document).ready(function() {
-  var TestLoaderModule = require('ember-cli/test-loader');
-  var TestLoader = TestLoaderModule['default'];
-  var addModuleIncludeMatcher = TestLoaderModule['addModuleIncludeMatcher'];
-
-  function moduleMatcher(moduleName) {
+  var TestLoader = require('ember-cli/test-loader')['default'];
+  TestLoader.prototype.shouldLoadModule = function(moduleName) {
     return moduleName.match(/\/.*[-_]test$/) || (!QUnit.urlParams.nojshint && moduleName.match(/\.jshint$/));
-  }
-
-  if (addModuleIncludeMatcher) {
-    addModuleIncludeMatcher(moduleMatcher);
-  } else {
-    TestLoader.prototype.shouldLoadModule = moduleMatcher;
-  }
+  };
 
   TestLoader.prototype.moduleLoadFailure = function(moduleName, error) {
     QUnit.module('TestLoader Failures');
