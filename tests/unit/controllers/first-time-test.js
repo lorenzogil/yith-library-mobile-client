@@ -2,7 +2,6 @@ import { moduleFor, test } from 'ember-qunit';
 
 moduleFor('controller:first-time', 'Unit | Controller | first-time');
 
-// Replace this with your real tests.
 test('The initial value for step is 0', function(assert) {
     var ctrl = this.subject();
     assert.expect(11);
