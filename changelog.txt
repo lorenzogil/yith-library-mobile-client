@@ -1,6 +1,7 @@
 Unreleased
 ----------
 FEATURE: Favicon
+BUGFIX: Fix development server URL to http://localhost:6543
 
 2014-09-15 0.7.0
 ----------------
