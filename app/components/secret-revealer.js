@@ -1,15 +1,16 @@
 import Ember from 'ember';
 
-export default Ember.View.extend({
-    templateName: 'secret-revealer',
+export default Ember.Component.extend({
     tagName: 'form',
     classNames: ['secret-revealer'],
+
     attributeBindings: ['autocomplete'],
     autocomplete: 'off',
+
     buttonClass: 'recommend',
     buttonText: 'Reveal secret',
+
     decryptedSecret: null,
-    encryptedSecret: '',
 
     click: function (event) {
         var $target = Ember.$(event.target);
@@ -34,7 +35,7 @@ export default Ember.View.extend({
             $masterPasswordInput = this.$('input[type=password]');
             masterPasswordValue = $masterPasswordInput.val();
             $masterPasswordInput.val('');
-            secret = this.get('encryptedSecret');
+            secret = this.get('secret');
             try {
                 this.revealSecret(sjcl.decrypt(masterPasswordValue, secret));
                 masterPasswordValue = null;
@@ -130,5 +131,5 @@ export default Ember.View.extend({
     willDestroy: function () {
         this.hideSecret();
     }
-});
 
+});

@@ -58,6 +58,140 @@ define('yith-library-mobile-client/components/app-version', ['exports', 'ember-c
   });
 
 });
+define('yith-library-mobile-client/components/secret-revealer', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Component.extend({
+        tagName: 'form',
+        classNames: ['secret-revealer'],
+
+        attributeBindings: ['autocomplete'],
+        autocomplete: 'off',
+
+        buttonClass: 'recommend',
+        buttonText: 'Reveal secret',
+
+        decryptedSecret: null,
+
+        click: function click(event) {
+            var $target = Ember['default'].$(event.target);
+
+            if ($target.is('button')) {
+                this.buttonClicked();
+            }
+
+            // Don't bubble up any more events
+            return false;
+        },
+
+        buttonClicked: function buttonClicked() {
+            var $masterPasswordInput = null,
+                masterPasswordValue = null,
+                secret = '';
+
+            if (this.get('decryptedSecret') !== null) {
+                this.hideSecret();
+            } else {
+
+                $masterPasswordInput = this.$('input[type=password]');
+                masterPasswordValue = $masterPasswordInput.val();
+                $masterPasswordInput.val('');
+                secret = this.get('secret');
+                try {
+                    this.revealSecret(sjcl.decrypt(masterPasswordValue, secret));
+                    masterPasswordValue = null;
+                } catch (err) {
+                    this.badMasterPassword();
+                }
+            }
+        },
+
+        hideSecret: function hideSecret() {
+            this.stopTimer();
+
+            this.set('buttonText', 'Reveal secret');
+            this.set('buttonClass', 'recommend');
+            this.set('decryptedSecret', null);
+        },
+
+        badMasterPassword: function badMasterPassword() {
+            this.set('buttonText', 'Wrong master password, try again');
+            this.set('buttonClass', 'danger');
+            this.$('input[type=password]').focus();
+        },
+
+        revealSecret: function revealSecret(secret) {
+            this.set('buttonText', 'Hide secret');
+            this.set('buttonClass', 'recommend');
+            this.set('decryptedSecret', secret);
+
+            Ember['default'].run.scheduleOnce('afterRender', this, function () {
+                this.$('input[type=text]').focus().select();
+                this.startTimer();
+            });
+        },
+
+        startTimer: function startTimer() {
+            this.start = new Date();
+
+            this.totalTime = this.getTotalTime();
+
+            this.timer = window.requestAnimationFrame(this.tick.bind(this));
+        },
+
+        stopTimer: function stopTimer() {
+            if (this.timer) {
+                window.cancelAnimationFrame(this.timer);
+            }
+        },
+
+        getTotalTime: function getTotalTime() {
+            return 60;
+        },
+
+        tick: function tick() {
+            var $timer = this.$('svg'),
+                width = $timer.width(),
+                width2 = width / 2,
+                radius = width * 0.45,
+                now = new Date(),
+                elapsed = (now - this.start) / 1000.0,
+                completion = elapsed / this.totalTime,
+                endAngle = 360 * completion,
+                endPoint = this.polarToCartesian(width2, width2, radius, endAngle),
+                arcSweep = endAngle <= 180 ? '1' : '0',
+                d = ['M', width2, width2 - radius, 'A', radius, radius, 0, arcSweep, 0, endPoint.x, endPoint.y, 'L', width2, width2, 'Z'].join(' ');
+
+            this.$('path').attr('d', d);
+
+            // If completion is 100% hide the secret
+            if (completion >= 1) {
+                this.hideSecret();
+            } else {
+                this.timer = window.requestAnimationFrame(this.tick.bind(this));
+            }
+        },
+
+        polarToCartesian: function polarToCartesian(x, y, radius, degrees) {
+            var radians = (degrees - 90) * Math.PI / 180.0;
+            return {
+                x: x + radius * Math.cos(radians),
+                y: y + radius * Math.sin(radians)
+            };
+        },
+
+        didInsertElement: function didInsertElement() {
+            this.$('input').focus();
+        },
+
+        willDestroy: function willDestroy() {
+            this.hideSecret();
+        }
+
+    });
+
+});
 define('yith-library-mobile-client/controllers/application', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -1240,6 +1374,201 @@ define('yith-library-mobile-client/templates/application', ['exports'], function
   }()));
 
 });
+define('yith-library-mobile-client/templates/components/secret-revealer', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.7",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 1,
+              "column": 0
+            },
+            "end": {
+              "line": 11,
+              "column": 0
+            }
+          },
+          "moduleName": "yith-library-mobile-client/templates/components/secret-revealer.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("  ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("p");
+          var el2 = dom.createTextNode("\n    ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("input");
+          dom.setAttribute(el2,"type","text");
+          dom.setAttribute(el2,"readonly","");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n  ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n  ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("p");
+          var el2 = dom.createTextNode("\n    ");
+          dom.appendChild(el1, el2);
+          dom.setNamespace("http://www.w3.org/2000/svg");
+          var el2 = dom.createElement("svg");
+          dom.setAttribute(el2,"xmlns","http://www.w3.org/2000/svg");
+          dom.setAttribute(el2,"width","40");
+          dom.setAttribute(el2,"height","40");
+          var el3 = dom.createTextNode("\n      ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("circle");
+          dom.setAttribute(el3,"cx","50%");
+          dom.setAttribute(el3,"cy","50%");
+          dom.setAttribute(el3,"r","50%");
+          dom.setAttribute(el3,"fill","buttonface");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n      ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("path");
+          dom.setAttribute(el3,"fill","white");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n    ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n  ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var element0 = dom.childAt(fragment, [1, 1]);
+          var morphs = new Array(1);
+          morphs[0] = dom.createAttrMorph(element0, 'value');
+          return morphs;
+        },
+        statements: [
+          ["attribute","value",["get","decryptedSecret",["loc",[null,[3,40],[3,55]]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child1 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.7",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 11,
+              "column": 0
+            },
+            "end": {
+              "line": 16,
+              "column": 0
+            }
+          },
+          "moduleName": "yith-library-mobile-client/templates/components/secret-revealer.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("  ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("p");
+          var el2 = dom.createTextNode("\n    ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("input");
+          dom.setAttribute(el2,"type","password");
+          dom.setAttribute(el2,"placeholder","Enter your master password here");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n    ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("button");
+          dom.setAttribute(el2,"type","reset");
+          var el3 = dom.createTextNode("Clear");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n  ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes() { return []; },
+        statements: [
+
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    return {
+      meta: {
+        "revision": "Ember@1.13.7",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 20,
+            "column": 0
+          }
+        },
+        "moduleName": "yith-library-mobile-client/templates/components/secret-revealer.hbs"
+      },
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("p");
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("button");
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var element1 = dom.childAt(fragment, [1, 1]);
+        var morphs = new Array(3);
+        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+        morphs[1] = dom.createAttrMorph(element1, 'class');
+        morphs[2] = dom.createMorphAt(element1,0,0);
+        dom.insertBoundary(fragment, 0);
+        return morphs;
+      },
+      statements: [
+        ["block","if",[["get","decryptedSecret",["loc",[null,[1,6],[1,21]]]]],[],0,1,["loc",[null,[1,0],[16,7]]]],
+        ["attribute","class",["get","buttonClass",["loc",[null,[18,18],[18,29]]]]],
+        ["content","buttonText",["loc",[null,[18,32],[18,46]]]]
+      ],
+      locals: [],
+      templates: [child0, child1]
+    };
+  }()));
+
+});
 define('yith-library-mobile-client/templates/first-time', ['exports'], function (exports) {
 
   'use strict';
@@ -2290,201 +2619,6 @@ define('yith-library-mobile-client/templates/loading', ['exports'], function (ex
   }()));
 
 });
-define('yith-library-mobile-client/templates/secret-revealer', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    var child0 = (function() {
-      return {
-        meta: {
-          "revision": "Ember@1.13.7",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 1,
-              "column": 0
-            },
-            "end": {
-              "line": 11,
-              "column": 0
-            }
-          },
-          "moduleName": "yith-library-mobile-client/templates/secret-revealer.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("  ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("\n    ");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createElement("input");
-          dom.setAttribute(el2,"type","text");
-          dom.setAttribute(el2,"readonly","");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("\n  ");
-          dom.appendChild(el1, el2);
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n  ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("\n    ");
-          dom.appendChild(el1, el2);
-          dom.setNamespace("http://www.w3.org/2000/svg");
-          var el2 = dom.createElement("svg");
-          dom.setAttribute(el2,"xmlns","http://www.w3.org/2000/svg");
-          dom.setAttribute(el2,"width","40");
-          dom.setAttribute(el2,"height","40");
-          var el3 = dom.createTextNode("\n      ");
-          dom.appendChild(el2, el3);
-          var el3 = dom.createElement("circle");
-          dom.setAttribute(el3,"cx","50%");
-          dom.setAttribute(el3,"cy","50%");
-          dom.setAttribute(el3,"r","50%");
-          dom.setAttribute(el3,"fill","buttonface");
-          dom.appendChild(el2, el3);
-          var el3 = dom.createTextNode("\n      ");
-          dom.appendChild(el2, el3);
-          var el3 = dom.createElement("path");
-          dom.setAttribute(el3,"fill","white");
-          dom.appendChild(el2, el3);
-          var el3 = dom.createTextNode("\n    ");
-          dom.appendChild(el2, el3);
-          dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("\n  ");
-          dom.appendChild(el1, el2);
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var element0 = dom.childAt(fragment, [1, 1]);
-          var morphs = new Array(1);
-          morphs[0] = dom.createAttrMorph(element0, 'value');
-          return morphs;
-        },
-        statements: [
-          ["attribute","value",["get","view.decryptedSecret",["loc",[null,[3,40],[3,60]]]]]
-        ],
-        locals: [],
-        templates: []
-      };
-    }());
-    var child1 = (function() {
-      return {
-        meta: {
-          "revision": "Ember@1.13.7",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 11,
-              "column": 0
-            },
-            "end": {
-              "line": 16,
-              "column": 0
-            }
-          },
-          "moduleName": "yith-library-mobile-client/templates/secret-revealer.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("  ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("\n    ");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createElement("input");
-          dom.setAttribute(el2,"type","password");
-          dom.setAttribute(el2,"placeholder","Enter your master password here");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("\n    ");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createElement("button");
-          dom.setAttribute(el2,"type","reset");
-          var el3 = dom.createTextNode("Clear");
-          dom.appendChild(el2, el3);
-          dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("\n  ");
-          dom.appendChild(el1, el2);
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes() { return []; },
-        statements: [
-
-        ],
-        locals: [],
-        templates: []
-      };
-    }());
-    return {
-      meta: {
-        "revision": "Ember@1.13.7",
-        "loc": {
-          "source": null,
-          "start": {
-            "line": 1,
-            "column": 0
-          },
-          "end": {
-            "line": 20,
-            "column": 0
-          }
-        },
-        "moduleName": "yith-library-mobile-client/templates/secret-revealer.hbs"
-      },
-      arity: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      buildFragment: function buildFragment(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createComment("");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createElement("p");
-        var el2 = dom.createTextNode("\n  ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("button");
-        var el3 = dom.createComment("");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var element1 = dom.childAt(fragment, [1, 1]);
-        var morphs = new Array(3);
-        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
-        morphs[1] = dom.createAttrMorph(element1, 'class');
-        morphs[2] = dom.createMorphAt(element1,0,0);
-        dom.insertBoundary(fragment, 0);
-        return morphs;
-      },
-      statements: [
-        ["block","if",[["get","view.decryptedSecret",["loc",[null,[1,6],[1,26]]]]],[],0,1,["loc",[null,[1,0],[16,7]]]],
-        ["attribute","class",["get","view.buttonClass",["loc",[null,[18,18],[18,34]]]]],
-        ["content","view.buttonText",["loc",[null,[18,37],[18,56]]]]
-      ],
-      locals: [],
-      templates: [child0, child1]
-    };
-  }()));
-
-});
 define('yith-library-mobile-client/templates/secret', ['exports'], function (exports) {
 
   'use strict';
@@ -2746,7 +2880,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
         ["element","action",["finishTransition"],["on","animationEnd"],["loc",[null,[1,64],[1,111]]]],
         ["block","link-to",["secrets"],[],0,null,["loc",[null,[3,6],[5,18]]]],
         ["content","model.service",["loc",[null,[6,10],[6,27]]]],
-        ["inline","view",["secret-revealer"],["encryptedSecret",["subexpr","@mut",[["get","model.secret",["loc",[null,[10,47],[10,59]]]]],[],[]]],["loc",[null,[10,6],[10,61]]]],
+        ["inline","secret-revealer",[],["secret",["subexpr","@mut",[["get","model.secret",["loc",[null,[10,31],[10,43]]]]],[],[]]],["loc",[null,[10,6],[10,45]]]],
         ["content","model.account",["loc",[null,[14,9],[14,26]]]],
         ["block","if",[["get","model.notes",["loc",[null,[16,12],[16,23]]]]],[],1,null,["loc",[null,[16,6],[21,13]]]],
         ["block","if",[["get","model.tags",["loc",[null,[23,12],[23,22]]]]],[],2,null,["loc",[null,[23,6],[28,13]]]]
@@ -4099,6 +4233,16 @@ define('yith-library-mobile-client/tests/app.jshint', function () {
   });
 
 });
+define('yith-library-mobile-client/tests/components/secret-revealer.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - components');
+  test('components/secret-revealer.js should pass jshint', function() { 
+    ok(true, 'components/secret-revealer.js should pass jshint.'); 
+  });
+
+});
 define('yith-library-mobile-client/tests/controllers/application.jshint', function () {
 
   'use strict';
@@ -4223,6 +4367,149 @@ define('yith-library-mobile-client/tests/helpers/start-app.jshint', function () 
   module('JSHint - helpers');
   test('helpers/start-app.js should pass jshint', function() { 
     ok(true, 'helpers/start-app.js should pass jshint.'); 
+  });
+
+});
+define('yith-library-mobile-client/tests/integration/components/secret-revealer-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleForComponent('secret-revealer', 'Integration | Component | secret revealer', {
+    integration: true
+  });
+
+  ember_qunit.test('it renders', function (assert) {
+    assert.expect(2);
+
+    // Set any properties with this.set('myProperty', 'value');
+    // Handle any actions with this.on('myAction', function(val) { ... });
+
+    this.render(Ember.HTMLBars.template((function () {
+      return {
+        meta: {
+          'revision': 'Ember@1.13.7',
+          'loc': {
+            'source': null,
+            'start': {
+              'line': 1,
+              'column': 0
+            },
+            'end': {
+              'line': 1,
+              'column': 19
+            }
+          }
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment('');
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
+          dom.insertBoundary(fragment, 0);
+          dom.insertBoundary(fragment, null);
+          return morphs;
+        },
+        statements: [['content', 'secret-revealer', ['loc', [null, [1, 0], [1, 19]]]]],
+        locals: [],
+        templates: []
+      };
+    })()));
+
+    assert.equal(this.$().text().trim(), '');
+
+    // Template block usage:
+    this.render(Ember.HTMLBars.template((function () {
+      var child0 = (function () {
+        return {
+          meta: {
+            'revision': 'Ember@1.13.7',
+            'loc': {
+              'source': null,
+              'start': {
+                'line': 2,
+                'column': 4
+              },
+              'end': {
+                'line': 4,
+                'column': 4
+              }
+            }
+          },
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode('      template block text\n');
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes() {
+            return [];
+          },
+          statements: [],
+          locals: [],
+          templates: []
+        };
+      })();
+
+      return {
+        meta: {
+          'revision': 'Ember@1.13.7',
+          'loc': {
+            'source': null,
+            'start': {
+              'line': 1,
+              'column': 0
+            },
+            'end': {
+              'line': 5,
+              'column': 2
+            }
+          }
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode('\n');
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment('');
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode('  ');
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
+          return morphs;
+        },
+        statements: [['block', 'secret-revealer', [], [], 0, null, ['loc', [null, [2, 4], [4, 24]]]]],
+        locals: [],
+        templates: [child0]
+      };
+    })()));
+
+    assert.equal(this.$().text().trim(), 'template block text');
+  });
+
+});
+define('yith-library-mobile-client/tests/integration/components/secret-revealer-test.jshint', function () {
+
+  'use strict';
+
+  module('JSHint - integration/components');
+  test('integration/components/secret-revealer-test.js should pass jshint', function() { 
+    ok(true, 'integration/components/secret-revealer-test.js should pass jshint.'); 
   });
 
 });
@@ -5342,16 +5629,6 @@ define('yith-library-mobile-client/tests/utils/snake-case-to-camel-case.jshint',
   });
 
 });
-define('yith-library-mobile-client/tests/views/secret-revealer.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - views');
-  test('views/secret-revealer.js should pass jshint', function() { 
-    ok(true, 'views/secret-revealer.js should pass jshint.'); 
-  });
-
-});
 define('yith-library-mobile-client/tests/views/secrets.jshint', function () {
 
   'use strict';
@@ -5394,138 +5671,6 @@ define('yith-library-mobile-client/utils/snake-case-to-camel-case', ['exports'],
             }
         }).join('');
     }
-
-});
-define('yith-library-mobile-client/views/secret-revealer', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].View.extend({
-        templateName: 'secret-revealer',
-        tagName: 'form',
-        classNames: ['secret-revealer'],
-        attributeBindings: ['autocomplete'],
-        autocomplete: 'off',
-        buttonClass: 'recommend',
-        buttonText: 'Reveal secret',
-        decryptedSecret: null,
-        encryptedSecret: '',
-
-        click: function click(event) {
-            var $target = Ember['default'].$(event.target);
-
-            if ($target.is('button')) {
-                this.buttonClicked();
-            }
-
-            // Don't bubble up any more events
-            return false;
-        },
-
-        buttonClicked: function buttonClicked() {
-            var $masterPasswordInput = null,
-                masterPasswordValue = null,
-                secret = '';
-
-            if (this.get('decryptedSecret') !== null) {
-                this.hideSecret();
-            } else {
-
-                $masterPasswordInput = this.$('input[type=password]');
-                masterPasswordValue = $masterPasswordInput.val();
-                $masterPasswordInput.val('');
-                secret = this.get('encryptedSecret');
-                try {
-                    this.revealSecret(sjcl.decrypt(masterPasswordValue, secret));
-                    masterPasswordValue = null;
-                } catch (err) {
-                    this.badMasterPassword();
-                }
-            }
-        },
-
-        hideSecret: function hideSecret() {
-            this.stopTimer();
-
-            this.set('buttonText', 'Reveal secret');
-            this.set('buttonClass', 'recommend');
-            this.set('decryptedSecret', null);
-        },
-
-        badMasterPassword: function badMasterPassword() {
-            this.set('buttonText', 'Wrong master password, try again');
-            this.set('buttonClass', 'danger');
-            this.$('input[type=password]').focus();
-        },
-
-        revealSecret: function revealSecret(secret) {
-            this.set('buttonText', 'Hide secret');
-            this.set('buttonClass', 'recommend');
-            this.set('decryptedSecret', secret);
-
-            Ember['default'].run.scheduleOnce('afterRender', this, function () {
-                this.$('input[type=text]').focus().select();
-                this.startTimer();
-            });
-        },
-
-        startTimer: function startTimer() {
-            this.start = new Date();
-
-            this.totalTime = this.getTotalTime();
-
-            this.timer = window.requestAnimationFrame(this.tick.bind(this));
-        },
-
-        stopTimer: function stopTimer() {
-            if (this.timer) {
-                window.cancelAnimationFrame(this.timer);
-            }
-        },
-
-        getTotalTime: function getTotalTime() {
-            return 60;
-        },
-
-        tick: function tick() {
-            var $timer = this.$('svg'),
-                width = $timer.width(),
-                width2 = width / 2,
-                radius = width * 0.45,
-                now = new Date(),
-                elapsed = (now - this.start) / 1000.0,
-                completion = elapsed / this.totalTime,
-                endAngle = 360 * completion,
-                endPoint = this.polarToCartesian(width2, width2, radius, endAngle),
-                arcSweep = endAngle <= 180 ? '1' : '0',
-                d = ['M', width2, width2 - radius, 'A', radius, radius, 0, arcSweep, 0, endPoint.x, endPoint.y, 'L', width2, width2, 'Z'].join(' ');
-
-            this.$('path').attr('d', d);
-
-            // If completion is 100% hide the secret
-            if (completion >= 1) {
-                this.hideSecret();
-            } else {
-                this.timer = window.requestAnimationFrame(this.tick.bind(this));
-            }
-        },
-
-        polarToCartesian: function polarToCartesian(x, y, radius, degrees) {
-            var radians = (degrees - 90) * Math.PI / 180.0;
-            return {
-                x: x + radius * Math.cos(radians),
-                y: y + radius * Math.sin(radians)
-            };
-        },
-
-        didInsertElement: function didInsertElement() {
-            this.$('input').focus();
-        },
-
-        willDestroy: function willDestroy() {
-            this.hideSecret();
-        }
-    });
 
 });
 define('yith-library-mobile-client/views/secrets', ['exports', 'ember'], function (exports, Ember) {
