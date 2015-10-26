@@ -2581,7 +2581,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
           return morphs;
         },
         statements: [
-          ["content","notes",["loc",[null,[20,11],[20,20]]]]
+          ["content","model.notes",["loc",[null,[20,11],[20,26]]]]
         ],
         locals: [],
         templates: []
@@ -2637,7 +2637,7 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
           return morphs;
         },
         statements: [
-          ["content","tags",["loc",[null,[27,11],[27,21]]]]
+          ["content","model.tags",["loc",[null,[27,11],[27,25]]]]
         ],
         locals: [],
         templates: []
@@ -2743,13 +2743,13 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
       },
       statements: [
         ["attribute","class",["get","position",["loc",[null,[1,53],[1,61]]]]],
-        ["element","action",["finishTransition"],["on","animationEnd"],["loc",[null,[1,64],[1,115]]]],
+        ["element","action",["finishTransition"],["on","animationEnd"],["loc",[null,[1,64],[1,111]]]],
         ["block","link-to",["secrets"],[],0,null,["loc",[null,[3,6],[5,18]]]],
-        ["content","service",["loc",[null,[6,10],[6,21]]]],
-        ["inline","view",["secret-revealer"],["encryptedSecret",["subexpr","@mut",[["get","secret",["loc",[null,[10,47],[10,53]]]]],[],[]]],["loc",[null,[10,6],[10,55]]]],
-        ["content","account",["loc",[null,[14,9],[14,20]]]],
-        ["block","if",[["get","notes",["loc",[null,[16,12],[16,17]]]]],[],1,null,["loc",[null,[16,6],[21,13]]]],
-        ["block","if",[["get","tags",["loc",[null,[23,12],[23,16]]]]],[],2,null,["loc",[null,[23,6],[28,13]]]]
+        ["content","model.service",["loc",[null,[6,10],[6,27]]]],
+        ["inline","view",["secret-revealer"],["encryptedSecret",["subexpr","@mut",[["get","model.secret",["loc",[null,[10,47],[10,59]]]]],[],[]]],["loc",[null,[10,6],[10,61]]]],
+        ["content","model.account",["loc",[null,[14,9],[14,26]]]],
+        ["block","if",[["get","model.notes",["loc",[null,[16,12],[16,23]]]]],[],1,null,["loc",[null,[16,6],[21,13]]]],
+        ["block","if",[["get","model.tags",["loc",[null,[23,12],[23,22]]]]],[],2,null,["loc",[null,[23,6],[28,13]]]]
       ],
       locals: [],
       templates: [child0, child1, child2]
@@ -5082,7 +5082,6 @@ define('yith-library-mobile-client/tests/unit/controllers/first-time-test', ['em
 
     ember_qunit.moduleFor('controller:first-time', 'Unit | Controller | first-time');
 
-    // Replace this with your real tests.
     ember_qunit.test('The initial value for step is 0', function (assert) {
         var ctrl = this.subject();
         assert.expect(11);
