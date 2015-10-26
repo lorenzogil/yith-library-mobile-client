@@ -1,6 +1,6 @@
 import Ember from 'ember';
 
-export default Ember.ArrayController.extend({
+export default Ember.Controller.extend({
     tagsSortProperties: ['name:asc'],
     sortedTags: Ember.computed.sort('content', 'tagsSortProperties'),
     actions: {

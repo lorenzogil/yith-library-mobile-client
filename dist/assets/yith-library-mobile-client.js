@@ -312,7 +312,7 @@ define('yith-library-mobile-client/controllers/secret', ['exports', 'ember'], fu
 
     'use strict';
 
-    exports['default'] = Ember['default'].ObjectController.extend({
+    exports['default'] = Ember['default'].Controller.extend({
 
         position: 'current'
 
@@ -467,16 +467,17 @@ define('yith-library-mobile-client/controllers/secrets/drawer', ['exports', 'emb
 
     'use strict';
 
-    exports['default'] = Ember['default'].ArrayController.extend({
-        needs: ['application', 'secrets'],
+    exports['default'] = Ember['default'].Controller.extend({
+        application: Ember['default'].inject.controller(),
+        secrets: Ember['default'].inject.controller(),
         sortProperties: ['count:desc'],
         sortedTags: Ember['default'].computed.sort('content', 'sortProperties'),
         tagsToDisplay: 5,
-        tag: Ember['default'].computed.alias('controllers.secrets.tag'),
+        tag: Ember['default'].computed.alias('secrets.tag'),
 
         accountDisplayName: (function () {
-            return this.get('controllers.application.model.displayName');
-        }).property('controllers.application.model.displayName'),
+            return this.get('application.model.displayName');
+        }).property('application.model.displayName'),
 
         selectedTagCount: (function () {
             var tag = this.get('sortedTags').findBy('name', this.get('tag'));
@@ -519,32 +520,32 @@ define('yith-library-mobile-client/controllers/secrets/drawer', ['exports', 'emb
         }).property('sortedTags.[]', 'tagsToDisplay'),
 
         syncButtonDisabled: (function () {
-            return this.get('controllers.secrets.isSyncing') || !this.get('controllers.secrets.isOnline');
-        }).property('controllers.secrets.isSyncing', 'controllers.secrets.isOnline'),
+            return this.get('secrets.isSyncing') || !this.get('secrets.isOnline');
+        }).property('secrets.isSyncing', 'secrets.isOnline'),
 
         loginButtonDisabled: (function () {
             return !this.get('isOnline');
-        }).property('controllers.secrets.isOnline'),
+        }).property('secrets.isOnline'),
 
         actions: {
             login: function login() {
                 this.transitionToRoute('secrets');
                 Ember['default'].run.next(this, function () {
-                    this.get('controllers.secrets').authorizeInServer();
+                    this.get('secrets').authorizeInServer();
                 });
             },
 
             sync: function sync() {
                 this.transitionToRoute('secrets');
                 Ember['default'].run.next(this, function () {
-                    this.get('controllers.secrets').syncFromServer();
+                    this.get('secrets').syncFromServer();
                 });
             },
 
             logout: function logout() {
                 this.transitionToRoute('secrets');
                 Ember['default'].run.next(this, function () {
-                    this.get('controllers.secrets').logout();
+                    this.get('secrets').logout();
                 });
             }
         }
@@ -556,7 +557,7 @@ define('yith-library-mobile-client/controllers/secrets/tags', ['exports', 'ember
 
     'use strict';
 
-    exports['default'] = Ember['default'].ArrayController.extend({
+    exports['default'] = Ember['default'].Controller.extend({
         tagsSortProperties: ['name:asc'],
         sortedTags: Ember['default'].computed.sort('content', 'tagsSortProperties'),
         actions: {
@@ -865,7 +866,7 @@ define('yith-library-mobile-client/routes/secrets-drawer', ['exports', 'ember'],
     exports['default'] = Ember['default'].Route.extend({
 
         model: function model() {
-            return this.store.find('tag');
+            return this.store.findAll('tag');
         },
 
         renderTemplate: function renderTemplate() {
@@ -920,7 +921,7 @@ define('yith-library-mobile-client/routes/secrets/drawer', ['exports', 'ember'],
         },
 
         model: function model() {
-            return this.store.find('tag');
+            return this.store.findAll('tag');
         },
 
         renderTemplate: function renderTemplate() {
@@ -964,7 +965,7 @@ define('yith-library-mobile-client/routes/secrets/tags', ['exports', 'ember'], f
     exports['default'] = Ember['default'].Route.extend({
 
         model: function model() {
-            return this.store.find('tag');
+            return this.store.findAll('tag');
         }
 
     });
