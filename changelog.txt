@@ -1,6 +1,7 @@
 Unreleased
 ----------
 FEATURE: Favicon
+FEATURE: Autofocus on search field on page load
 FEATURE: Set default development URL to http://mobileyith:4200
 BUGFIX: Fix development server URL to http://localhost:6543
 
