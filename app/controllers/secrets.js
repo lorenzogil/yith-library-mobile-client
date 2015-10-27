@@ -7,7 +7,7 @@ export default Ember.Controller.extend({
     queryParams: ['tag'],
     sortProperties: ['service', 'account'],
     sortAscending: true,
-    position: 'current',
+    position: 'current full-height',
     state: '',
     tag: '',
     query: '',

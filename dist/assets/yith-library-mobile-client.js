@@ -359,7 +359,7 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
         queryParams: ['tag'],
         sortProperties: ['service', 'account'],
         sortAscending: true,
-        position: 'current',
+        position: 'current full-height',
         state: '',
         tag: '',
         query: '',
@@ -851,8 +851,8 @@ define('yith-library-mobile-client/routes/secret', ['exports', 'ember'], functio
         setupController: function setupController(controller, model) {
             this._super(controller, model);
             var secretsController = this.controllerFor('secrets');
-            if (secretsController.get('position') !== 'left') {
-                secretsController.set('position', 'left');
+            if (secretsController.get('position') !== 'left full-height') {
+                secretsController.set('position', 'left full-height');
             }
             controller.set('position', 'current');
         },
@@ -861,15 +861,15 @@ define('yith-library-mobile-client/routes/secret', ['exports', 'ember'], functio
             willTransition: function willTransition(transition) {
                 var secretsController = this.controllerFor('secrets');
                 if (transition.targetName === 'secrets.index') {
-                    if (secretsController.get('position') === 'left') {
-                        secretsController.set('position', 'current');
+                    if (secretsController.get('position') === 'left full-height') {
+                        secretsController.set('position', 'current full-height');
                         this.controller.set('position', 'right');
                         this.set('transitionToSecrets', transition);
                         transition.abort();
                         return false;
                     }
                 } else if (transition.targetName === 'secret') {
-                    secretsController.set('position', 'left');
+                    secretsController.set('position', 'left full-height');
                     this.controller.set('position', 'current');
                 }
 
@@ -923,9 +923,9 @@ define('yith-library-mobile-client/routes/secrets', ['exports', 'ember'], functi
         actions: {
             willTransition: function willTransition(transition) {
                 if (transition.targetName === 'secret') {
-                    this.controller.set('position', 'left');
+                    this.controller.set('position', 'left full-height');
                 } else if (transition.targetName === 'secrets.index') {
-                    this.controller.set('position', 'current');
+                    this.controller.set('position', 'current full-height');
                     this.controller.set('state', '');
                 }
                 return true;
@@ -3319,7 +3319,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
       },
       statements: [
         ["attribute","class",["get","position",["loc",[null,[1,41],[1,49]]]]],
-        ["inline","outlet",[["get","drawer",["loc",[null,[3,11],[3,17]]]]],[],["loc",[null,[3,2],[3,19]]]],
+        ["inline","outlet",["drawer"],[],["loc",[null,[3,2],[3,21]]]],
         ["attribute","class",["get","state",["loc",[null,[5,46],[5,51]]]]],
         ["element","action",["finishTransition"],["on","transitionEnd"],["loc",[null,[5,54],[5,102]]]],
         ["block","link-to",["secrets.drawer"],[],0,null,["loc",[null,[8,6],[10,18]]]],
