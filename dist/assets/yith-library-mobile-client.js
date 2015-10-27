@@ -1000,13 +1000,6 @@ define('yith-library-mobile-client/routes/secrets/tags', ['exports', 'ember'], f
     });
 
 });
-define('yith-library-mobile-client/serializers/application', ['exports', 'ember-data'], function (exports, DS) {
-
-	'use strict';
-
-	exports['default'] = DS['default'].IndexedDBSerializer.extend();
-
-});
 define('yith-library-mobile-client/services/auth', ['exports', 'ember', 'yith-library-mobile-client/config/environment', 'yith-library-mobile-client/utils/snake-case-to-camel-case'], function (exports, Ember, ENV, snakeCaseToCamelCase) {
 
     'use strict';
@@ -5492,16 +5485,6 @@ define('yith-library-mobile-client/tests/routes/secrets/tags.jshint', function (
   module('JSHint - routes/secrets');
   test('routes/secrets/tags.js should pass jshint', function() { 
     ok(true, 'routes/secrets/tags.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/serializers/application.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - serializers');
-  test('serializers/application.js should pass jshint', function() { 
-    ok(true, 'serializers/application.js should pass jshint.'); 
   });
 
 });
