@@ -24,12 +24,6 @@ module.exports = function(defaults) {
   // please specify an object with the list of modules as keys
   // along with the exports of each module as its value.
 
-  // Ember IndexedDB Adapter
-  app.import('bower_components/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_migration.js');
-  app.import('bower_components/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_serializer.js');
-  app.import('bower_components/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_smartsearch.js');
-  app.import('bower_components/ember-indexeddb-adapter/packages/indexeddb-adapter/lib/indexeddb_adapter.js');
-
   // SJCL
   app.import('bower_components/sjcl/sjcl.js');
 

@@ -3,15 +3,6 @@
 
 /* jshint ignore:end */
 
-define('yith-library-mobile-client/acceptance-tests/main', ['exports', 'ember-cli-sri/acceptance-tests/main'], function (exports, main) {
-
-	'use strict';
-
-
-
-	exports['default'] = main['default'];
-
-});
 define('yith-library-mobile-client/adapters/application', ['exports', 'ember-localforage-adapter/adapters/localforage'], function (exports, LFAdapter) {
 
     'use strict';
@@ -48,9 +39,8 @@ define('yith-library-mobile-client/components/app-version', ['exports', 'ember-c
 
   'use strict';
 
-  var _config$APP = config['default'].APP;
-  var name = _config$APP.name;
-  var version = _config$APP.version;
+  var name = config['default'].APP.name;
+  var version = config['default'].APP.version;
 
   exports['default'] = AppVersionComponent['default'].extend({
     version: version,
@@ -337,7 +327,97 @@ define('yith-library-mobile-client/controllers/object', ['exports', 'ember'], fu
 	exports['default'] = Ember['default'].Controller;
 
 });
-define('yith-library-mobile-client/controllers/secret', ['exports', 'ember'], function (exports, Ember) {
+define('yith-library-mobile-client/controllers/secrets/drawer', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Controller.extend({
+        application: Ember['default'].inject.controller(),
+        secrets: Ember['default'].inject.controller(),
+        sortProperties: ['count:desc'],
+        sortedTags: Ember['default'].computed.sort('content', 'sortProperties'),
+        tagsToDisplay: 5,
+        tag: Ember['default'].computed.alias('secrets.tag'),
+
+        accountDisplayName: (function () {
+            return this.get('application.model.displayName');
+        }).property('application.model.displayName'),
+
+        selectedTagCount: (function () {
+            var tag = this.get('sortedTags').findBy('name', this.get('tag'));
+            if (tag) {
+                return tag.get('count');
+            } else {
+                return 0;
+            }
+        }).property('sortedTags.[]', 'tag'),
+
+        mostUsedTags: (function () {
+            var tags = this.get('sortedTags');
+            var mostUsed = tags.slice(0, this.get('tagsToDisplay'));
+            var selectedTag = this.get('tag');
+            var foundSelectedTag = false;
+            var wrapped = mostUsed.map(function (element) {
+                var name = element.get('name');
+                if (name === selectedTag) {
+                    foundSelectedTag = true;
+                }
+                return {
+                    'name': name,
+                    'count': element.get('count'),
+                    'selectTag': name === selectedTag ? '' : name
+                };
+            });
+            if (!foundSelectedTag && selectedTag !== '') {
+                wrapped.pop();
+                wrapped.push({
+                    'name': selectedTag,
+                    'count': this.get('selectedTagCount'),
+                    'selectTag': ''
+                });
+            }
+            return wrapped;
+        }).property('selectedTagCount', 'sortedTags.[]', 'tag', 'tagsToDisplay'),
+
+        hasMoreTags: (function () {
+            return this.get('sortedTags').length > this.get('tagsToDisplay');
+        }).property('sortedTags.[]', 'tagsToDisplay'),
+
+        syncButtonDisabled: (function () {
+            return this.get('secrets.isSyncing') || !this.get('secrets.isOnline');
+        }).property('secrets.isSyncing', 'secrets.isOnline'),
+
+        loginButtonDisabled: (function () {
+            return !this.get('isOnline');
+        }).property('secrets.isOnline'),
+
+        actions: {
+            login: function login() {
+                this.transitionToRoute('secrets');
+                Ember['default'].run.next(this, function () {
+                    this.get('secrets').authorizeInServer();
+                });
+            },
+
+            sync: function sync() {
+                this.transitionToRoute('secrets');
+                Ember['default'].run.next(this, function () {
+                    this.get('secrets').syncFromServer();
+                });
+            },
+
+            logout: function logout() {
+                this.transitionToRoute('secrets');
+                Ember['default'].run.next(this, function () {
+                    this.get('secrets').logout();
+                });
+            }
+        }
+
+    });
+
+});
+define('yith-library-mobile-client/controllers/secrets/secret', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
 
@@ -345,6 +425,25 @@ define('yith-library-mobile-client/controllers/secret', ['exports', 'ember'], fu
 
         position: 'current'
 
+    });
+
+});
+define('yith-library-mobile-client/controllers/secrets/tags', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Controller.extend({
+        tagsSortProperties: ['name:asc'],
+        sortedTags: Ember['default'].computed.sort('content', 'tagsSortProperties'),
+        actions: {
+            selectTag: function selectTag(tagName) {
+                this.transitionToRoute('secrets', { queryParams: { tag: tagName } });
+            },
+
+            cancel: function cancel() {
+                this.transitionToRoute('secrets');
+            }
+        }
     });
 
 });
@@ -492,115 +591,6 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
     });
 
 });
-define('yith-library-mobile-client/controllers/secrets/drawer', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Controller.extend({
-        application: Ember['default'].inject.controller(),
-        secrets: Ember['default'].inject.controller(),
-        sortProperties: ['count:desc'],
-        sortedTags: Ember['default'].computed.sort('content', 'sortProperties'),
-        tagsToDisplay: 5,
-        tag: Ember['default'].computed.alias('secrets.tag'),
-
-        accountDisplayName: (function () {
-            return this.get('application.model.displayName');
-        }).property('application.model.displayName'),
-
-        selectedTagCount: (function () {
-            var tag = this.get('sortedTags').findBy('name', this.get('tag'));
-            if (tag) {
-                return tag.get('count');
-            } else {
-                return 0;
-            }
-        }).property('sortedTags.[]', 'tag'),
-
-        mostUsedTags: (function () {
-            var tags = this.get('sortedTags');
-            var mostUsed = tags.slice(0, this.get('tagsToDisplay'));
-            var selectedTag = this.get('tag');
-            var foundSelectedTag = false;
-            var wrapped = mostUsed.map(function (element) {
-                var name = element.get('name');
-                if (name === selectedTag) {
-                    foundSelectedTag = true;
-                }
-                return {
-                    'name': name,
-                    'count': element.get('count'),
-                    'selectTag': name === selectedTag ? '' : name
-                };
-            });
-            if (!foundSelectedTag && selectedTag !== '') {
-                wrapped.pop();
-                wrapped.push({
-                    'name': selectedTag,
-                    'count': this.get('selectedTagCount'),
-                    'selectTag': ''
-                });
-            }
-            return wrapped;
-        }).property('selectedTagCount', 'sortedTags.[]', 'tag', 'tagsToDisplay'),
-
-        hasMoreTags: (function () {
-            return this.get('sortedTags').length > this.get('tagsToDisplay');
-        }).property('sortedTags.[]', 'tagsToDisplay'),
-
-        syncButtonDisabled: (function () {
-            return this.get('secrets.isSyncing') || !this.get('secrets.isOnline');
-        }).property('secrets.isSyncing', 'secrets.isOnline'),
-
-        loginButtonDisabled: (function () {
-            return !this.get('isOnline');
-        }).property('secrets.isOnline'),
-
-        actions: {
-            login: function login() {
-                this.transitionToRoute('secrets');
-                Ember['default'].run.next(this, function () {
-                    this.get('secrets').authorizeInServer();
-                });
-            },
-
-            sync: function sync() {
-                this.transitionToRoute('secrets');
-                Ember['default'].run.next(this, function () {
-                    this.get('secrets').syncFromServer();
-                });
-            },
-
-            logout: function logout() {
-                this.transitionToRoute('secrets');
-                Ember['default'].run.next(this, function () {
-                    this.get('secrets').logout();
-                });
-            }
-        }
-
-    });
-
-});
-define('yith-library-mobile-client/controllers/secrets/tags', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Controller.extend({
-        tagsSortProperties: ['name:asc'],
-        sortedTags: Ember['default'].computed.sort('content', 'tagsSortProperties'),
-        actions: {
-            selectTag: function selectTag(tagName) {
-                this.transitionToRoute('secrets', { queryParams: { tag: tagName } });
-            },
-
-            cancel: function cancel() {
-                this.transitionToRoute('secrets');
-            }
-        }
-    });
-
-});
 define('yith-library-mobile-client/helpers/current-tag', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -616,13 +606,25 @@ define('yith-library-mobile-client/initializers/app-version', ['exports', 'ember
 
   'use strict';
 
-  var _config$APP = config['default'].APP;
-  var name = _config$APP.name;
-  var version = _config$APP.version;
-
   exports['default'] = {
     name: 'App Version',
-    initialize: initializerFactory['default'](name, version)
+    initialize: initializerFactory['default'](config['default'].APP.name, config['default'].APP.version)
+  };
+
+});
+define('yith-library-mobile-client/initializers/container-debug-adapter', ['exports', 'ember-resolver/container-debug-adapter'], function (exports, ContainerDebugAdapter) {
+
+  'use strict';
+
+  exports['default'] = {
+    name: 'container-debug-adapter',
+
+    initialize: function initialize() {
+      var app = arguments[1] || arguments[0];
+
+      app.register('container-debug-adapter:main', ContainerDebugAdapter['default']);
+      app.inject('container-debug-adapter:main', 'namespace', 'application:main');
+    }
   };
 
 });
@@ -632,7 +634,8 @@ define('yith-library-mobile-client/initializers/export-application-global', ['ex
 
   exports.initialize = initialize;
 
-  function initialize(container, application) {
+  function initialize() {
+    var application = arguments[1] || arguments[0];
     if (config['default'].exportApplicationGlobal !== false) {
       var value = config['default'].exportApplicationGlobal;
       var globalName;
@@ -655,8 +658,6 @@ define('yith-library-mobile-client/initializers/export-application-global', ['ex
       }
     }
   }
-
-  ;
 
   exports['default'] = {
     name: 'export-application-global',
@@ -784,8 +785,8 @@ define('yith-library-mobile-client/router', ['exports', 'ember', 'yith-library-m
 
     Router.map(function () {
         this.route('firstTime', { path: '/first-time' });
-        this.resource('secrets', { path: '/secrets' }, function () {
-            this.resource('secret', { path: '/:secret_id' });
+        this.route('secrets', { path: '/secrets' }, function () {
+            this.route('secret', { path: '/:secret_id' });
             this.route('tags', { path: '/tags' });
             this.route('drawer', { path: '/drawer' });
         });
@@ -888,54 +889,6 @@ define('yith-library-mobile-client/routes/secret', ['exports', 'ember'], functio
     });
 
 });
-define('yith-library-mobile-client/routes/secrets-drawer', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Route.extend({
-
-        model: function model() {
-            return this.store.findAll('tag');
-        },
-
-        renderTemplate: function renderTemplate() {
-            this.render({ outlet: 'drawer' });
-        }
-
-    });
-
-});
-define('yith-library-mobile-client/routes/secrets', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Route.extend({
-
-        setupController: function setupController(controller, model) {
-            this._super(controller, model);
-            controller.set('state', '');
-        },
-
-        model: function model() {
-            return this.store.findAll('secret');
-        },
-
-        actions: {
-            willTransition: function willTransition(transition) {
-                if (transition.targetName === 'secret') {
-                    this.controller.set('position', 'left full-height');
-                } else if (transition.targetName === 'secrets.index') {
-                    this.controller.set('position', 'current full-height');
-                    this.controller.set('state', '');
-                }
-                return true;
-            }
-
-        }
-
-    });
-
-});
 define('yith-library-mobile-client/routes/secrets/drawer', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -998,6 +951,63 @@ define('yith-library-mobile-client/routes/secrets/tags', ['exports', 'ember'], f
         }
 
     });
+
+});
+define('yith-library-mobile-client/routes/secrets-drawer', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Route.extend({
+
+        model: function model() {
+            return this.store.findAll('tag');
+        },
+
+        renderTemplate: function renderTemplate() {
+            this.render({ outlet: 'drawer' });
+        }
+
+    });
+
+});
+define('yith-library-mobile-client/routes/secrets', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Route.extend({
+
+        setupController: function setupController(controller, model) {
+            this._super(controller, model);
+            controller.set('state', '');
+        },
+
+        model: function model() {
+            return this.store.findAll('secret');
+        },
+
+        actions: {
+            willTransition: function willTransition(transition) {
+                if (transition.targetName === 'secret') {
+                    this.controller.set('position', 'left full-height');
+                } else if (transition.targetName === 'secrets.index') {
+                    this.controller.set('position', 'current full-height');
+                    this.controller.set('state', '');
+                }
+                return true;
+            }
+
+        }
+
+    });
+
+});
+define('yith-library-mobile-client/services/ajax', ['exports', 'ember-ajax/services/ajax'], function (exports, ajax) {
+
+	'use strict';
+
+
+
+	exports['default'] = ajax['default'];
 
 });
 define('yith-library-mobile-client/services/auth', ['exports', 'ember', 'yith-library-mobile-client/config/environment', 'yith-library-mobile-client/utils/snake-case-to-camel-case'], function (exports, Ember, ENV, snakeCaseToCamelCase) {
@@ -1357,7 +1367,8 @@ define('yith-library-mobile-client/templates/application', ['exports'], function
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.7",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -1371,6 +1382,7 @@ define('yith-library-mobile-client/templates/application', ['exports'], function
         },
         "moduleName": "yith-library-mobile-client/templates/application.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1404,7 +1416,8 @@ define('yith-library-mobile-client/templates/components/online-watcher', ['expor
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.7",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -1418,6 +1431,7 @@ define('yith-library-mobile-client/templates/components/online-watcher', ['expor
         },
         "moduleName": "yith-library-mobile-client/templates/components/online-watcher.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1452,7 +1466,8 @@ define('yith-library-mobile-client/templates/components/secret-revealer', ['expo
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.7",
+          "topLevel": false,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -1466,6 +1481,7 @@ define('yith-library-mobile-client/templates/components/secret-revealer', ['expo
           },
           "moduleName": "yith-library-mobile-client/templates/components/secret-revealer.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1532,7 +1548,8 @@ define('yith-library-mobile-client/templates/components/secret-revealer', ['expo
     var child1 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.7",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -1546,6 +1563,7 @@ define('yith-library-mobile-client/templates/components/secret-revealer', ['expo
           },
           "moduleName": "yith-library-mobile-client/templates/components/secret-revealer.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1584,7 +1602,8 @@ define('yith-library-mobile-client/templates/components/secret-revealer', ['expo
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.7",
+        "topLevel": false,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -1598,6 +1617,7 @@ define('yith-library-mobile-client/templates/components/secret-revealer', ['expo
         },
         "moduleName": "yith-library-mobile-client/templates/components/secret-revealer.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -1647,7 +1667,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.7",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -1661,6 +1682,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
           },
           "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -1773,7 +1795,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.7",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -1787,6 +1810,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             },
             "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1807,7 +1831,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child1 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.7",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -1821,6 +1846,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             },
             "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1849,7 +1875,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child2 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.7",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -1863,6 +1890,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             },
             "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1897,7 +1925,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             meta: {
-              "revision": "Ember@1.13.7",
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
               "loc": {
                 "source": null,
                 "start": {
@@ -1911,6 +1940,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
               },
               "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
             },
+            isEmpty: false,
             arity: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1937,7 +1967,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             meta: {
-              "revision": "Ember@1.13.7",
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
               "loc": {
                 "source": null,
                 "start": {
@@ -1951,6 +1982,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
               },
               "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
             },
+            isEmpty: false,
             arity: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1976,7 +2008,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           meta: {
-            "revision": "Ember@1.13.7",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -1990,6 +2023,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             },
             "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2016,7 +2050,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child4 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.7",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -2030,6 +2065,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             },
             "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2064,7 +2100,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             meta: {
-              "revision": "Ember@1.13.7",
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
               "loc": {
                 "source": null,
                 "start": {
@@ -2078,6 +2115,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
               },
               "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
             },
+            isEmpty: false,
             arity: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2104,7 +2142,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             meta: {
-              "revision": "Ember@1.13.7",
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
               "loc": {
                 "source": null,
                 "start": {
@@ -2118,6 +2157,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
               },
               "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
             },
+            isEmpty: false,
             arity: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2143,7 +2183,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           meta: {
-            "revision": "Ember@1.13.7",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -2157,6 +2198,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             },
             "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2183,7 +2225,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       var child6 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.7",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -2197,6 +2240,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             },
             "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2231,7 +2275,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child0 = (function() {
           return {
             meta: {
-              "revision": "Ember@1.13.7",
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
               "loc": {
                 "source": null,
                 "start": {
@@ -2245,6 +2290,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
               },
               "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
             },
+            isEmpty: false,
             arity: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2271,7 +2317,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         var child1 = (function() {
           return {
             meta: {
-              "revision": "Ember@1.13.7",
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
               "loc": {
                 "source": null,
                 "start": {
@@ -2285,6 +2332,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
               },
               "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
             },
+            isEmpty: false,
             arity: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2310,7 +2358,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         }());
         return {
           meta: {
-            "revision": "Ember@1.13.7",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -2324,6 +2373,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
             },
             "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2349,7 +2399,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
       }());
       return {
         meta: {
-          "revision": "Ember@1.13.7",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2363,6 +2414,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
           },
           "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2446,7 +2498,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     var child2 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.7",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2460,6 +2513,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
           },
           "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2504,7 +2558,8 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.7",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -2518,6 +2573,7 @@ define('yith-library-mobile-client/templates/first-time', ['exports'], function 
         },
         "moduleName": "yith-library-mobile-client/templates/first-time.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2611,7 +2667,8 @@ define('yith-library-mobile-client/templates/loading', ['exports'], function (ex
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       meta: {
-        "revision": "Ember@1.13.7",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -2625,6 +2682,7 @@ define('yith-library-mobile-client/templates/loading', ['exports'], function (ex
         },
         "moduleName": "yith-library-mobile-client/templates/loading.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2689,7 +2747,7 @@ define('yith-library-mobile-client/templates/loading', ['exports'], function (ex
   }()));
 
 });
-define('yith-library-mobile-client/templates/secret', ['exports'], function (exports) {
+define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], function (exports) {
 
   'use strict';
 
@@ -2697,7 +2755,857 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.7",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 4,
+              "column": 6
+            },
+            "end": {
+              "line": 4,
+              "column": 32
+            }
+          },
+          "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+        },
+        isEmpty: false,
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("Done");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes() { return []; },
+        statements: [
+
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child1 = (function() {
+      var child0 = (function() {
+        return {
+          meta: {
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 14,
+                "column": 10
+              },
+              "end": {
+                "line": 16,
+                "column": 10
+              }
+            },
+            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+          },
+          isEmpty: false,
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("            ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("a");
+            dom.setAttribute(el1,"href","#");
+            var el2 = dom.createTextNode("Sync");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var element5 = dom.childAt(fragment, [1]);
+            var morphs = new Array(1);
+            morphs[0] = dom.createElementMorph(element5);
+            return morphs;
+          },
+          statements: [
+            ["element","action",["closeDrawer"],[],["loc",[null,[15,24],[15,48]]]]
+          ],
+          locals: [],
+          templates: []
+        };
+      }());
+      var child1 = (function() {
+        var child0 = (function() {
+          return {
+            meta: {
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
+              "loc": {
+                "source": null,
+                "start": {
+                  "line": 17,
+                  "column": 12
+                },
+                "end": {
+                  "line": 19,
+                  "column": 12
+                }
+              },
+              "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+            },
+            isEmpty: false,
+            arity: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            buildFragment: function buildFragment(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("              ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("a");
+              dom.setAttribute(el1,"href","#");
+              var el2 = dom.createTextNode("Syncing ...");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+              var element4 = dom.childAt(fragment, [1]);
+              var morphs = new Array(1);
+              morphs[0] = dom.createElementMorph(element4);
+              return morphs;
+            },
+            statements: [
+              ["element","action",["closeDrawer"],[],["loc",[null,[18,26],[18,50]]]]
+            ],
+            locals: [],
+            templates: []
+          };
+        }());
+        var child1 = (function() {
+          return {
+            meta: {
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
+              "loc": {
+                "source": null,
+                "start": {
+                  "line": 19,
+                  "column": 12
+                },
+                "end": {
+                  "line": 21,
+                  "column": 12
+                }
+              },
+              "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+            },
+            isEmpty: false,
+            arity: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            buildFragment: function buildFragment(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("              ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("a");
+              dom.setAttribute(el1,"href","#");
+              var el2 = dom.createTextNode("Sync");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+              var element3 = dom.childAt(fragment, [1]);
+              var morphs = new Array(1);
+              morphs[0] = dom.createElementMorph(element3);
+              return morphs;
+            },
+            statements: [
+              ["element","action",["sync"],[],["loc",[null,[20,26],[20,43]]]]
+            ],
+            locals: [],
+            templates: []
+          };
+        }());
+        return {
+          meta: {
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 16,
+                "column": 10
+              },
+              "end": {
+                "line": 22,
+                "column": 10
+              }
+            },
+            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+          },
+          isEmpty: false,
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var morphs = new Array(1);
+            morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+            dom.insertBoundary(fragment, 0);
+            dom.insertBoundary(fragment, null);
+            return morphs;
+          },
+          statements: [
+            ["block","if",[["get","isSyncing",["loc",[null,[17,19],[17,28]]]]],[],0,1,["loc",[null,[17,12],[21,19]]]]
+          ],
+          locals: [],
+          templates: [child0, child1]
+        };
+      }());
+      return {
+        meta: {
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 13,
+              "column": 8
+            },
+            "end": {
+              "line": 23,
+              "column": 8
+            }
+          },
+          "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+        },
+        isEmpty: false,
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, 0);
+          dom.insertBoundary(fragment, null);
+          return morphs;
+        },
+        statements: [
+          ["block","if",[["get","syncButtonDisabled",["loc",[null,[14,17],[14,35]]]]],[],0,1,["loc",[null,[14,10],[22,17]]]]
+        ],
+        locals: [],
+        templates: [child0, child1]
+      };
+    }());
+    var child2 = (function() {
+      var child0 = (function() {
+        return {
+          meta: {
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 24,
+                "column": 10
+              },
+              "end": {
+                "line": 26,
+                "column": 10
+              }
+            },
+            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+          },
+          isEmpty: false,
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("            ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("a");
+            dom.setAttribute(el1,"href","#");
+            var el2 = dom.createTextNode("Login");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var element2 = dom.childAt(fragment, [1]);
+            var morphs = new Array(1);
+            morphs[0] = dom.createElementMorph(element2);
+            return morphs;
+          },
+          statements: [
+            ["element","action",["closeDrawer"],[],["loc",[null,[25,24],[25,48]]]]
+          ],
+          locals: [],
+          templates: []
+        };
+      }());
+      var child1 = (function() {
+        var child0 = (function() {
+          return {
+            meta: {
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
+              "loc": {
+                "source": null,
+                "start": {
+                  "line": 27,
+                  "column": 12
+                },
+                "end": {
+                  "line": 29,
+                  "column": 12
+                }
+              },
+              "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+            },
+            isEmpty: false,
+            arity: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            buildFragment: function buildFragment(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("              ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("a");
+              dom.setAttribute(el1,"href","#");
+              var el2 = dom.createTextNode("Logging in ...");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+              var element1 = dom.childAt(fragment, [1]);
+              var morphs = new Array(1);
+              morphs[0] = dom.createElementMorph(element1);
+              return morphs;
+            },
+            statements: [
+              ["element","action",["closeDrawer"],[],["loc",[null,[28,26],[28,50]]]]
+            ],
+            locals: [],
+            templates: []
+          };
+        }());
+        var child1 = (function() {
+          return {
+            meta: {
+              "topLevel": null,
+              "revision": "Ember@2.1.0",
+              "loc": {
+                "source": null,
+                "start": {
+                  "line": 29,
+                  "column": 12
+                },
+                "end": {
+                  "line": 31,
+                  "column": 12
+                }
+              },
+              "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+            },
+            isEmpty: false,
+            arity: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            buildFragment: function buildFragment(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("              ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("a");
+              dom.setAttribute(el1,"href","#");
+              var el2 = dom.createTextNode("Log in");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+              var element0 = dom.childAt(fragment, [1]);
+              var morphs = new Array(1);
+              morphs[0] = dom.createElementMorph(element0);
+              return morphs;
+            },
+            statements: [
+              ["element","action",["login"],[],["loc",[null,[30,26],[30,44]]]]
+            ],
+            locals: [],
+            templates: []
+          };
+        }());
+        return {
+          meta: {
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 26,
+                "column": 10
+              },
+              "end": {
+                "line": 32,
+                "column": 10
+              }
+            },
+            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+          },
+          isEmpty: false,
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var morphs = new Array(1);
+            morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+            dom.insertBoundary(fragment, 0);
+            dom.insertBoundary(fragment, null);
+            return morphs;
+          },
+          statements: [
+            ["block","if",[["get","isAuthorizing",["loc",[null,[27,19],[27,32]]]]],[],0,1,["loc",[null,[27,12],[31,19]]]]
+          ],
+          locals: [],
+          templates: [child0, child1]
+        };
+      }());
+      return {
+        meta: {
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 23,
+              "column": 8
+            },
+            "end": {
+              "line": 33,
+              "column": 8
+            }
+          },
+          "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+        },
+        isEmpty: false,
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, 0);
+          dom.insertBoundary(fragment, null);
+          return morphs;
+        },
+        statements: [
+          ["block","if",[["get","loginButtonDisableed",["loc",[null,[24,17],[24,37]]]]],[],0,1,["loc",[null,[24,10],[32,17]]]]
+        ],
+        locals: [],
+        templates: [child0, child1]
+      };
+    }());
+    var child3 = (function() {
+      var child0 = (function() {
+        return {
+          meta: {
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 42,
+                "column": 10
+              },
+              "end": {
+                "line": 45,
+                "column": 10
+              }
+            },
+            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+          },
+          isEmpty: false,
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("            ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n            ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode(" (");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode(")\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var morphs = new Array(3);
+            morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+            morphs[1] = dom.createMorphAt(fragment,3,3,contextualElement);
+            morphs[2] = dom.createMorphAt(fragment,5,5,contextualElement);
+            return morphs;
+          },
+          statements: [
+            ["inline","current-tag",[["get","currentTag.name",["loc",[null,[43,26],[43,41]]]],["get","tag",["loc",[null,[43,42],[43,45]]]]],[],["loc",[null,[43,12],[43,47]]]],
+            ["content","currentTag.name",["loc",[null,[44,12],[44,31]]]],
+            ["content","currentTag.count",["loc",[null,[44,33],[44,53]]]]
+          ],
+          locals: [],
+          templates: []
+        };
+      }());
+      return {
+        meta: {
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 40,
+              "column": 6
+            },
+            "end": {
+              "line": 47,
+              "column": 6
+            }
+          },
+          "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+        },
+        isEmpty: false,
+        arity: 1,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("li");
+          var el2 = dom.createTextNode("\n");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
+          return morphs;
+        },
+        statements: [
+          ["block","link-to",["secrets",["subexpr","query-params",[],["tag",["get","currentTag.selectTag",["loc",[null,[42,49],[42,69]]]]],["loc",[null,[42,31],[42,70]]]]],[],0,null,["loc",[null,[42,10],[45,22]]]]
+        ],
+        locals: ["currentTag"],
+        templates: [child0]
+      };
+    }());
+    var child4 = (function() {
+      var child0 = (function() {
+        return {
+          meta: {
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 50,
+                "column": 10
+              },
+              "end": {
+                "line": 50,
+                "column": 54
+              }
+            },
+            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+          },
+          isEmpty: false,
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("See more tags ...");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes() { return []; },
+          statements: [
+
+          ],
+          locals: [],
+          templates: []
+        };
+      }());
+      return {
+        meta: {
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 48,
+              "column": 6
+            },
+            "end": {
+              "line": 52,
+              "column": 6
+            }
+          },
+          "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+        },
+        isEmpty: false,
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("li");
+          var el2 = dom.createTextNode("\n          ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
+          return morphs;
+        },
+        statements: [
+          ["block","link-to",["secrets.tags"],[],0,null,["loc",[null,[50,10],[50,66]]]]
+        ],
+        locals: [],
+        templates: [child0]
+      };
+    }());
+    return {
+      meta: {
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 61,
+            "column": 0
+          }
+        },
+        "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
+      },
+      isEmpty: false,
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("section");
+        dom.setAttribute(el1,"data-type","sidebar");
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("header");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("menu");
+        dom.setAttribute(el3,"type","toolbar");
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("h1");
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("nav");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("h2");
+        var el4 = dom.createTextNode("Account");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("ul");
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("li");
+        var el5 = dom.createTextNode("\n");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("      ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("li");
+        var el5 = dom.createElement("a");
+        dom.setAttribute(el5,"href","#");
+        var el6 = dom.createTextNode("Log out");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("h2");
+        var el4 = dom.createTextNode("Tags");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("ul");
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("section");
+        dom.setAttribute(el2,"role","status");
+        dom.setAttribute(el2,"class","onviewport");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("p");
+        var el4 = dom.createElement("small");
+        var el5 = dom.createTextNode("v");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode(" \n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var element6 = dom.childAt(fragment, [0]);
+        var element7 = dom.childAt(element6, [1]);
+        var element8 = dom.childAt(element6, [3]);
+        var element9 = dom.childAt(element8, [3]);
+        var element10 = dom.childAt(element9, [3, 0]);
+        var element11 = dom.childAt(element8, [7]);
+        var morphs = new Array(7);
+        morphs[0] = dom.createMorphAt(dom.childAt(element7, [1]),1,1);
+        morphs[1] = dom.createMorphAt(dom.childAt(element7, [3]),0,0);
+        morphs[2] = dom.createMorphAt(dom.childAt(element9, [1]),1,1);
+        morphs[3] = dom.createElementMorph(element10);
+        morphs[4] = dom.createMorphAt(element11,1,1);
+        morphs[5] = dom.createMorphAt(element11,2,2);
+        morphs[6] = dom.createMorphAt(dom.childAt(element6, [5, 1, 0]),1,1);
+        return morphs;
+      },
+      statements: [
+        ["block","link-to",["secrets"],[],0,null,["loc",[null,[4,6],[4,44]]]],
+        ["content","accountDisplayName",["loc",[null,[6,8],[6,30]]]],
+        ["block","if",[["get","authManager.hasValidAccessToken",["loc",[null,[13,15],[13,46]]]]],[],1,2,["loc",[null,[13,8],[33,15]]]],
+        ["element","action",["logout"],[],["loc",[null,[35,22],[35,41]]]],
+        ["block","each",[["get","mostUsedTags",["loc",[null,[40,14],[40,26]]]]],[],3,null,["loc",[null,[40,6],[47,15]]]],
+        ["block","if",[["get","hasMoreTags",["loc",[null,[48,13],[48,24]]]]],[],4,null,["loc",[null,[48,6],[52,13]]]],
+        ["content","app-version",["loc",[null,[57,15],[57,30]]]]
+      ],
+      locals: [],
+      templates: [child0, child1, child2, child3, child4]
+    };
+  }()));
+
+});
+define('yith-library-mobile-client/templates/secrets/secret', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        meta: {
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2709,8 +3617,9 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
               "column": 6
             }
           },
-          "moduleName": "yith-library-mobile-client/templates/secret.hbs"
+          "moduleName": "yith-library-mobile-client/templates/secrets/secret.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2738,7 +3647,8 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child1 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.7",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2750,8 +3660,9 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
               "column": 6
             }
           },
-          "moduleName": "yith-library-mobile-client/templates/secret.hbs"
+          "moduleName": "yith-library-mobile-client/templates/secrets/secret.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2794,7 +3705,8 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     var child2 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.7",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2806,8 +3718,9 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
               "column": 6
             }
           },
-          "moduleName": "yith-library-mobile-client/templates/secret.hbs"
+          "moduleName": "yith-library-mobile-client/templates/secrets/secret.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2849,7 +3762,8 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.7",
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -2861,8 +3775,9 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
             "column": 10
           }
         },
-        "moduleName": "yith-library-mobile-client/templates/secret.hbs"
+        "moduleName": "yith-library-mobile-client/templates/secrets/secret.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -2961,6 +3876,143 @@ define('yith-library-mobile-client/templates/secret', ['exports'], function (exp
   }()));
 
 });
+define('yith-library-mobile-client/templates/secrets/tags', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        meta: {
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 4,
+              "column": 4
+            },
+            "end": {
+              "line": 8,
+              "column": 4
+            }
+          },
+          "moduleName": "yith-library-mobile-client/templates/secrets/tags.hbs"
+        },
+        isEmpty: false,
+        arity: 1,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("      ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("button");
+          dom.setAttribute(el1,"type","button");
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode(" (");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode(")\n      ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var element0 = dom.childAt(fragment, [1]);
+          var morphs = new Array(3);
+          morphs[0] = dom.createElementMorph(element0);
+          morphs[1] = dom.createMorphAt(element0,1,1);
+          morphs[2] = dom.createMorphAt(element0,3,3);
+          return morphs;
+        },
+        statements: [
+          ["element","action",["selectTag",["get","tag.name",["loc",[null,[5,49],[5,57]]]]],[],["loc",[null,[5,28],[5,60]]]],
+          ["content","tag.name",["loc",[null,[6,8],[6,20]]]],
+          ["content","tag.count",["loc",[null,[6,22],[6,35]]]]
+        ],
+        locals: ["tag"],
+        templates: []
+      };
+    }());
+    return {
+      meta: {
+        "topLevel": null,
+        "revision": "Ember@2.1.0",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 11,
+            "column": 7
+          }
+        },
+        "moduleName": "yith-library-mobile-client/templates/secrets/tags.hbs"
+      },
+      isEmpty: false,
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("form");
+        dom.setAttribute(el1,"data-type","action");
+        dom.setAttribute(el1,"role","dialog");
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("header");
+        var el3 = dom.createTextNode("Available tags");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("menu");
+        var el3 = dom.createTextNode("\n");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("button");
+        dom.setAttribute(el3,"type","button");
+        var el4 = dom.createTextNode("Cancel");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var element1 = dom.childAt(fragment, [0, 3]);
+        var element2 = dom.childAt(element1, [3]);
+        var morphs = new Array(2);
+        morphs[0] = dom.createMorphAt(element1,1,1);
+        morphs[1] = dom.createElementMorph(element2);
+        return morphs;
+      },
+      statements: [
+        ["block","each",[["get","sortedTags",["loc",[null,[4,12],[4,22]]]]],[],0,null,["loc",[null,[4,4],[8,13]]]],
+        ["element","action",["cancel"],[],["loc",[null,[9,26],[9,45]]]]
+      ],
+      locals: [],
+      templates: [child0]
+    };
+  }()));
+
+});
 define('yith-library-mobile-client/templates/secrets', ['exports'], function (exports) {
 
   'use strict';
@@ -2969,7 +4021,8 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     var child0 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.7",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -2983,6 +4036,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           },
           "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3010,7 +4064,8 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     var child1 = (function() {
       return {
         meta: {
-          "revision": "Ember@1.13.7",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -3024,6 +4079,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           },
           "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3056,7 +4112,8 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
       var child0 = (function() {
         return {
           meta: {
-            "revision": "Ember@1.13.7",
+            "topLevel": null,
+            "revision": "Ember@2.1.0",
             "loc": {
               "source": null,
               "start": {
@@ -3070,6 +4127,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
             },
             "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -3107,7 +4165,8 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
       }());
       return {
         meta: {
-          "revision": "Ember@1.13.7",
+          "topLevel": null,
+          "revision": "Ember@2.1.0",
           "loc": {
             "source": null,
             "start": {
@@ -3121,6 +4180,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           },
           "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
         },
+        isEmpty: false,
         arity: 1,
         cachedFragment: null,
         hasRendered: false,
@@ -3146,7 +4206,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           return morphs;
         },
         statements: [
-          ["block","link-to",["secret",["get","secret.id",["loc",[null,[31,34],[31,43]]]]],[],0,null,["loc",[null,[31,14],[34,26]]]]
+          ["block","link-to",["secrets.secret",["get","secret.id",["loc",[null,[31,42],[31,51]]]]],[],0,null,["loc",[null,[31,14],[34,26]]]]
         ],
         locals: ["secret"],
         templates: [child0]
@@ -3154,7 +4214,8 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
     }());
     return {
       meta: {
-        "revision": "Ember@1.13.7",
+        "topLevel": false,
+        "revision": "Ember@2.1.0",
         "loc": {
           "source": null,
           "start": {
@@ -3168,6 +4229,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
         },
         "moduleName": "yith-library-mobile-client/templates/secrets.hbs"
       },
+      isEmpty: false,
       arity: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -3340,963 +4402,13 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
   }()));
 
 });
-define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    var child0 = (function() {
-      return {
-        meta: {
-          "revision": "Ember@1.13.7",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 4,
-              "column": 6
-            },
-            "end": {
-              "line": 4,
-              "column": 32
-            }
-          },
-          "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("Done");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes() { return []; },
-        statements: [
-
-        ],
-        locals: [],
-        templates: []
-      };
-    }());
-    var child1 = (function() {
-      var child0 = (function() {
-        return {
-          meta: {
-            "revision": "Ember@1.13.7",
-            "loc": {
-              "source": null,
-              "start": {
-                "line": 14,
-                "column": 10
-              },
-              "end": {
-                "line": 16,
-                "column": 10
-              }
-            },
-            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-          },
-          arity: 0,
-          cachedFragment: null,
-          hasRendered: false,
-          buildFragment: function buildFragment(dom) {
-            var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("            ");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createElement("a");
-            dom.setAttribute(el1,"href","#");
-            var el2 = dom.createTextNode("Sync");
-            dom.appendChild(el1, el2);
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("\n");
-            dom.appendChild(el0, el1);
-            return el0;
-          },
-          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-            var element5 = dom.childAt(fragment, [1]);
-            var morphs = new Array(1);
-            morphs[0] = dom.createElementMorph(element5);
-            return morphs;
-          },
-          statements: [
-            ["element","action",["closeDrawer"],[],["loc",[null,[15,24],[15,48]]]]
-          ],
-          locals: [],
-          templates: []
-        };
-      }());
-      var child1 = (function() {
-        var child0 = (function() {
-          return {
-            meta: {
-              "revision": "Ember@1.13.7",
-              "loc": {
-                "source": null,
-                "start": {
-                  "line": 17,
-                  "column": 12
-                },
-                "end": {
-                  "line": 19,
-                  "column": 12
-                }
-              },
-              "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-            },
-            arity: 0,
-            cachedFragment: null,
-            hasRendered: false,
-            buildFragment: function buildFragment(dom) {
-              var el0 = dom.createDocumentFragment();
-              var el1 = dom.createTextNode("              ");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("a");
-              dom.setAttribute(el1,"href","#");
-              var el2 = dom.createTextNode("Syncing ...");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n");
-              dom.appendChild(el0, el1);
-              return el0;
-            },
-            buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-              var element4 = dom.childAt(fragment, [1]);
-              var morphs = new Array(1);
-              morphs[0] = dom.createElementMorph(element4);
-              return morphs;
-            },
-            statements: [
-              ["element","action",["closeDrawer"],[],["loc",[null,[18,26],[18,50]]]]
-            ],
-            locals: [],
-            templates: []
-          };
-        }());
-        var child1 = (function() {
-          return {
-            meta: {
-              "revision": "Ember@1.13.7",
-              "loc": {
-                "source": null,
-                "start": {
-                  "line": 19,
-                  "column": 12
-                },
-                "end": {
-                  "line": 21,
-                  "column": 12
-                }
-              },
-              "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-            },
-            arity: 0,
-            cachedFragment: null,
-            hasRendered: false,
-            buildFragment: function buildFragment(dom) {
-              var el0 = dom.createDocumentFragment();
-              var el1 = dom.createTextNode("              ");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("a");
-              dom.setAttribute(el1,"href","#");
-              var el2 = dom.createTextNode("Sync");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n");
-              dom.appendChild(el0, el1);
-              return el0;
-            },
-            buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-              var element3 = dom.childAt(fragment, [1]);
-              var morphs = new Array(1);
-              morphs[0] = dom.createElementMorph(element3);
-              return morphs;
-            },
-            statements: [
-              ["element","action",["sync"],[],["loc",[null,[20,26],[20,43]]]]
-            ],
-            locals: [],
-            templates: []
-          };
-        }());
-        return {
-          meta: {
-            "revision": "Ember@1.13.7",
-            "loc": {
-              "source": null,
-              "start": {
-                "line": 16,
-                "column": 10
-              },
-              "end": {
-                "line": 22,
-                "column": 10
-              }
-            },
-            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-          },
-          arity: 0,
-          cachedFragment: null,
-          hasRendered: false,
-          buildFragment: function buildFragment(dom) {
-            var el0 = dom.createDocumentFragment();
-            var el1 = dom.createComment("");
-            dom.appendChild(el0, el1);
-            return el0;
-          },
-          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-            var morphs = new Array(1);
-            morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
-            dom.insertBoundary(fragment, 0);
-            dom.insertBoundary(fragment, null);
-            return morphs;
-          },
-          statements: [
-            ["block","if",[["get","isSyncing",["loc",[null,[17,19],[17,28]]]]],[],0,1,["loc",[null,[17,12],[21,19]]]]
-          ],
-          locals: [],
-          templates: [child0, child1]
-        };
-      }());
-      return {
-        meta: {
-          "revision": "Ember@1.13.7",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 13,
-              "column": 8
-            },
-            "end": {
-              "line": 23,
-              "column": 8
-            }
-          },
-          "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createComment("");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var morphs = new Array(1);
-          morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
-          dom.insertBoundary(fragment, 0);
-          dom.insertBoundary(fragment, null);
-          return morphs;
-        },
-        statements: [
-          ["block","if",[["get","syncButtonDisabled",["loc",[null,[14,17],[14,35]]]]],[],0,1,["loc",[null,[14,10],[22,17]]]]
-        ],
-        locals: [],
-        templates: [child0, child1]
-      };
-    }());
-    var child2 = (function() {
-      var child0 = (function() {
-        return {
-          meta: {
-            "revision": "Ember@1.13.7",
-            "loc": {
-              "source": null,
-              "start": {
-                "line": 24,
-                "column": 10
-              },
-              "end": {
-                "line": 26,
-                "column": 10
-              }
-            },
-            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-          },
-          arity: 0,
-          cachedFragment: null,
-          hasRendered: false,
-          buildFragment: function buildFragment(dom) {
-            var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("            ");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createElement("a");
-            dom.setAttribute(el1,"href","#");
-            var el2 = dom.createTextNode("Login");
-            dom.appendChild(el1, el2);
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("\n");
-            dom.appendChild(el0, el1);
-            return el0;
-          },
-          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-            var element2 = dom.childAt(fragment, [1]);
-            var morphs = new Array(1);
-            morphs[0] = dom.createElementMorph(element2);
-            return morphs;
-          },
-          statements: [
-            ["element","action",["closeDrawer"],[],["loc",[null,[25,24],[25,48]]]]
-          ],
-          locals: [],
-          templates: []
-        };
-      }());
-      var child1 = (function() {
-        var child0 = (function() {
-          return {
-            meta: {
-              "revision": "Ember@1.13.7",
-              "loc": {
-                "source": null,
-                "start": {
-                  "line": 27,
-                  "column": 12
-                },
-                "end": {
-                  "line": 29,
-                  "column": 12
-                }
-              },
-              "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-            },
-            arity: 0,
-            cachedFragment: null,
-            hasRendered: false,
-            buildFragment: function buildFragment(dom) {
-              var el0 = dom.createDocumentFragment();
-              var el1 = dom.createTextNode("              ");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("a");
-              dom.setAttribute(el1,"href","#");
-              var el2 = dom.createTextNode("Logging in ...");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n");
-              dom.appendChild(el0, el1);
-              return el0;
-            },
-            buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-              var element1 = dom.childAt(fragment, [1]);
-              var morphs = new Array(1);
-              morphs[0] = dom.createElementMorph(element1);
-              return morphs;
-            },
-            statements: [
-              ["element","action",["closeDrawer"],[],["loc",[null,[28,26],[28,50]]]]
-            ],
-            locals: [],
-            templates: []
-          };
-        }());
-        var child1 = (function() {
-          return {
-            meta: {
-              "revision": "Ember@1.13.7",
-              "loc": {
-                "source": null,
-                "start": {
-                  "line": 29,
-                  "column": 12
-                },
-                "end": {
-                  "line": 31,
-                  "column": 12
-                }
-              },
-              "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-            },
-            arity: 0,
-            cachedFragment: null,
-            hasRendered: false,
-            buildFragment: function buildFragment(dom) {
-              var el0 = dom.createDocumentFragment();
-              var el1 = dom.createTextNode("              ");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("a");
-              dom.setAttribute(el1,"href","#");
-              var el2 = dom.createTextNode("Log in");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n");
-              dom.appendChild(el0, el1);
-              return el0;
-            },
-            buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-              var element0 = dom.childAt(fragment, [1]);
-              var morphs = new Array(1);
-              morphs[0] = dom.createElementMorph(element0);
-              return morphs;
-            },
-            statements: [
-              ["element","action",["login"],[],["loc",[null,[30,26],[30,44]]]]
-            ],
-            locals: [],
-            templates: []
-          };
-        }());
-        return {
-          meta: {
-            "revision": "Ember@1.13.7",
-            "loc": {
-              "source": null,
-              "start": {
-                "line": 26,
-                "column": 10
-              },
-              "end": {
-                "line": 32,
-                "column": 10
-              }
-            },
-            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-          },
-          arity: 0,
-          cachedFragment: null,
-          hasRendered: false,
-          buildFragment: function buildFragment(dom) {
-            var el0 = dom.createDocumentFragment();
-            var el1 = dom.createComment("");
-            dom.appendChild(el0, el1);
-            return el0;
-          },
-          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-            var morphs = new Array(1);
-            morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
-            dom.insertBoundary(fragment, 0);
-            dom.insertBoundary(fragment, null);
-            return morphs;
-          },
-          statements: [
-            ["block","if",[["get","isAuthorizing",["loc",[null,[27,19],[27,32]]]]],[],0,1,["loc",[null,[27,12],[31,19]]]]
-          ],
-          locals: [],
-          templates: [child0, child1]
-        };
-      }());
-      return {
-        meta: {
-          "revision": "Ember@1.13.7",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 23,
-              "column": 8
-            },
-            "end": {
-              "line": 33,
-              "column": 8
-            }
-          },
-          "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createComment("");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var morphs = new Array(1);
-          morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
-          dom.insertBoundary(fragment, 0);
-          dom.insertBoundary(fragment, null);
-          return morphs;
-        },
-        statements: [
-          ["block","if",[["get","loginButtonDisableed",["loc",[null,[24,17],[24,37]]]]],[],0,1,["loc",[null,[24,10],[32,17]]]]
-        ],
-        locals: [],
-        templates: [child0, child1]
-      };
-    }());
-    var child3 = (function() {
-      var child0 = (function() {
-        return {
-          meta: {
-            "revision": "Ember@1.13.7",
-            "loc": {
-              "source": null,
-              "start": {
-                "line": 42,
-                "column": 10
-              },
-              "end": {
-                "line": 45,
-                "column": 10
-              }
-            },
-            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-          },
-          arity: 0,
-          cachedFragment: null,
-          hasRendered: false,
-          buildFragment: function buildFragment(dom) {
-            var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("            ");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createComment("");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("\n            ");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createComment("");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode(" (");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createComment("");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode(")\n");
-            dom.appendChild(el0, el1);
-            return el0;
-          },
-          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-            var morphs = new Array(3);
-            morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
-            morphs[1] = dom.createMorphAt(fragment,3,3,contextualElement);
-            morphs[2] = dom.createMorphAt(fragment,5,5,contextualElement);
-            return morphs;
-          },
-          statements: [
-            ["inline","current-tag",[["get","currentTag.name",["loc",[null,[43,26],[43,41]]]],["get","tag",["loc",[null,[43,42],[43,45]]]]],[],["loc",[null,[43,12],[43,47]]]],
-            ["content","currentTag.name",["loc",[null,[44,12],[44,31]]]],
-            ["content","currentTag.count",["loc",[null,[44,33],[44,53]]]]
-          ],
-          locals: [],
-          templates: []
-        };
-      }());
-      return {
-        meta: {
-          "revision": "Ember@1.13.7",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 40,
-              "column": 6
-            },
-            "end": {
-              "line": 47,
-              "column": 6
-            }
-          },
-          "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-        },
-        arity: 1,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("        ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createElement("li");
-          var el2 = dom.createTextNode("\n");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createComment("");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("        ");
-          dom.appendChild(el1, el2);
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var morphs = new Array(1);
-          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
-          return morphs;
-        },
-        statements: [
-          ["block","link-to",["secrets",["subexpr","query-params",[],["tag",["get","currentTag.selectTag",["loc",[null,[42,49],[42,69]]]]],["loc",[null,[42,31],[42,70]]]]],[],0,null,["loc",[null,[42,10],[45,22]]]]
-        ],
-        locals: ["currentTag"],
-        templates: [child0]
-      };
-    }());
-    var child4 = (function() {
-      var child0 = (function() {
-        return {
-          meta: {
-            "revision": "Ember@1.13.7",
-            "loc": {
-              "source": null,
-              "start": {
-                "line": 50,
-                "column": 10
-              },
-              "end": {
-                "line": 50,
-                "column": 54
-              }
-            },
-            "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-          },
-          arity: 0,
-          cachedFragment: null,
-          hasRendered: false,
-          buildFragment: function buildFragment(dom) {
-            var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("See more tags ...");
-            dom.appendChild(el0, el1);
-            return el0;
-          },
-          buildRenderNodes: function buildRenderNodes() { return []; },
-          statements: [
-
-          ],
-          locals: [],
-          templates: []
-        };
-      }());
-      return {
-        meta: {
-          "revision": "Ember@1.13.7",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 48,
-              "column": 6
-            },
-            "end": {
-              "line": 52,
-              "column": 6
-            }
-          },
-          "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("        ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createElement("li");
-          var el2 = dom.createTextNode("\n          ");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createComment("");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("\n        ");
-          dom.appendChild(el1, el2);
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var morphs = new Array(1);
-          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
-          return morphs;
-        },
-        statements: [
-          ["block","link-to",["secrets.tags"],[],0,null,["loc",[null,[50,10],[50,66]]]]
-        ],
-        locals: [],
-        templates: [child0]
-      };
-    }());
-    return {
-      meta: {
-        "revision": "Ember@1.13.7",
-        "loc": {
-          "source": null,
-          "start": {
-            "line": 1,
-            "column": 0
-          },
-          "end": {
-            "line": 61,
-            "column": 0
-          }
-        },
-        "moduleName": "yith-library-mobile-client/templates/secrets/drawer.hbs"
-      },
-      arity: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      buildFragment: function buildFragment(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createElement("section");
-        dom.setAttribute(el1,"data-type","sidebar");
-        var el2 = dom.createTextNode("\n  ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("header");
-        var el3 = dom.createTextNode("\n    ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("menu");
-        dom.setAttribute(el3,"type","toolbar");
-        var el4 = dom.createTextNode("\n      ");
-        dom.appendChild(el3, el4);
-        var el4 = dom.createComment("");
-        dom.appendChild(el3, el4);
-        var el4 = dom.createTextNode("\n    ");
-        dom.appendChild(el3, el4);
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n    ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("h1");
-        var el4 = dom.createComment("");
-        dom.appendChild(el3, el4);
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n  ");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n\n  ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("nav");
-        var el3 = dom.createTextNode("\n    ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("h2");
-        var el4 = dom.createTextNode("Account");
-        dom.appendChild(el3, el4);
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n    ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("ul");
-        var el4 = dom.createTextNode("\n      ");
-        dom.appendChild(el3, el4);
-        var el4 = dom.createElement("li");
-        var el5 = dom.createTextNode("\n");
-        dom.appendChild(el4, el5);
-        var el5 = dom.createComment("");
-        dom.appendChild(el4, el5);
-        var el5 = dom.createTextNode("      ");
-        dom.appendChild(el4, el5);
-        dom.appendChild(el3, el4);
-        var el4 = dom.createTextNode("\n      ");
-        dom.appendChild(el3, el4);
-        var el4 = dom.createElement("li");
-        var el5 = dom.createElement("a");
-        dom.setAttribute(el5,"href","#");
-        var el6 = dom.createTextNode("Log out");
-        dom.appendChild(el5, el6);
-        dom.appendChild(el4, el5);
-        dom.appendChild(el3, el4);
-        var el4 = dom.createTextNode("\n    ");
-        dom.appendChild(el3, el4);
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n\n    ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("h2");
-        var el4 = dom.createTextNode("Tags");
-        dom.appendChild(el3, el4);
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n    ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("ul");
-        var el4 = dom.createTextNode("\n");
-        dom.appendChild(el3, el4);
-        var el4 = dom.createComment("");
-        dom.appendChild(el3, el4);
-        var el4 = dom.createComment("");
-        dom.appendChild(el3, el4);
-        var el4 = dom.createTextNode("    ");
-        dom.appendChild(el3, el4);
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n  ");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n\n  ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("section");
-        dom.setAttribute(el2,"role","status");
-        dom.setAttribute(el2,"class","onviewport");
-        var el3 = dom.createTextNode("\n    ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("p");
-        var el4 = dom.createElement("small");
-        var el5 = dom.createTextNode("v");
-        dom.appendChild(el4, el5);
-        var el5 = dom.createComment("");
-        dom.appendChild(el4, el5);
-        dom.appendChild(el3, el4);
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode(" \n  ");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var element6 = dom.childAt(fragment, [0]);
-        var element7 = dom.childAt(element6, [1]);
-        var element8 = dom.childAt(element6, [3]);
-        var element9 = dom.childAt(element8, [3]);
-        var element10 = dom.childAt(element9, [3, 0]);
-        var element11 = dom.childAt(element8, [7]);
-        var morphs = new Array(7);
-        morphs[0] = dom.createMorphAt(dom.childAt(element7, [1]),1,1);
-        morphs[1] = dom.createMorphAt(dom.childAt(element7, [3]),0,0);
-        morphs[2] = dom.createMorphAt(dom.childAt(element9, [1]),1,1);
-        morphs[3] = dom.createElementMorph(element10);
-        morphs[4] = dom.createMorphAt(element11,1,1);
-        morphs[5] = dom.createMorphAt(element11,2,2);
-        morphs[6] = dom.createMorphAt(dom.childAt(element6, [5, 1, 0]),1,1);
-        return morphs;
-      },
-      statements: [
-        ["block","link-to",["secrets"],[],0,null,["loc",[null,[4,6],[4,44]]]],
-        ["content","accountDisplayName",["loc",[null,[6,8],[6,30]]]],
-        ["block","if",[["get","authManager.hasValidAccessToken",["loc",[null,[13,15],[13,46]]]]],[],1,2,["loc",[null,[13,8],[33,15]]]],
-        ["element","action",["logout"],[],["loc",[null,[35,22],[35,41]]]],
-        ["block","each",[["get","mostUsedTags",["loc",[null,[40,14],[40,26]]]]],[],3,null,["loc",[null,[40,6],[47,15]]]],
-        ["block","if",[["get","hasMoreTags",["loc",[null,[48,13],[48,24]]]]],[],4,null,["loc",[null,[48,6],[52,13]]]],
-        ["content","app-version",["loc",[null,[57,15],[57,30]]]]
-      ],
-      locals: [],
-      templates: [child0, child1, child2, child3, child4]
-    };
-  }()));
-
-});
-define('yith-library-mobile-client/templates/secrets/tags', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    var child0 = (function() {
-      return {
-        meta: {
-          "revision": "Ember@1.13.7",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 4,
-              "column": 4
-            },
-            "end": {
-              "line": 8,
-              "column": 4
-            }
-          },
-          "moduleName": "yith-library-mobile-client/templates/secrets/tags.hbs"
-        },
-        arity: 1,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("      ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createElement("button");
-          dom.setAttribute(el1,"type","button");
-          var el2 = dom.createTextNode("\n        ");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createComment("");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode(" (");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createComment("");
-          dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode(")\n      ");
-          dom.appendChild(el1, el2);
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var element0 = dom.childAt(fragment, [1]);
-          var morphs = new Array(3);
-          morphs[0] = dom.createElementMorph(element0);
-          morphs[1] = dom.createMorphAt(element0,1,1);
-          morphs[2] = dom.createMorphAt(element0,3,3);
-          return morphs;
-        },
-        statements: [
-          ["element","action",["selectTag",["get","tag.name",["loc",[null,[5,49],[5,57]]]]],[],["loc",[null,[5,28],[5,60]]]],
-          ["content","tag.name",["loc",[null,[6,8],[6,20]]]],
-          ["content","tag.count",["loc",[null,[6,22],[6,35]]]]
-        ],
-        locals: ["tag"],
-        templates: []
-      };
-    }());
-    return {
-      meta: {
-        "revision": "Ember@1.13.7",
-        "loc": {
-          "source": null,
-          "start": {
-            "line": 1,
-            "column": 0
-          },
-          "end": {
-            "line": 11,
-            "column": 7
-          }
-        },
-        "moduleName": "yith-library-mobile-client/templates/secrets/tags.hbs"
-      },
-      arity: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      buildFragment: function buildFragment(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createElement("form");
-        dom.setAttribute(el1,"data-type","action");
-        dom.setAttribute(el1,"role","dialog");
-        var el2 = dom.createTextNode("\n  ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("header");
-        var el3 = dom.createTextNode("Available tags");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n  ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("menu");
-        var el3 = dom.createTextNode("\n");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createComment("");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("    ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("button");
-        dom.setAttribute(el3,"type","button");
-        var el4 = dom.createTextNode("Cancel");
-        dom.appendChild(el3, el4);
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n  ");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var element1 = dom.childAt(fragment, [0, 3]);
-        var element2 = dom.childAt(element1, [3]);
-        var morphs = new Array(2);
-        morphs[0] = dom.createMorphAt(element1,1,1);
-        morphs[1] = dom.createElementMorph(element2);
-        return morphs;
-      },
-      statements: [
-        ["block","each",[["get","sortedTags",["loc",[null,[4,12],[4,22]]]]],[],0,null,["loc",[null,[4,4],[8,13]]]],
-        ["element","action",["cancel"],[],["loc",[null,[9,26],[9,45]]]]
-      ],
-      locals: [],
-      templates: [child0]
-    };
-  }()));
-
-});
 define('yith-library-mobile-client/tests/adapters/application.jshint', function () {
 
   'use strict';
 
-  module('JSHint - adapters');
-  test('adapters/application.js should pass jshint', function() { 
-    ok(true, 'adapters/application.js should pass jshint.'); 
+  QUnit.module('JSHint - adapters');
+  QUnit.test('adapters/application.js should pass jshint', function(assert) { 
+    assert.ok(true, 'adapters/application.js should pass jshint.'); 
   });
 
 });
@@ -4304,9 +4416,9 @@ define('yith-library-mobile-client/tests/app.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('app.js should pass jshint', function() { 
-    ok(true, 'app.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('app.js should pass jshint', function(assert) { 
+    assert.ok(true, 'app.js should pass jshint.'); 
   });
 
 });
@@ -4314,9 +4426,9 @@ define('yith-library-mobile-client/tests/components/online-watcher.jshint', func
 
   'use strict';
 
-  module('JSHint - components');
-  test('components/online-watcher.js should pass jshint', function() { 
-    ok(true, 'components/online-watcher.js should pass jshint.'); 
+  QUnit.module('JSHint - components');
+  QUnit.test('components/online-watcher.js should pass jshint', function(assert) { 
+    assert.ok(true, 'components/online-watcher.js should pass jshint.'); 
   });
 
 });
@@ -4324,9 +4436,9 @@ define('yith-library-mobile-client/tests/components/secret-revealer.jshint', fun
 
   'use strict';
 
-  module('JSHint - components');
-  test('components/secret-revealer.js should pass jshint', function() { 
-    ok(true, 'components/secret-revealer.js should pass jshint.'); 
+  QUnit.module('JSHint - components');
+  QUnit.test('components/secret-revealer.js should pass jshint', function(assert) { 
+    assert.ok(true, 'components/secret-revealer.js should pass jshint.'); 
   });
 
 });
@@ -4334,9 +4446,9 @@ define('yith-library-mobile-client/tests/controllers/application.jshint', functi
 
   'use strict';
 
-  module('JSHint - controllers');
-  test('controllers/application.js should pass jshint', function() { 
-    ok(true, 'controllers/application.js should pass jshint.'); 
+  QUnit.module('JSHint - controllers');
+  QUnit.test('controllers/application.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/application.js should pass jshint.'); 
   });
 
 });
@@ -4344,29 +4456,9 @@ define('yith-library-mobile-client/tests/controllers/first-time.jshint', functio
 
   'use strict';
 
-  module('JSHint - controllers');
-  test('controllers/first-time.js should pass jshint', function() { 
-    ok(true, 'controllers/first-time.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/controllers/secret.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - controllers');
-  test('controllers/secret.js should pass jshint', function() { 
-    ok(true, 'controllers/secret.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/controllers/secrets.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - controllers');
-  test('controllers/secrets.js should pass jshint', function() { 
-    ok(true, 'controllers/secrets.js should pass jshint.'); 
+  QUnit.module('JSHint - controllers');
+  QUnit.test('controllers/first-time.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/first-time.js should pass jshint.'); 
   });
 
 });
@@ -4374,9 +4466,19 @@ define('yith-library-mobile-client/tests/controllers/secrets/drawer.jshint', fun
 
   'use strict';
 
-  module('JSHint - controllers/secrets');
-  test('controllers/secrets/drawer.js should pass jshint', function() { 
-    ok(true, 'controllers/secrets/drawer.js should pass jshint.'); 
+  QUnit.module('JSHint - controllers/secrets');
+  QUnit.test('controllers/secrets/drawer.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/secrets/drawer.js should pass jshint.'); 
+  });
+
+});
+define('yith-library-mobile-client/tests/controllers/secrets/secret.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - controllers/secrets');
+  QUnit.test('controllers/secrets/secret.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/secrets/secret.js should pass jshint.'); 
   });
 
 });
@@ -4384,9 +4486,19 @@ define('yith-library-mobile-client/tests/controllers/secrets/tags.jshint', funct
 
   'use strict';
 
-  module('JSHint - controllers/secrets');
-  test('controllers/secrets/tags.js should pass jshint', function() { 
-    ok(true, 'controllers/secrets/tags.js should pass jshint.'); 
+  QUnit.module('JSHint - controllers/secrets');
+  QUnit.test('controllers/secrets/tags.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/secrets/tags.js should pass jshint.'); 
+  });
+
+});
+define('yith-library-mobile-client/tests/controllers/secrets.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - controllers');
+  QUnit.test('controllers/secrets.js should pass jshint', function(assert) { 
+    assert.ok(true, 'controllers/secrets.js should pass jshint.'); 
   });
 
 });
@@ -4394,9 +4506,9 @@ define('yith-library-mobile-client/tests/helpers/current-tag.jshint', function (
 
   'use strict';
 
-  module('JSHint - helpers');
-  test('helpers/current-tag.js should pass jshint', function() { 
-    ok(true, 'helpers/current-tag.js should pass jshint.'); 
+  QUnit.module('JSHint - helpers');
+  QUnit.test('helpers/current-tag.js should pass jshint', function(assert) { 
+    assert.ok(true, 'helpers/current-tag.js should pass jshint.'); 
   });
 
 });
@@ -4418,9 +4530,9 @@ define('yith-library-mobile-client/tests/helpers/resolver.jshint', function () {
 
   'use strict';
 
-  module('JSHint - helpers');
-  test('helpers/resolver.js should pass jshint', function() { 
-    ok(true, 'helpers/resolver.js should pass jshint.'); 
+  QUnit.module('JSHint - helpers');
+  QUnit.test('helpers/resolver.js should pass jshint', function(assert) { 
+    assert.ok(true, 'helpers/resolver.js should pass jshint.'); 
   });
 
 });
@@ -4451,9 +4563,9 @@ define('yith-library-mobile-client/tests/helpers/start-app.jshint', function () 
 
   'use strict';
 
-  module('JSHint - helpers');
-  test('helpers/start-app.js should pass jshint', function() { 
-    ok(true, 'helpers/start-app.js should pass jshint.'); 
+  QUnit.module('JSHint - helpers');
+  QUnit.test('helpers/start-app.js should pass jshint', function(assert) { 
+    assert.ok(true, 'helpers/start-app.js should pass jshint.'); 
   });
 
 });
@@ -4474,7 +4586,8 @@ define('yith-library-mobile-client/tests/integration/components/online-watcher-t
     this.render(Ember.HTMLBars.template((function () {
       return {
         meta: {
-          'revision': 'Ember@1.13.7',
+          'topLevel': null,
+          'revision': 'Ember@2.1.0',
           'loc': {
             'source': null,
             'start': {
@@ -4487,6 +4600,7 @@ define('yith-library-mobile-client/tests/integration/components/online-watcher-t
             }
           }
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -4516,7 +4630,8 @@ define('yith-library-mobile-client/tests/integration/components/online-watcher-t
       var child0 = (function () {
         return {
           meta: {
-            'revision': 'Ember@1.13.7',
+            'topLevel': null,
+            'revision': 'Ember@2.1.0',
             'loc': {
               'source': null,
               'start': {
@@ -4529,6 +4644,7 @@ define('yith-library-mobile-client/tests/integration/components/online-watcher-t
               }
             }
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -4549,7 +4665,8 @@ define('yith-library-mobile-client/tests/integration/components/online-watcher-t
 
       return {
         meta: {
-          'revision': 'Ember@1.13.7',
+          'topLevel': null,
+          'revision': 'Ember@2.1.0',
           'loc': {
             'source': null,
             'start': {
@@ -4562,6 +4679,7 @@ define('yith-library-mobile-client/tests/integration/components/online-watcher-t
             }
           }
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -4594,9 +4712,9 @@ define('yith-library-mobile-client/tests/integration/components/online-watcher-t
 
   'use strict';
 
-  module('JSHint - integration/components');
-  test('integration/components/online-watcher-test.js should pass jshint', function() { 
-    ok(true, 'integration/components/online-watcher-test.js should pass jshint.'); 
+  QUnit.module('JSHint - integration/components');
+  QUnit.test('integration/components/online-watcher-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'integration/components/online-watcher-test.js should pass jshint.'); 
   });
 
 });
@@ -4617,7 +4735,8 @@ define('yith-library-mobile-client/tests/integration/components/secret-revealer-
     this.render(Ember.HTMLBars.template((function () {
       return {
         meta: {
-          'revision': 'Ember@1.13.7',
+          'topLevel': null,
+          'revision': 'Ember@2.1.0',
           'loc': {
             'source': null,
             'start': {
@@ -4630,6 +4749,7 @@ define('yith-library-mobile-client/tests/integration/components/secret-revealer-
             }
           }
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -4659,7 +4779,8 @@ define('yith-library-mobile-client/tests/integration/components/secret-revealer-
       var child0 = (function () {
         return {
           meta: {
-            'revision': 'Ember@1.13.7',
+            'topLevel': null,
+            'revision': 'Ember@2.1.0',
             'loc': {
               'source': null,
               'start': {
@@ -4672,6 +4793,7 @@ define('yith-library-mobile-client/tests/integration/components/secret-revealer-
               }
             }
           },
+          isEmpty: false,
           arity: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -4692,7 +4814,8 @@ define('yith-library-mobile-client/tests/integration/components/secret-revealer-
 
       return {
         meta: {
-          'revision': 'Ember@1.13.7',
+          'topLevel': null,
+          'revision': 'Ember@2.1.0',
           'loc': {
             'source': null,
             'start': {
@@ -4705,6 +4828,7 @@ define('yith-library-mobile-client/tests/integration/components/secret-revealer-
             }
           }
         },
+        isEmpty: false,
         arity: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -4737,9 +4861,9 @@ define('yith-library-mobile-client/tests/integration/components/secret-revealer-
 
   'use strict';
 
-  module('JSHint - integration/components');
-  test('integration/components/secret-revealer-test.js should pass jshint', function() { 
-    ok(true, 'integration/components/secret-revealer-test.js should pass jshint.'); 
+  QUnit.module('JSHint - integration/components');
+  QUnit.test('integration/components/secret-revealer-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'integration/components/secret-revealer-test.js should pass jshint.'); 
   });
 
 });
@@ -5352,9 +5476,9 @@ define('yith-library-mobile-client/tests/integration/sync-test.jshint', function
 
   'use strict';
 
-  module('JSHint - integration');
-  test('integration/sync-test.js should pass jshint', function() { 
-    ok(true, 'integration/sync-test.js should pass jshint.'); 
+  QUnit.module('JSHint - integration');
+  QUnit.test('integration/sync-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'integration/sync-test.js should pass jshint.'); 
   });
 
 });
@@ -5362,9 +5486,9 @@ define('yith-library-mobile-client/tests/main.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('main.js should pass jshint', function() { 
-    ok(true, 'main.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('main.js should pass jshint', function(assert) { 
+    assert.ok(true, 'main.js should pass jshint.'); 
   });
 
 });
@@ -5372,9 +5496,9 @@ define('yith-library-mobile-client/tests/models/account.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/account.js should pass jshint', function() { 
-    ok(true, 'models/account.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/account.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/account.js should pass jshint.'); 
   });
 
 });
@@ -5382,9 +5506,9 @@ define('yith-library-mobile-client/tests/models/secret.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/secret.js should pass jshint', function() { 
-    ok(true, 'models/secret.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/secret.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/secret.js should pass jshint.'); 
   });
 
 });
@@ -5392,9 +5516,9 @@ define('yith-library-mobile-client/tests/models/tag.jshint', function () {
 
   'use strict';
 
-  module('JSHint - models');
-  test('models/tag.js should pass jshint', function() { 
-    ok(true, 'models/tag.js should pass jshint.'); 
+  QUnit.module('JSHint - models');
+  QUnit.test('models/tag.js should pass jshint', function(assert) { 
+    assert.ok(true, 'models/tag.js should pass jshint.'); 
   });
 
 });
@@ -5402,9 +5526,9 @@ define('yith-library-mobile-client/tests/router.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('router.js should pass jshint', function() { 
-    ok(true, 'router.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('router.js should pass jshint', function(assert) { 
+    assert.ok(true, 'router.js should pass jshint.'); 
   });
 
 });
@@ -5412,9 +5536,9 @@ define('yith-library-mobile-client/tests/routes/application.jshint', function ()
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/application.js should pass jshint', function() { 
-    ok(true, 'routes/application.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/application.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/application.js should pass jshint.'); 
   });
 
 });
@@ -5422,9 +5546,9 @@ define('yith-library-mobile-client/tests/routes/first-time.jshint', function () 
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/first-time.js should pass jshint', function() { 
-    ok(true, 'routes/first-time.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/first-time.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/first-time.js should pass jshint.'); 
   });
 
 });
@@ -5432,9 +5556,9 @@ define('yith-library-mobile-client/tests/routes/index.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/index.js should pass jshint', function() { 
-    ok(true, 'routes/index.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/index.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/index.js should pass jshint.'); 
   });
 
 });
@@ -5442,29 +5566,9 @@ define('yith-library-mobile-client/tests/routes/secret.jshint', function () {
 
   'use strict';
 
-  module('JSHint - routes');
-  test('routes/secret.js should pass jshint', function() { 
-    ok(true, 'routes/secret.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/routes/secrets-drawer.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - routes');
-  test('routes/secrets-drawer.js should pass jshint', function() { 
-    ok(true, 'routes/secrets-drawer.js should pass jshint.'); 
-  });
-
-});
-define('yith-library-mobile-client/tests/routes/secrets.jshint', function () {
-
-  'use strict';
-
-  module('JSHint - routes');
-  test('routes/secrets.js should pass jshint', function() { 
-    ok(true, 'routes/secrets.js should pass jshint.'); 
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/secret.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/secret.js should pass jshint.'); 
   });
 
 });
@@ -5472,9 +5576,9 @@ define('yith-library-mobile-client/tests/routes/secrets/drawer.jshint', function
 
   'use strict';
 
-  module('JSHint - routes/secrets');
-  test('routes/secrets/drawer.js should pass jshint', function() { 
-    ok(true, 'routes/secrets/drawer.js should pass jshint.'); 
+  QUnit.module('JSHint - routes/secrets');
+  QUnit.test('routes/secrets/drawer.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/secrets/drawer.js should pass jshint.'); 
   });
 
 });
@@ -5482,9 +5586,29 @@ define('yith-library-mobile-client/tests/routes/secrets/tags.jshint', function (
 
   'use strict';
 
-  module('JSHint - routes/secrets');
-  test('routes/secrets/tags.js should pass jshint', function() { 
-    ok(true, 'routes/secrets/tags.js should pass jshint.'); 
+  QUnit.module('JSHint - routes/secrets');
+  QUnit.test('routes/secrets/tags.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/secrets/tags.js should pass jshint.'); 
+  });
+
+});
+define('yith-library-mobile-client/tests/routes/secrets-drawer.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/secrets-drawer.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/secrets-drawer.js should pass jshint.'); 
+  });
+
+});
+define('yith-library-mobile-client/tests/routes/secrets.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - routes');
+  QUnit.test('routes/secrets.js should pass jshint', function(assert) { 
+    assert.ok(true, 'routes/secrets.js should pass jshint.'); 
   });
 
 });
@@ -5492,9 +5616,9 @@ define('yith-library-mobile-client/tests/services/auth.jshint', function () {
 
   'use strict';
 
-  module('JSHint - services');
-  test('services/auth.js should pass jshint', function() { 
-    ok(true, 'services/auth.js should pass jshint.'); 
+  QUnit.module('JSHint - services');
+  QUnit.test('services/auth.js should pass jshint', function(assert) { 
+    assert.ok(true, 'services/auth.js should pass jshint.'); 
   });
 
 });
@@ -5502,9 +5626,9 @@ define('yith-library-mobile-client/tests/services/settings.jshint', function () 
 
   'use strict';
 
-  module('JSHint - services');
-  test('services/settings.js should pass jshint', function() { 
-    ok(true, 'services/settings.js should pass jshint.'); 
+  QUnit.module('JSHint - services');
+  QUnit.test('services/settings.js should pass jshint', function(assert) { 
+    assert.ok(true, 'services/settings.js should pass jshint.'); 
   });
 
 });
@@ -5512,9 +5636,9 @@ define('yith-library-mobile-client/tests/services/sync.jshint', function () {
 
   'use strict';
 
-  module('JSHint - services');
-  test('services/sync.js should pass jshint', function() { 
-    ok(true, 'services/sync.js should pass jshint.'); 
+  QUnit.module('JSHint - services');
+  QUnit.test('services/sync.js should pass jshint', function(assert) { 
+    assert.ok(true, 'services/sync.js should pass jshint.'); 
   });
 
 });
@@ -5529,9 +5653,9 @@ define('yith-library-mobile-client/tests/test-helper.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('test-helper.js should pass jshint', function() { 
-    ok(true, 'test-helper.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('test-helper.js should pass jshint', function(assert) { 
+    assert.ok(true, 'test-helper.js should pass jshint.'); 
   });
 
 });
@@ -5551,9 +5675,9 @@ define('yith-library-mobile-client/tests/test-loader.jshint', function () {
 
   'use strict';
 
-  module('JSHint - .');
-  test('test-loader.js should pass jshint', function() { 
-    ok(true, 'test-loader.js should pass jshint.'); 
+  QUnit.module('JSHint - .');
+  QUnit.test('test-loader.js should pass jshint', function(assert) { 
+    assert.ok(true, 'test-loader.js should pass jshint.'); 
   });
 
 });
@@ -5577,9 +5701,9 @@ define('yith-library-mobile-client/tests/unit/adapters/application-test.jshint',
 
   'use strict';
 
-  module('JSHint - unit/adapters');
-  test('unit/adapters/application-test.js should pass jshint', function() { 
-    ok(true, 'unit/adapters/application-test.js should pass jshint.'); 
+  QUnit.module('JSHint - unit/adapters');
+  QUnit.test('unit/adapters/application-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'unit/adapters/application-test.js should pass jshint.'); 
   });
 
 });
@@ -5693,9 +5817,9 @@ define('yith-library-mobile-client/tests/unit/controllers/first-time-test.jshint
 
   'use strict';
 
-  module('JSHint - unit/controllers');
-  test('unit/controllers/first-time-test.js should pass jshint', function() { 
-    ok(true, 'unit/controllers/first-time-test.js should pass jshint.'); 
+  QUnit.module('JSHint - unit/controllers');
+  QUnit.test('unit/controllers/first-time-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'unit/controllers/first-time-test.js should pass jshint.'); 
   });
 
 });
@@ -5719,9 +5843,9 @@ define('yith-library-mobile-client/tests/unit/services/auth-test.jshint', functi
 
   'use strict';
 
-  module('JSHint - unit/services');
-  test('unit/services/auth-test.js should pass jshint', function() { 
-    ok(true, 'unit/services/auth-test.js should pass jshint.'); 
+  QUnit.module('JSHint - unit/services');
+  QUnit.test('unit/services/auth-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'unit/services/auth-test.js should pass jshint.'); 
   });
 
 });
@@ -5745,9 +5869,9 @@ define('yith-library-mobile-client/tests/unit/services/settings-test.jshint', fu
 
   'use strict';
 
-  module('JSHint - unit/services');
-  test('unit/services/settings-test.js should pass jshint', function() { 
-    ok(true, 'unit/services/settings-test.js should pass jshint.'); 
+  QUnit.module('JSHint - unit/services');
+  QUnit.test('unit/services/settings-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'unit/services/settings-test.js should pass jshint.'); 
   });
 
 });
@@ -5823,9 +5947,9 @@ define('yith-library-mobile-client/tests/unit/services/sync-test.jshint', functi
 
   'use strict';
 
-  module('JSHint - unit/services');
-  test('unit/services/sync-test.js should pass jshint', function() { 
-    ok(true, 'unit/services/sync-test.js should pass jshint.'); 
+  QUnit.module('JSHint - unit/services');
+  QUnit.test('unit/services/sync-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'unit/services/sync-test.js should pass jshint.'); 
   });
 
 });
@@ -5833,9 +5957,9 @@ define('yith-library-mobile-client/tests/utils/prefix-event.jshint', function ()
 
   'use strict';
 
-  module('JSHint - utils');
-  test('utils/prefix-event.js should pass jshint', function() { 
-    ok(true, 'utils/prefix-event.js should pass jshint.'); 
+  QUnit.module('JSHint - utils');
+  QUnit.test('utils/prefix-event.js should pass jshint', function(assert) { 
+    assert.ok(true, 'utils/prefix-event.js should pass jshint.'); 
   });
 
 });
@@ -5843,9 +5967,9 @@ define('yith-library-mobile-client/tests/utils/snake-case-to-camel-case.jshint',
 
   'use strict';
 
-  module('JSHint - utils');
-  test('utils/snake-case-to-camel-case.js should pass jshint', function() { 
-    ok(true, 'utils/snake-case-to-camel-case.js should pass jshint.'); 
+  QUnit.module('JSHint - utils');
+  QUnit.test('utils/snake-case-to-camel-case.js should pass jshint', function(assert) { 
+    assert.ok(true, 'utils/snake-case-to-camel-case.js should pass jshint.'); 
   });
 
 });
