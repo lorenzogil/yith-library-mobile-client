@@ -145,7 +145,7 @@ div[role="slider"] > label.icon {
 }
 
 /* Custom styles */
-.full-height {
+body > div.ember-view, .full-height {
     position: relative;
     height: 100%;
 }

@@ -1,15 +1,12 @@
 {
-  "predef": {
-    "document": true,
-    "window": true,
-    "-Promise": true,
-    "YithLibraryMobileClient": true,
-    "YithLibraryMobileClientENV": true,
-    "$": true,
-    "sjcl": true
-  },
-  "browser" : true,
-  "boss" : true,
+  "predef": [
+    "document",
+    "window",
+    "-Promise",
+    "sjcl"
+  ],
+  "browser": true,
+  "boss": true,
   "curly": true,
   "debug": false,
   "devel": true,

@@ -1,15 +1,16 @@
 import Ember from 'ember';
 
-export default Ember.ArrayController.extend({
-    needs: ['application', 'secrets'],
+export default Ember.Controller.extend({
+    application: Ember.inject.controller(),
+    secrets: Ember.inject.controller(),
     sortProperties: ['count:desc'],
     sortedTags: Ember.computed.sort('content', 'sortProperties'),
     tagsToDisplay: 5,
-    tag: Ember.computed.alias('controllers.secrets.tag'),
+    tag: Ember.computed.alias('secrets.tag'),
 
     accountDisplayName: function () {
-        return this.get('controllers.application.model.displayName');
-    }.property('controllers.application.model.displayName'),
+        return this.get('application.model.displayName');
+    }.property('application.model.displayName'),
 
     selectedTagCount: function () {
         var tag = this.get('sortedTags').findBy('name', this.get('tag'));
@@ -52,32 +53,32 @@ export default Ember.ArrayController.extend({
     }.property('sortedTags.[]', 'tagsToDisplay'),
 
     syncButtonDisabled: function () {
-        return this.get('controllers.secrets.isSyncing') || !this.get('controllers.secrets.isOnline');
-    }.property('controllers.secrets.isSyncing', 'controllers.secrets.isOnline'),
+        return this.get('secrets.isSyncing') || !this.get('secrets.isOnline');
+    }.property('secrets.isSyncing', 'secrets.isOnline'),
 
     loginButtonDisabled: function () {
         return !this.get('isOnline');
-    }.property('controllers.secrets.isOnline'),
+    }.property('secrets.isOnline'),
 
     actions: {
         login: function () {
             this.transitionToRoute('secrets');
             Ember.run.next(this, function () {
-                this.get('controllers.secrets').authorizeInServer();
+                this.get('secrets').authorizeInServer();
             });
         },
 
         sync: function () {
             this.transitionToRoute('secrets');
             Ember.run.next(this, function () {
-                this.get('controllers.secrets').syncFromServer();
+                this.get('secrets').syncFromServer();
             });
         },
 
         logout: function () {
             this.transitionToRoute('secrets');
             Ember.run.next(this, function () {
-                this.get('controllers.secrets').logout();
+                this.get('secrets').logout();
             });
         }
     }

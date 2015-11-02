@@ -9,20 +9,19 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="shortcut icon" href="assets/favicon.ico">
 
-    {{BASE_TAG}}
+    {{content-for 'head'}}
 
     <link rel="stylesheet" href="assets/vendor.css">
     <link rel="stylesheet" href="assets/yith-library-mobile-client.css">
+
+    {{content-for 'head-footer'}}
   </head>
   <body>
-    <script>
-      window.YithLibraryMobileClientENV = {{ENV}};
-      window.EmberENV = window.YithLibraryMobileClientENV.EmberENV;
-    </script>
+    {{content-for 'body'}}
+
     <script src="assets/vendor.js"></script>
     <script src="assets/yith-library-mobile-client.js"></script>
-    <script>
-      window.YithLibraryMobileClient = require('yith-library-mobile-client/app')['default'].create(YithLibraryMobileClientENV.APP);
-    </script>
+
+    {{content-for 'body-footer'}}
   </body>
 </html>

@@ -1,17 +1,20 @@
 import Ember from 'ember';
 
-export default Ember.ArrayController.extend({
+export default Ember.Controller.extend({
+    auth: Ember.inject.service('auth'),
+    settings: Ember.inject.service('settings'),
+    sync: Ember.inject.service('sync'),
     queryParams: ['tag'],
     sortProperties: ['service', 'account'],
     sortAscending: true,
-    position: 'current',
+    position: 'current full-height',
     state: '',
     tag: '',
     query: '',
     isSyncing: false,
     isAuthorizing: false,
     statusMessage: null,
-    isOnline: navigator.onLine,
+    isOnline: window.navigator.onLine,
 
     secrets: function () {
         var tag = this.get('tag'),
@@ -55,6 +58,9 @@ export default Ember.ArrayController.extend({
 
     syncFromServer: function () {
         var controller = this,
+	    auth = this.get('auth'),
+            sync = this.get('sync'),
+            settings = this.get('settings'),
             accessToken = null,
             clientId = null,
             serverBaseUrl = null;
@@ -64,14 +70,14 @@ export default Ember.ArrayController.extend({
         } else {
             this.set('isSyncing', true);
 
-            accessToken = this.authManager.get('accessToken');
-            clientId = this.authManager.get('clientId');
-            serverBaseUrl = this.settings.getSetting('serverBaseUrl');
+            accessToken = auth.get('accessToken');
+            clientId = auth.get('clientId');
+            serverBaseUrl = settings.getSetting('serverBaseUrl');
 
-            this.syncManager.fetchSecrets(accessToken, serverBaseUrl, clientId)
+            sync.fetchSecrets(accessToken, serverBaseUrl, clientId)
                 .then(function (results) {
                     var msg = [], length;
-                    controller.settings.setSetting('lastSync', new Date());
+                    settings.setSetting('lastSync', new Date());
                     controller.set('isSyncing', false);
                     length = results.secrets.length;
                     if (length > 0) {
@@ -86,6 +92,8 @@ export default Ember.ArrayController.extend({
 
     authorizeInServer: function () {
         var controller = this,
+	    auth = this.get('auth'),
+            settings = this.get('settings'),
             serverBaseUrl = null;
 
         if (this.get('isAuthorizing') === true) {
@@ -93,8 +101,8 @@ export default Ember.ArrayController.extend({
         } else {
             this.set('isAuthorizing', true);
 
-            serverBaseUrl = this.settings.getSetting('serverBaseUrl');
-            this.authManager.authorize(serverBaseUrl)
+            serverBaseUrl = settings.getSetting('serverBaseUrl');
+            auth.authorize(serverBaseUrl)
                 .then(function () {
                     controller.set('isAuthorizing', false);
                     controller.showMessage('You have succesfully logged in');
@@ -103,19 +111,19 @@ export default Ember.ArrayController.extend({
     },
 
     logout: function () {
-        var self = this;
-        this.authManager.deleteToken();
-        this.settings.deleteSetting('lastAccount');
-        this.syncManager.deleteAccount().then(function () {
+        var self = this,
+            settings = this.get('settings'),
+            sync = this.get('sync'),
+            auth = this.get('auth');
+
+        auth.deleteToken();
+        settings.deleteSetting('lastAccount');
+        sync.deleteAccount().then(function () {
             self.transitionToRoute('firstTime');
         });
     },
 
     actions: {
-
-        clearQuery: function () {
-            this.set('query', '');
-        },
 
         offline: function () {
             this.set('isOnline', false);

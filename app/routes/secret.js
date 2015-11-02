@@ -7,8 +7,8 @@ export default Ember.Route.extend({
     setupController: function (controller, model) {
         this._super(controller, model);
         var secretsController = this.controllerFor('secrets');
-        if (secretsController.get('position') !== 'left') {
-            secretsController.set('position', 'left');
+        if (secretsController.get('position') !== 'left full-height') {
+            secretsController.set('position', 'left full-height');
         }
         controller.set('position', 'current');
     },
@@ -17,15 +17,15 @@ export default Ember.Route.extend({
         willTransition: function (transition) {
             var secretsController = this.controllerFor('secrets');
             if (transition.targetName === 'secrets.index') {
-                if (secretsController.get('position') === 'left') {
-                    secretsController.set('position', 'current');
+                if (secretsController.get('position') === 'left full-height') {
+                    secretsController.set('position', 'current full-height');
                     this.controller.set('position', 'right');
                     this.set('transitionToSecrets', transition);
                     transition.abort();
                     return false;
                 }
             } else if (transition.targetName === 'secret') {
-                secretsController.set('position', 'left');
+                secretsController.set('position', 'left full-height');
                 this.controller.set('position', 'current');
             }
 

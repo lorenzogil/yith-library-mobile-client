@@ -8,15 +8,15 @@ export default Ember.Route.extend({
     },
 
     model: function () {
-        return this.store.find('secret');
+        return this.store.findAll('secret');
     },
 
     actions: {
         willTransition: function (transition) {
             if (transition.targetName === 'secret') {
-                this.controller.set('position', 'left');
+                this.controller.set('position', 'left full-height');
             } else if (transition.targetName === 'secrets.index') {
-                this.controller.set('position', 'current');
+                this.controller.set('position', 'current full-height');
                 this.controller.set('state', '');
             }
             return true;
