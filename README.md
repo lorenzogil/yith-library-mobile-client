@@ -23,7 +23,8 @@ You will need the following things properly installed on your computer.
 ## Running / Development
 
 * `ember server`
-* Visit your app at [http://localhost:4200](http://localhost:4200).
+* Visit your app at http://mobileyith:4200. You will need to add
+  mobileyith as a localhost alias in your /etc/hosts file.
 
 ### Code Generators
 
