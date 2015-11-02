@@ -77,6 +77,29 @@ define('yith-library-mobile-client/components/online-watcher', ['exports', 'embe
     });
 
 });
+define('yith-library-mobile-client/components/search-form', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Component.extend({
+        tagName: 'form',
+        attributeBindings: ['action'],
+        action: '#',
+
+        didInsertElement: function didInsertElement() {
+            this.$('input').focus();
+        },
+
+        actions: {
+
+            clearQuery: function clearQuery() {
+                this.set('query', '');
+            }
+
+        }
+    });
+
+});
 define('yith-library-mobile-client/components/secret-revealer', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -574,10 +597,6 @@ define('yith-library-mobile-client/controllers/secrets', ['exports', 'ember'], f
         },
 
         actions: {
-
-            clearQuery: function clearQuery() {
-                this.set('query', '');
-            },
 
             offline: function offline() {
                 this.set('isOnline', false);
@@ -1451,6 +1470,65 @@ define('yith-library-mobile-client/templates/components/online-watcher', ['expor
       },
       statements: [
         ["content","yield",["loc",[null,[1,0],[1,9]]]]
+      ],
+      locals: [],
+      templates: []
+    };
+  }()));
+
+});
+define('yith-library-mobile-client/templates/components/search-form', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      meta: {
+        "topLevel": false,
+        "revision": "Ember@2.1.0",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 3,
+            "column": 0
+          }
+        },
+        "moduleName": "yith-library-mobile-client/templates/components/search-form.hbs"
+      },
+      isEmpty: false,
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("button");
+        dom.setAttribute(el1,"type","reset");
+        var el2 = dom.createTextNode("Remove text");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var element0 = dom.childAt(fragment, [2]);
+        var morphs = new Array(2);
+        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+        morphs[1] = dom.createElementMorph(element0);
+        dom.insertBoundary(fragment, 0);
+        return morphs;
+      },
+      statements: [
+        ["inline","input",[],["placeholder","Search...","value",["subexpr","@mut",[["get","query",["loc",[null,[1,38],[1,43]]]]],[],[]]],["loc",[null,[1,0],[1,45]]]],
+        ["element","action",["clearQuery"],[],["loc",[null,[2,21],[2,44]]]]
       ],
       locals: [],
       templates: []
@@ -4069,11 +4147,11 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           "loc": {
             "source": null,
             "start": {
-              "line": 24,
+              "line": 21,
               "column": 10
             },
             "end": {
-              "line": 26,
+              "line": 23,
               "column": 10
             }
           },
@@ -4102,7 +4180,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           return morphs;
         },
         statements: [
-          ["content","tag",["loc",[null,[25,30],[25,37]]]]
+          ["content","tag",["loc",[null,[22,30],[22,37]]]]
         ],
         locals: [],
         templates: []
@@ -4117,11 +4195,11 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
             "loc": {
               "source": null,
               "start": {
-                "line": 31,
+                "line": 28,
                 "column": 14
               },
               "end": {
-                "line": 34,
+                "line": 31,
                 "column": 14
               }
             },
@@ -4156,8 +4234,8 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
             return morphs;
           },
           statements: [
-            ["content","secret.service",["loc",[null,[32,19],[32,37]]]],
-            ["content","secret.account",["loc",[null,[33,19],[33,37]]]]
+            ["content","secret.service",["loc",[null,[29,19],[29,37]]]],
+            ["content","secret.account",["loc",[null,[30,19],[30,37]]]]
           ],
           locals: [],
           templates: []
@@ -4170,11 +4248,11 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           "loc": {
             "source": null,
             "start": {
-              "line": 29,
+              "line": 26,
               "column": 10
             },
             "end": {
-              "line": 36,
+              "line": 33,
               "column": 10
             }
           },
@@ -4206,7 +4284,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
           return morphs;
         },
         statements: [
-          ["block","link-to",["secrets.secret",["get","secret.id",["loc",[null,[31,42],[31,51]]]]],[],0,null,["loc",[null,[31,14],[34,26]]]]
+          ["block","link-to",["secrets.secret",["get","secret.id",["loc",[null,[28,42],[28,51]]]]],[],0,null,["loc",[null,[28,14],[31,26]]]]
         ],
         locals: ["secret"],
         templates: [child0]
@@ -4223,7 +4301,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
             "column": 0
           },
           "end": {
-            "line": 49,
+            "line": 46,
             "column": 0
           }
         },
@@ -4256,21 +4334,7 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("      ");
         dom.appendChild(el3, el4);
-        var el4 = dom.createElement("form");
-        dom.setAttribute(el4,"action","#");
-        var el5 = dom.createTextNode("\n        ");
-        dom.appendChild(el4, el5);
-        var el5 = dom.createComment("");
-        dom.appendChild(el4, el5);
-        var el5 = dom.createTextNode("\n        ");
-        dom.appendChild(el4, el5);
-        var el5 = dom.createElement("button");
-        dom.setAttribute(el5,"type","reset");
-        var el6 = dom.createTextNode("Remove text");
-        dom.appendChild(el5, el6);
-        dom.appendChild(el4, el5);
-        var el5 = dom.createTextNode("\n      ");
-        dom.appendChild(el4, el5);
+        var el4 = dom.createComment("");
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("\n    ");
         dom.appendChild(el3, el4);
@@ -4354,29 +4418,26 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
         var element0 = dom.childAt(fragment, [0]);
         var element1 = dom.childAt(element0, [3]);
         var element2 = dom.childAt(element1, [1]);
-        var element3 = dom.childAt(element2, [3]);
+        var element3 = dom.childAt(element1, [3]);
         var element4 = dom.childAt(element3, [3]);
-        var element5 = dom.childAt(element1, [3]);
-        var element6 = dom.childAt(element5, [3]);
-        var element7 = dom.childAt(element6, [1]);
-        var element8 = dom.childAt(element7, [1]);
-        var element9 = dom.childAt(fragment, [2]);
-        var morphs = new Array(15);
+        var element5 = dom.childAt(element4, [1]);
+        var element6 = dom.childAt(element5, [1]);
+        var element7 = dom.childAt(fragment, [2]);
+        var morphs = new Array(14);
         morphs[0] = dom.createAttrMorph(element0, 'class');
         morphs[1] = dom.createMorphAt(element0,1,1);
         morphs[2] = dom.createAttrMorph(element1, 'class');
         morphs[3] = dom.createElementMorph(element1);
         morphs[4] = dom.createMorphAt(element2,1,1);
-        morphs[5] = dom.createMorphAt(element3,1,1);
-        morphs[6] = dom.createElementMorph(element4);
-        morphs[7] = dom.createMorphAt(element5,1,1);
-        morphs[8] = dom.createMorphAt(element8,0,0);
-        morphs[9] = dom.createMorphAt(element8,2,2);
-        morphs[10] = dom.createMorphAt(element7,3,3);
-        morphs[11] = dom.createMorphAt(dom.childAt(element6, [3]),1,1);
-        morphs[12] = dom.createAttrMorph(element9, 'class');
-        morphs[13] = dom.createMorphAt(dom.childAt(element9, [1]),0,0);
-        morphs[14] = dom.createMorphAt(fragment,4,4,contextualElement);
+        morphs[5] = dom.createMorphAt(element2,3,3);
+        morphs[6] = dom.createMorphAt(element3,1,1);
+        morphs[7] = dom.createMorphAt(element6,0,0);
+        morphs[8] = dom.createMorphAt(element6,2,2);
+        morphs[9] = dom.createMorphAt(element5,3,3);
+        morphs[10] = dom.createMorphAt(dom.childAt(element4, [3]),1,1);
+        morphs[11] = dom.createAttrMorph(element7, 'class');
+        morphs[12] = dom.createMorphAt(dom.childAt(element7, [1]),0,0);
+        morphs[13] = dom.createMorphAt(fragment,4,4,contextualElement);
         return morphs;
       },
       statements: [
@@ -4385,16 +4446,15 @@ define('yith-library-mobile-client/templates/secrets', ['exports'], function (ex
         ["attribute","class",["get","state",["loc",[null,[5,46],[5,51]]]]],
         ["element","action",["finishTransition"],["on","transitionEnd"],["loc",[null,[5,54],[5,102]]]],
         ["block","link-to",["secrets.drawer"],[],0,null,["loc",[null,[8,6],[10,18]]]],
-        ["inline","input",[],["placeholder","Search...","value",["subexpr","@mut",[["get","query",["loc",[null,[12,46],[12,51]]]]],[],[]]],["loc",[null,[12,8],[12,53]]]],
-        ["element","action",["clearQuery"],[],["loc",[null,[13,29],[13,52]]]],
-        ["inline","online-watcher",[],["online","online","offline","offline"],["loc",[null,[19,5],[19,57]]]],
-        ["content","secretsCount",["loc",[null,[23,17],[23,33]]]],
-        ["content","secretsNoun",["loc",[null,[23,34],[23,49]]]],
-        ["block","if",[["get","tag",["loc",[null,[24,16],[24,19]]]]],[],1,null,["loc",[null,[24,10],[26,17]]]],
-        ["block","each",[["get","secrets",["loc",[null,[29,18],[29,25]]]]],[],2,null,["loc",[null,[29,10],[36,19]]]],
-        ["attribute","class",["get","statusClass",["loc",[null,[44,31],[44,42]]]]],
-        ["content","statusMessage",["loc",[null,[45,5],[45,22]]]],
-        ["content","outlet",["loc",[null,[48,0],[48,10]]]]
+        ["inline","search-form",[],["query",["subexpr","@mut",[["get","query",["loc",[null,[11,26],[11,31]]]]],[],[]]],["loc",[null,[11,6],[11,33]]]],
+        ["inline","online-watcher",[],["online","online","offline","offline"],["loc",[null,[16,5],[16,57]]]],
+        ["content","secretsCount",["loc",[null,[20,17],[20,33]]]],
+        ["content","secretsNoun",["loc",[null,[20,34],[20,49]]]],
+        ["block","if",[["get","tag",["loc",[null,[21,16],[21,19]]]]],[],1,null,["loc",[null,[21,10],[23,17]]]],
+        ["block","each",[["get","secrets",["loc",[null,[26,18],[26,25]]]]],[],2,null,["loc",[null,[26,10],[33,19]]]],
+        ["attribute","class",["get","statusClass",["loc",[null,[41,31],[41,42]]]]],
+        ["content","statusMessage",["loc",[null,[42,5],[42,22]]]],
+        ["content","outlet",["loc",[null,[45,0],[45,10]]]]
       ],
       locals: [],
       templates: [child0, child1, child2]
@@ -4429,6 +4489,16 @@ define('yith-library-mobile-client/tests/components/online-watcher.jshint', func
   QUnit.module('JSHint - components');
   QUnit.test('components/online-watcher.js should pass jshint', function(assert) { 
     assert.ok(true, 'components/online-watcher.js should pass jshint.'); 
+  });
+
+});
+define('yith-library-mobile-client/tests/components/search-form.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - components');
+  QUnit.test('components/search-form.js should pass jshint', function(assert) { 
+    assert.ok(true, 'components/search-form.js should pass jshint.'); 
   });
 
 });
@@ -4715,6 +4785,155 @@ define('yith-library-mobile-client/tests/integration/components/online-watcher-t
   QUnit.module('JSHint - integration/components');
   QUnit.test('integration/components/online-watcher-test.js should pass jshint', function(assert) { 
     assert.ok(true, 'integration/components/online-watcher-test.js should pass jshint.'); 
+  });
+
+});
+define('yith-library-mobile-client/tests/integration/components/search-form-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleForComponent('search-form', 'Integration | Component | search form', {
+    integration: true
+  });
+
+  ember_qunit.test('it renders', function (assert) {
+    assert.expect(2);
+
+    // Set any properties with this.set('myProperty', 'value');
+    // Handle any actions with this.on('myAction', function(val) { ... });
+
+    this.render(Ember.HTMLBars.template((function () {
+      return {
+        meta: {
+          'topLevel': null,
+          'revision': 'Ember@2.1.0',
+          'loc': {
+            'source': null,
+            'start': {
+              'line': 1,
+              'column': 0
+            },
+            'end': {
+              'line': 1,
+              'column': 15
+            }
+          }
+        },
+        isEmpty: false,
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment('');
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
+          dom.insertBoundary(fragment, 0);
+          dom.insertBoundary(fragment, null);
+          return morphs;
+        },
+        statements: [['content', 'search-form', ['loc', [null, [1, 0], [1, 15]]]]],
+        locals: [],
+        templates: []
+      };
+    })()));
+
+    assert.equal(this.$().text().trim(), '');
+
+    // Template block usage:
+    this.render(Ember.HTMLBars.template((function () {
+      var child0 = (function () {
+        return {
+          meta: {
+            'topLevel': null,
+            'revision': 'Ember@2.1.0',
+            'loc': {
+              'source': null,
+              'start': {
+                'line': 2,
+                'column': 4
+              },
+              'end': {
+                'line': 4,
+                'column': 4
+              }
+            }
+          },
+          isEmpty: false,
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode('      template block text\n');
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes() {
+            return [];
+          },
+          statements: [],
+          locals: [],
+          templates: []
+        };
+      })();
+
+      return {
+        meta: {
+          'topLevel': null,
+          'revision': 'Ember@2.1.0',
+          'loc': {
+            'source': null,
+            'start': {
+              'line': 1,
+              'column': 0
+            },
+            'end': {
+              'line': 5,
+              'column': 2
+            }
+          }
+        },
+        isEmpty: false,
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode('\n');
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment('');
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode('  ');
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
+          return morphs;
+        },
+        statements: [['block', 'search-form', [], [], 0, null, ['loc', [null, [2, 4], [4, 20]]]]],
+        locals: [],
+        templates: [child0]
+      };
+    })()));
+
+    assert.equal(this.$().text().trim(), 'template block text');
+  });
+
+});
+define('yith-library-mobile-client/tests/integration/components/search-form-test.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - integration/components');
+  QUnit.test('integration/components/search-form-test.js should pass jshint', function(assert) { 
+    assert.ok(true, 'integration/components/search-form-test.js should pass jshint.'); 
   });
 
 });

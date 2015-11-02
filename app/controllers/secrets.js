@@ -125,10 +125,6 @@ export default Ember.Controller.extend({
 
     actions: {
 
-        clearQuery: function () {
-            this.set('query', '');
-        },
-
         offline: function () {
             this.set('isOnline', false);
         },

@@ -5,8 +5,6 @@ export default Ember.Component.extend({
     didInsertElement: function () {
         window.addEventListener('offline', this);
         window.addEventListener('online', this);
-        // place cursor on search field
-        this.$('input#search').focus();
     },
 
     handleEvent: function (event) {
