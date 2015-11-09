@@ -16,7 +16,7 @@ module.exports = function(environment) {
     defaults: {
       clientId: 'd866fbc8-a367-44a2-9d6f-8ae2ffbd2748',
       clientBaseUrl: 'http://mobileyith:4200',
-      serverBaseUrl: 'http://localhost:6543'
+      serverBaseUrl: 'http://serveryith:6543'
     },
 
     APP: {
