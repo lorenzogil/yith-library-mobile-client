@@ -22,7 +22,6 @@
     "broccoli-asset-rev": "^2.2.0",
     "broccoli-merge-trees": "0.1.4",
     "broccoli-replace": "0.1.7",
-    "broccoli-static-compiler": "0.1.4",
     "ember-ajax": "0.6.3",
     "ember-cli": "1.13.8",
     "ember-cli-app-version": "^1.0.0",
