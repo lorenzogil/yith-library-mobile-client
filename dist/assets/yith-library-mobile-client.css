@@ -27,11 +27,6 @@
 
 @import 'cross_browser.css';
 
-
-html, body {
-    margin: 0;
-}
-
 [data-position="right"] {
     position: absolute;
     top: 0;
@@ -70,7 +65,7 @@ section[role="region"][data-position="right"] {
     bottom: 0;
     z-index: -1;
     opacity: 0;
-/* z-index: 100; -> drawer */
+    /* z-index: 100; -> drawer */
 }
 [data-position="back"].fade-in {
     z-index: 120;
@@ -102,18 +97,10 @@ section[role="region"][data-position="right"] {
     opacity: 1;
 }
 
-/* Headers */
-#headers section[role="region"] {
-    margin-bottom: 1.5rem;
-}
-#headers section[role="region"]:not(#drawer) {
-    display: inline;
-}
-#headers article header:first-child {
-    margin-top: 1.5rem;
-}
-#headers section[role="region"] header h2 {
-    margin: 0 0 1.5rem 0;
+/* Active state */
+.active {
+    background-color: #b2f2ff;
+    color: #fff;
 }
 
 /* Lists */
@@ -123,19 +110,17 @@ section[role="region"][data-position="right"] {
 }
 
 /* Drawer */
-section[role="region"].drawer-opened {
-    -moz-transform: translateX(80%);
-    -webkit-transform: translateX(80%);
+/*
+section[role="region"]:not(#drawer) {
+    transition: none;
+    left: 0;
+    z-index: 0;
+    padding-left: 0;
 }
-
+*/
 section[data-type="sidebar"] + section[role="region"] > header:first-child > button,
 section[data-type="sidebar"] + section[role="region"] > header:first-child > a {
     background-position: 3.5rem center;
-}
-
-/* Switches */
-#switches label:last-child {
-    margin-left: 2rem;
 }
 
 /* Scrolling */
@@ -152,21 +137,9 @@ div[role="slider"] > label.icon {
     background-size: 3rem auto;
 }
 
-/* Tabs */
-#tabs .content {
-    padding: 0;
-}
-#tabs .content .content {
-    padding: 1.5rem 3rem;
-}
-
 /* Filters */
 [role="tablist"][data-type="filter"] {
     margin-bottom: 2rem;
-}
-
-.bottom[role="tablist"][data-type="filter"] {
-    bottom: auto;
 }
 
 /* Device rotation */
@@ -175,12 +148,71 @@ div[role="slider"] > label.icon {
 }
 
 /* Custom styles */
+
+html, body {
+    margin: 0;
+}
+
 body > div.ember-view, .full-height {
     position: relative;
     height: 100%;
 }
 section[role=region] {
     height: 100%;
+}
+
+section[role="region"].drawer-opened {
+    -moz-transform: translateX(80%);
+    -webkit-transform: translateX(80%);
+}
+
+/* Support a search form in the header */
+section[role=region]>header:first-child form {
+    display: block;
+    overflow: hidden;
+    position: relative;
+    padding: 1rem 1rem 0 .5rem;
+    margin-left: 3.5rem
+}
+
+section[role=region]>header:first-child input[type=text] {
+    width: 100%;
+    height: 3rem;
+    -moz-box-sizing: border-box;
+    padding: 0 .8rem;
+    border: .1rem solid #9d4123;
+    border-top-color: #a6501e;
+    border-radius: .3rem;
+    background: url(headers/images/ui/shadow.png) left -.1rem repeat-x #fff;
+    font-size: 1.5rem;
+    box-shadow: none
+}
+
+section[role=region]>header:first-child form button[type=reset] {
+    font-size: 0;
+    overflow: hidden;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    bottom: 0;
+    width: 3rem;
+    height: auto;
+    margin: 0;
+    display: none;
+    border: none
+}
+
+section[role=region]>header:first-child input[type=text]:valid+button[type=reset] {
+    display: block
+}
+
+/* Header icons are broken when you add cross_browser.css */
+section[role="region"] > header:first-child .icon-menu {
+    background-image: url(headers/images/icons/menu.png);
+}
+
+section[role="region"] > header:first-child .icon-back {
+    background-image: url(headers/images/icons/back.png);
 }
 
 [data-type="list"] small {
