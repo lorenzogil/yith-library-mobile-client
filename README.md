@@ -1,5 +1,7 @@
 # Yith-library-mobile-client
 
+[![Build Status](https://travis-ci.org/lorenzogil/yith-library-mobile-client.svg?branch=master)](https://travis-ci.org/lorenzogil/yith-library-mobile-client)
+
 This README outlines the details of collaborating on this Ember application.
 A short introduction of this app could easily go here.
 
