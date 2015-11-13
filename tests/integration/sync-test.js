@@ -5,7 +5,6 @@ import startApp from '../helpers/start-app';
 
 moduleFor('service:sync', 'Integration | Service | sync', {
     integration: true,
-    needs: ['model:account', 'model:secret', 'model:tag'],
     beforeEach: function (assert) {
         var adapter = null,
             done = assert.async();
