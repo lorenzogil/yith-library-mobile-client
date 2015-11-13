@@ -1,10 +1,12 @@
-Unreleased
-----------
+2015-11-12 0.8.0
+----------------
 FEATURE: Favicon
 FEATURE: Autofocus on search field on page load
 FEATURE: Set default development URL to http://mobileyith:4200
 BUGFIX: Fix development server URL to http://localhost:6543
+FEATURE: Add tests for Sync Service
 FEATURE: Upgrade to Ember 2.1.0
+FEATURE: Upgrade to FFOS Building Blocks 2.0
 
 2014-09-15 0.7.0
 ----------------
