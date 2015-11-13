@@ -2,6 +2,7 @@ import Ember from 'ember';
 
 export default Ember.Controller.extend({
     application: Ember.inject.controller(),
+    auth: Ember.inject.service('auth'),
     secrets: Ember.inject.controller(),
     sortProperties: ['count:desc'],
     sortedTags: Ember.computed.sort('content', 'sortProperties'),
@@ -51,6 +52,10 @@ export default Ember.Controller.extend({
     hasMoreTags: function () {
         return this.get('sortedTags').length > this.get('tagsToDisplay');
     }.property('sortedTags.[]', 'tagsToDisplay'),
+
+    hasValidAccessToken: function () {
+        return this.get('auth.hasValidAccessToken');
+    }.property('auth.hasValidAccessToken'),
 
     syncButtonDisabled: function () {
         return this.get('secrets.isSyncing') || !this.get('secrets.isOnline');

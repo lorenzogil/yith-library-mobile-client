@@ -356,6 +356,7 @@ define('yith-library-mobile-client/controllers/secrets/drawer', ['exports', 'emb
 
     exports['default'] = Ember['default'].Controller.extend({
         application: Ember['default'].inject.controller(),
+        auth: Ember['default'].inject.service('auth'),
         secrets: Ember['default'].inject.controller(),
         sortProperties: ['count:desc'],
         sortedTags: Ember['default'].computed.sort('content', 'sortProperties'),
@@ -405,6 +406,10 @@ define('yith-library-mobile-client/controllers/secrets/drawer', ['exports', 'emb
         hasMoreTags: (function () {
             return this.get('sortedTags').length > this.get('tagsToDisplay');
         }).property('sortedTags.[]', 'tagsToDisplay'),
+
+        hasValidAccessToken: (function () {
+            return this.get('auth.hasValidAccessToken');
+        }).property('auth.hasValidAccessToken'),
 
         syncButtonDisabled: (function () {
             return this.get('secrets.isSyncing') || !this.get('secrets.isOnline');
@@ -3662,7 +3667,7 @@ define('yith-library-mobile-client/templates/secrets/drawer', ['exports'], funct
       statements: [
         ["block","link-to",["secrets"],[],0,null,["loc",[null,[4,6],[4,44]]]],
         ["content","accountDisplayName",["loc",[null,[6,8],[6,30]]]],
-        ["block","if",[["get","authManager.hasValidAccessToken",["loc",[null,[13,15],[13,46]]]]],[],1,2,["loc",[null,[13,8],[33,15]]]],
+        ["block","if",[["get","hasValidAccessToken",["loc",[null,[13,15],[13,34]]]]],[],1,2,["loc",[null,[13,8],[33,15]]]],
         ["element","action",["logout"],[],["loc",[null,[35,22],[35,41]]]],
         ["block","each",[["get","mostUsedTags",["loc",[null,[40,14],[40,26]]]]],[],3,null,["loc",[null,[40,6],[47,15]]]],
         ["block","if",[["get","hasMoreTags",["loc",[null,[48,13],[48,24]]]]],[],4,null,["loc",[null,[48,6],[52,13]]]],
